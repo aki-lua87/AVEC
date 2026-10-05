@@ -1,0 +1,5 @@
+{
+  "name": "CommonGestureRemote.Playlist",
+  "references": ["CommonGestureRemote.Runtime", "CommonVideoPlaylist.Runtime", "UdonSharp.Runtime", "VRC.Udon"],
+  "autoReferenced": true
+}

@@ -1,0 +1,11 @@
+{
+  "name": "CommonVideoPlaylist.Runtime",
+  "references": [
+    "UdonSharp.Runtime",
+    "VRC.Udon",
+    "VRC.Udon.Serialization.OdinSerializer",
+    "Unity.ugui",
+    "AVEC.Core.Runtime"
+  ],
+  "autoReferenced": true
+}

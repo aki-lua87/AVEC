@@ -1,0 +1,10 @@
+{
+  "name": "AVEC.Core.Runtime",
+  "references": [
+    "UdonSharp.Runtime",
+    "VRC.Udon",
+    "VRC.Udon.Serialization.OdinSerializer",
+    "Unity.ugui"
+  ],
+  "autoReferenced": true
+}

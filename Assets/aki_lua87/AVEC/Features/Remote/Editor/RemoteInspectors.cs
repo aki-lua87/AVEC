@@ -1,0 +1,119 @@
+using System;
+using UnityEditor;
+using UnityEngine;
+
+namespace aki_lua87.CommonGestureRemote.Editor
+{
+    [CustomEditor(typeof(GestureData))]
+    public class GestureDataEditor : UnityEditor.Editor
+    {
+        public override void OnInspectorGUI()
+        {
+            EditorGUILayout.HelpBox("→ ← ↑ ↓ または R L U D で登録します。一致中は候補を表示し、トリガーを離すと実行します。\nLocalPower: 自分の画面・音声のみ / Stop・Pause・Resume: 接続先の同期範囲に反映", MessageType.Info);
+            EditorGUI.BeginChangeCheck();
+            DrawDefaultInspector();
+            if (EditorGUI.EndChangeCheck())
+                foreach (var setup in UnityEngine.Object.FindObjectsOfType<RemoteSetup>(true))
+                    if (setup.data == target && RemoteBaker.ValidateData(setup.data) == null && !EditorApplication.isPlayingOrWillChangePlaymode) RemoteBaker.Bake(setup);
+            string error = RemoteBaker.ValidateData((GestureData)target);
+            if (error != null) EditorGUILayout.HelpBox(error, MessageType.Error);
+        }
+    }
+    [CustomEditor(typeof(RemoteSetup))]
+    public class RemoteSetupEditor : UnityEditor.Editor
+    {
+        string error;
+        bool details;
+        void OnEnable()
+        {
+            EditorApplication.delayCall += () =>
+            {
+                if (target == null || EditorApplication.isPlayingOrWillChangePlaymode) return;
+                try { RemoteConnections.AutoConnect((RemoteSetup)target); }
+                catch (Exception e) { error = e.Message; }
+            };
+        }
+        public override void OnInspectorGUI()
+        {
+            var setup = (RemoteSetup)target;
+            using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
+            {
+                serializedObject.Update();
+                EditorGUILayout.LabelField("AVEC Remote", EditorStyles.boldLabel);
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("data"), new GUIContent("ジェスチャー設定"));
+                bool dataChanged = EditorGUI.EndChangeCheck();
+                serializedObject.ApplyModifiedProperties();
+                if (dataChanged) Attempt(() => RemoteBaker.Bake(setup));
+                if (setup.data != null && GUILayout.Button("ジェスチャー設定を編集")) Selection.activeObject = setup.data;
+                if (!RemoteConnections.InScene(setup))
+                    EditorGUILayout.HelpBox("Prefabをシーンへ配置すると、接続先を選択できます。", MessageType.Info);
+                else
+                {
+                    serializedObject.Update();
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("player"), new GUIContent("接続先プレイヤー"));
+                    bool changed = EditorGUI.EndChangeCheck();
+                    serializedObject.ApplyModifiedProperties();
+                    if (changed) Attempt(() => RemoteConnections.Connect(setup, setup.player));
+                    var candidates = RemoteConnections.Find(setup);
+                    if (candidates.Count == 0) EditorGUILayout.HelpBox("対応プレイヤーが見つかりません。使用するプレイヤーとConnectorを導入してください。", MessageType.Info);
+                    foreach (var candidate in candidates)
+                        if (GUILayout.Button((candidate == setup.player ? "● " : "○ ") + RemoteConnections.Label(candidate)))
+                            Attempt(() => RemoteConnections.Connect(setup, candidate));
+                    serializedObject.Update();
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("playlist"), new GUIContent("連携する PlaylistView"));
+                    bool playlistChanged = EditorGUI.EndChangeCheck();
+                    serializedObject.ApplyModifiedProperties();
+                    if (playlistChanged) Attempt(() => RemoteConnections.ConnectPlaylist(setup));
+                    foreach (var view in RemoteConnections.FindPlaylists(setup))
+                        if (GUILayout.Button((view == setup.playlist ? "● " : "○ ") + RemoteConnections.Label(view)))
+                            Attempt(() => { Undo.RecordObject(setup, "Select remote playlist"); setup.playlist = view; RemoteConnections.ConnectPlaylist(setup); });
+                    if (setup.playlist == null) EditorGUILayout.HelpBox("次／前の動画・タブ・再生順操作には、同じプレイヤーに接続したAVEC PlaylistとPlaylistRemote Extensionが必要です。", MessageType.Info);
+                    if (GUILayout.Button("接続を修復・設定を反映")) Attempt(() => { RemoteConnections.Connect(setup, setup.player); RemoteBaker.Bake(setup); });
+                }
+                if (setup.remote != null)
+                {
+                    var remote = new SerializedObject(setup.remote);
+                    remote.Update();
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(remote.FindProperty("customEventTarget"), new GUIContent("カスタムイベントの接続先"));
+                    details = EditorGUILayout.Foldout(details, "感度・表示・画面設定", true);
+                    if (details)
+                        foreach (string field in new[] { "minimumStroke", "directionBias", "timeout", "volumeStep", "scaleWithAvatar", "tip", "trail", "label", "drawingColor", "matchedColor" })
+                            EditorGUILayout.PropertyField(remote.FindProperty(field));
+                    bool remoteChanged = EditorGUI.EndChangeCheck();
+                    remote.ApplyModifiedProperties();
+                    if (remoteChanged) RemoteConnections.Save(setup.remote);
+                    var playerTarget = setup.remote.playerTarget;
+                    if (playerTarget != null)
+                    {
+                        if (playerTarget.screens.Length == 0 && playerTarget.screenGraphics.Length == 0)
+                            EditorGUILayout.HelpBox("OFF対象の画面が未設定です。画面設定にRendererまたはGraphicを指定してください。", MessageType.Warning);
+                        if (details)
+                        {
+                            var t = new SerializedObject(playerTarget);
+                            t.Update(); EditorGUI.BeginChangeCheck();
+                            EditorGUILayout.PropertyField(t.FindProperty("screens"), new GUIContent("OFF対象の画面 Renderer"), true);
+                            EditorGUILayout.PropertyField(t.FindProperty("screenGraphics"), new GUIContent("OFF対象の画面 Graphic"), true);
+                            foreach (string field in new[] { "audioSources", "volumeSliders", "muteModules" })
+                                if (t.FindProperty(field) != null) EditorGUILayout.PropertyField(t.FindProperty(field), true);
+                            bool targetChanged = EditorGUI.EndChangeCheck(); t.ApplyModifiedProperties();
+                            if (targetChanged) RemoteConnections.Save(playerTarget);
+                            if (GUILayout.Button("接続先から画面・音声を再取得")) Attempt(() =>
+                            {
+                                Undo.RecordObject(playerTarget, "Detect remote outputs");
+                                RemoteConnections.DetectOutputs(playerTarget, setup.player, RemoteConnections.Kind(setup.player));
+                                RemoteConnections.Save(playerTarget);
+                            });
+                        }
+                    }
+                }
+                if (!string.IsNullOrEmpty(error)) EditorGUILayout.HelpBox(error, MessageType.Error);
+                EditorGUILayout.HelpBox("持つ → トリガーを引いて描く → 候補名を確認して離す。\nデスクトップ: 持ったまま左クリック＋視点移動。OFFは描画と音声を隠し、動画の同期・読み込みは継続します。", MessageType.Info);
+            }
+        }
+        void Attempt(Action action) { try { action(); error = null; } catch (Exception e) { error = e.Message; } }
+    }
+}

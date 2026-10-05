@@ -1,0 +1,5 @@
+{
+  "name": "CommonGestureRemote.Runtime",
+  "references": ["UdonSharp.Runtime", "VRC.Udon", "Unity.ugui"],
+  "autoReferenced": true
+}

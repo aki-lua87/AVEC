@@ -1,0 +1,328 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 099688386067659468c81a6b9096c713, type: 3}
+  m_Name: DefaultPlaylist
+  m_EditorClassIdentifier: 
+  tabs:
+  - name: "HikakinGames (\u72EC\u81EAAPI test)"
+    randomPlayback: 0
+    titleSourceUrl: https://vrc.akakitune87.net/videos/yt/chlist/UCX1xppLvuj03ubLio8jslyA?version=v2
+    videos:
+    - title: 1
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=0
+      dynamicTitleIndex: 0
+    - title: 2
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=1
+      dynamicTitleIndex: 1
+    - title: 3
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=2
+      dynamicTitleIndex: 2
+    - title: 4
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=3
+      dynamicTitleIndex: 3
+    - title: 5
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=4
+      dynamicTitleIndex: 4
+    - title: 6
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=5
+      dynamicTitleIndex: 5
+    - title: 7
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=6
+      dynamicTitleIndex: 6
+    - title: 8
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=7
+      dynamicTitleIndex: 7
+    - title: 9
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=8
+      dynamicTitleIndex: 8
+    - title: 10
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=9
+      dynamicTitleIndex: 9
+    - title: 11
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=10
+      dynamicTitleIndex: 10
+    - title: 12
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=11
+      dynamicTitleIndex: 11
+    - title: 13
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=12
+      dynamicTitleIndex: 12
+    - title: 14
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=13
+      dynamicTitleIndex: 13
+    - title: 15
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=14
+      dynamicTitleIndex: 14
+    - title: 16
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=15
+      dynamicTitleIndex: 15
+    - title: 17
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=16
+      dynamicTitleIndex: 16
+    - title: 18
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=17
+      dynamicTitleIndex: 17
+    - title: 19
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=18
+      dynamicTitleIndex: 18
+    - title: 20
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=19
+      dynamicTitleIndex: 19
+  - name: "SUSURU TV. (\u72EC\u81EAAPI test)"
+    randomPlayback: 0
+    titleSourceUrl: https://vrc.akakitune87.net/videos/yt/chlist/UCXcjvt8cOfwtcqaMeE7-hqA?version=v2
+    videos:
+    - title: 1
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=0
+      dynamicTitleIndex: 0
+    - title: 2
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=1
+      dynamicTitleIndex: 1
+    - title: 3
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=2
+      dynamicTitleIndex: 2
+    - title: 4
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=3
+      dynamicTitleIndex: 3
+    - title: 5
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=4
+      dynamicTitleIndex: 4
+    - title: 6
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=5
+      dynamicTitleIndex: 5
+    - title: 7
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=6
+      dynamicTitleIndex: 6
+    - title: 8
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=7
+      dynamicTitleIndex: 7
+    - title: 9
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=8
+      dynamicTitleIndex: 8
+    - title: 10
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=9
+      dynamicTitleIndex: 9
+    - title: 11
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=10
+      dynamicTitleIndex: 10
+    - title: 12
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=11
+      dynamicTitleIndex: 11
+    - title: 13
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=12
+      dynamicTitleIndex: 12
+    - title: 14
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=13
+      dynamicTitleIndex: 13
+    - title: 15
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=14
+      dynamicTitleIndex: 14
+    - title: 16
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=15
+      dynamicTitleIndex: 15
+    - title: 17
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=16
+      dynamicTitleIndex: 16
+    - title: 18
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=17
+      dynamicTitleIndex: 17
+    - title: 19
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=18
+      dynamicTitleIndex: 18
+    - title: 20
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=19
+      dynamicTitleIndex: 19
+  - name: "Music1 (\u57FA\u672C\u8A2D\u5B9A test)"
+    randomPlayback: 0
+    titleSourceUrl: 
+    videos:
+    - title: "\u3010\u5E73\u539F\u7DBE\u9999\u3011\u300CJupiter\u300DMV\u30D5\u30EBVer."
+      url: https://www.youtube.com/watch?v=aGWzRUdn0so
+      dynamicTitleIndex: -1
+    - title: "Do As Infinity / \u6DF1\u3044\u68EE\uFF08Fukai Mori\uFF09"
+      url: https://www.youtube.com/watch?v=qIoDWTF0qSo
+      dynamicTitleIndex: -1
+    - title: "\u3086\u305A\u308C\u306A\u3044\u9858\u3044 (Complete ver)"
+      url: https://www.youtube.com/watch?v=W8ONcV-AaVU
+      dynamicTitleIndex: -1
+    - title: "\u304B\u308A\u3086\u305758\u300C\u3055\u3088\u306A\u3089\u300D"
+      url: https://www.youtube.com/watch?v=Quv9IhgPswc
+      dynamicTitleIndex: -1
+    - title: "\u4E00\u9752\u7A88 - \u30CF\u30CA\u30DF\u30BA\u30AD"
+      url: https://www.youtube.com/watch?v=TngUo1gDNOg
+      dynamicTitleIndex: -1
+    - title: "ORANGE RANGE\u300E\u82B1\u300FMV"
+      url: https://www.youtube.com/watch?v=iYkg90hDInc
+      dynamicTitleIndex: -1
+    - title: "GO-ROUND\uFF0F\u4F0A\u85E4\u5948\u592E in FIX"
+      url: https://www.youtube.com/watch?v=ILEF8DeyQXo
+      dynamicTitleIndex: -1
+    - title: "\u9B3C\u675F\u3061\u3072\u308D - \u6708\u5149"
+      url: https://www.youtube.com/watch?v=iyw6-KVmgow
+      dynamicTitleIndex: -1
+    - title: "Aqua Timez\u300E\u6C7A\u610F\u306E\u671D\u306B\u300FMusic Video\uFF08\u6620\u753B\u300C\u30D6\u30EC\u30A4\u30D6
+        \u30B9\u30C8\u30FC\u30EA\u30FC\u300D\u4E3B\u984C\u6B4C\uFF09"
+      url: https://www.youtube.com/watch?v=mLMluQow_TA
+      dynamicTitleIndex: -1
+    - title: "\u8ABF\u548C oto \uFF5Ewith reflection\uFF5E"
+      url: https://www.youtube.com/watch?v=Iub97D63R9Q
+      dynamicTitleIndex: -1
+    - title: "\u68EE\u5C71\u76F4\u592A\u6717 - \u751F\u304D\u3066\u308B\u3053\u3068\u304C\u8F9B\u3044\u306A\u3089"
+      url: https://www.youtube.com/watch?v=4oTU_2Q-6xM
+      dynamicTitleIndex: -1
+    - title: "\u30EC\u30DF\u30AA\u30ED\u30E1\u30F3 - \u7C89\u96EA"
+      url: https://www.youtube.com/watch?v=1wxTksLZ1Mw
+      dynamicTitleIndex: -1
+    - title: "\u307C\u304F\u306E\u30D5\u30EC\u30F3\u30C9"
+      url: https://www.youtube.com/watch?v=83xwNaTUB54
+      dynamicTitleIndex: -1
+    - title: WANNA BE AN ANGEL
+      url: https://www.youtube.com/watch?v=QgQg_mN8AVo
+      dynamicTitleIndex: -1
+    - title: "\u6D5C\u5D0E\u3042\u3086\u307F / progress"
+      url: https://www.youtube.com/watch?v=DPpQxpfDhDg
+      dynamicTitleIndex: -1
+    - title: "\u5CF6\u8C37\u3072\u3068\u307F / \u300CYUME\u65E5\u548C\u300D\u3010OFFICIAL 
+        MV FULL SIZE\u3011"
+      url: https://www.youtube.com/watch?v=LuNmfDmeCTc
+      dynamicTitleIndex: -1
+    - title: "Do As Infinity / \u771F\u5B9F\u306E\u8A69\uFF08Shinjitsu no Uta\uFF09"
+      url: https://www.youtube.com/watch?v=7UvdKt3hLNM
+      dynamicTitleIndex: -1
+    - title: "\u798F\u5C71\u96C5\u6CBB - \u8679 (Full ver.)"
+      url: https://www.youtube.com/watch?v=SXyqhjhaQQA
+      dynamicTitleIndex: -1
+    - title: Private video
+      url: https://www.youtube.com/watch?v=zSdVTQXAmJw
+      dynamicTitleIndex: -1
+    - title: Private video
+      url: https://www.youtube.com/watch?v=FCQrR6grm0c
+      dynamicTitleIndex: -1
+    - title: "\u30C1\u30E3\u30C3\u30C8\u30E2\u30F3\u30C1\u30FC\u300E\u30B7\u30E3\u30F3\u30B0\u30EA\u30E9\u300FMusic
+        Video"
+      url: https://www.youtube.com/watch?v=NEb9MTNk3y4
+      dynamicTitleIndex: -1
+    - title: "Superfly \u300E\u611B\u3092\u3053\u3081\u3066\u82B1\u675F\u3092\u300FMusic
+        Video"
+      url: https://www.youtube.com/watch?v=gU5oN0KVofU
+      dynamicTitleIndex: -1
+  - name: "Music2 (\u57FA\u672C\u8A2D\u5B9A test)"
+    randomPlayback: 0
+    titleSourceUrl: 
+    videos:
+    - title: "\u3010Official\u3011Pok\xE9mon Special Music Video \u300CGOTCHA\uFF01\u300D
+        | BUMP OF CHICKEN - Acacia"
+      url: https://www.youtube.com/watch?v=BoZ0Zwab6Oc
+      dynamicTitleIndex: -1
+    - title: "\u3086\u305A\u308C\u306A\u3044\u9858\u3044 (Complete ver)"
+      url: https://www.youtube.com/watch?v=W8ONcV-AaVU
+      dynamicTitleIndex: -1
+    - title: "\u30E9\u30A4\u30AA\u30F3 \uFF0DMay'n Ver.-"
+      url: https://www.youtube.com/watch?v=NW7lvC7xeRQ
+      dynamicTitleIndex: -1
+    - title: "\u5439\u96EA"
+      url: https://www.youtube.com/watch?v=Y80ZfcXDeew
+      dynamicTitleIndex: -1
+    - title: "KOTOKO\u300Cjihad\u300D\uFF08LIVE)"
+      url: https://www.youtube.com/watch?v=NR_1lgyT608
+      dynamicTitleIndex: -1
+    - title: "\u77F3\u5DDD\u667A\u6676\u300CFirst Pain\u300D"
+      url: https://www.youtube.com/watch?v=aHWaCPxtBlg
+      dynamicTitleIndex: -1
+    - title: fripSide - BLACKFOX (-version 2022-) (Audio)
+      url: https://www.youtube.com/watch?v=Mj454cpEvkQ
+      dynamicTitleIndex: -1
+    - title: Shizuku
+      url: https://www.youtube.com/watch?v=DhFE9-uHczA
+      dynamicTitleIndex: -1
+    - title: "\u5B87\u591A\u7530\u30D2\u30AB\u30EB - COLORS"
+      url: https://www.youtube.com/watch?v=nv7OzIbdm4Y
+      dynamicTitleIndex: -1
+    - title: "Do As Infinity / \u6DF1\u3044\u68EE\uFF08Fukai Mori\uFF09"
+      url: https://www.youtube.com/watch?v=qIoDWTF0qSo
+      dynamicTitleIndex: -1
+    - title: "ONE OK ROCK \u300C\u5B8C\u5168\u611F\u899ADreamer\u300D"
+      url: https://www.youtube.com/watch?v=xGbxsiBZGPI
+      dynamicTitleIndex: -1
+    - title: "ONE OK ROCK - \u3058\u3076\u3093ROCK [Official Music Video]"
+      url: https://www.youtube.com/watch?v=kTkXe60AP8M
+      dynamicTitleIndex: -1
+    - title: "\u30E9\u30FC\u30BC\u30D5\u30A9\u30F3OP\u300C\u30D8\u30DF\u30BD\u30D5\u30A3\u30A2\u300D"
+      url: https://www.youtube.com/watch?v=LTz_UqfxZTw
+      dynamicTitleIndex: -1
+    - title: "ORANGE RANGE\u300E\u82B1\u300FMV"
+      url: https://www.youtube.com/watch?v=iYkg90hDInc
+      dynamicTitleIndex: -1
+    - title: "ORANGE RANGE\u300E\u30DF\u30C1\u30B7\u30EB\u30D9\uFF5Ea road home\uFF5E\u300FMV"
+      url: https://www.youtube.com/watch?v=IhhUTJ0-8ho
+      dynamicTitleIndex: -1
+    - title: "FZMZ - BROKEN GAMES (Lyric Video) / TV\u30A2\u30CB\u30E1\u300C\u30B7\u30E3\u30F3\u30B0\u30EA\u30E9\u30FB\u30D5\u30ED\u30F3\u30C6\u30A3\u30A2\u300DOP\u30C6\u30FC\u30DE"
+      url: https://www.youtube.com/watch?v=O-TXKdMFkfc
+      dynamicTitleIndex: -1
+    - title: FZMZ feat. icy - Danger Danger (Lyric Video)
+      url: https://www.youtube.com/watch?v=Yz5EHpFxxU4
+      dynamicTitleIndex: -1
+    - title: "\u76F8\u5DDD\u4E03\u702C / \u604B\u5FC3"
+      url: https://www.youtube.com/watch?v=kXAsPEe6Yn8
+      dynamicTitleIndex: -1
+  - name: "(\u72EC\u81EAAPI2 test1)"
+    randomPlayback: 0
+    titleSourceUrl: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfJzSuOCazAHWsSRrEVzvyln/titles
+    videos:
+    - title: "\u3010\u3055\u3093\u307D\u65C5Vlog\u3011\u307E\u308B\u3067\u7570\u4E16\u754C\u3078\u3068\u7D9A\u304F\u8FF7\u8DEF\u306E\u3088\u3046\u3002\u5C90\u961C\u770C\u98DB\u9A28\u91D1\u5C71\u306E\u7B4B\u9AA8\u3081\u3050\u308A\u306B\u884C\u3063\u3066\u307F\u305F"
+      url: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfJzSuOCazAHWsSRrEVzvyln/video?n=0
+      dynamicTitleIndex: 0
+    - title: "4\u6B21\u5143\u306E\u6570 \uFF62\u56DB\u5143\u6570\uFF63\u306E\u898B\u305F\u76EE"
+      url: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfJzSuOCazAHWsSRrEVzvyln/video?n=1
+      dynamicTitleIndex: 1
+    - title: "\u3010\u30D9\u30B9\u30C8\u30D0\u30A4\u3011\u751F\u6D3B\u304C\u5909\u308F\u3063\u305F\uFF012026\u5E74\u4E0A\u534A\u671F\u306B\u8CB7\u3063\u3066\u3088\u304B\u3063\u305F\u3082\u306E\u3010\u5BB6\u5177\u30FB\u30AC\u30B8\u30A7\u30C3\u30C8\u30FB\u751F\u6D3B\u7528\u54C1\u3011"
+      url: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfJzSuOCazAHWsSRrEVzvyln/video?n=2
+      dynamicTitleIndex: 2
+  - name: "(\u72EC\u81EAAPI2 test2)"
+    randomPlayback: 0
+    titleSourceUrl: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfL8xCE4AyExdUVTmiJhfYO7/titles
+    videos:
+    - title: "\u30AB\u30FC\u30D3\u30A3\u306E\u7D75\u63CF\u304D\u6B4C(\u5927\u5618)"
+      url: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfL8xCE4AyExdUVTmiJhfYO7/video?n=0
+      dynamicTitleIndex: 0
+    - title: "\u57FC\u7389\u554F\u984C\uFF1A\u6CBB\u5B89\u60AA\u3044\u897F\u5DDD\u53E3\u3067\u30C7\u30B8\u30E2\u30F3\u30BD\u30F3\u30B0"
+      url: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfL8xCE4AyExdUVTmiJhfYO7/video?n=1
+      dynamicTitleIndex: 1
+    - title: "\u3010\u3046\u3069\u3093MAP\u3011\u7A76\u6975\u306E\u725B\u8089\u30B9\u30B8\u3046\u3069\u3093&\u6CB9\u304C\u7206\u305C\u308B\u3054\u307C\u3046\u5929\u3046\u3069\u3093\uFF082024\u5E745\u67088\u65E5OA\uFF09"
+      url: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfL8xCE4AyExdUVTmiJhfYO7/video?n=2
+      dynamicTitleIndex: 2
+    - title: "\u306F\u3044\u3088\u308D\u3053\u3093\u3067\u3010\u793E\u4F1A\u4E3B\u7FA9\u3011"
+      url: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfL8xCE4AyExdUVTmiJhfYO7/video?n=3
+      dynamicTitleIndex: 3
+    - title: "\u30E9\u30B0\u30C8\u30EA\u30AA"
+      url: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfL8xCE4AyExdUVTmiJhfYO7/video?n=4
+      dynamicTitleIndex: 4
+    - title: "\u3010\u3046\u3069\u3093MAP\u3011\u8D85\u4EBA\u6C17\u305D\u3070\u5E97\u306E\u898B\u305F\u76EE\u3067\u7F8E\u5473\u3057\u3044\u8089\u3054\u307C\u3046\u5929\u3046\u3069\u3093\uFF082022\u5E741\u670826\u65E5OA\uFF09"
+      url: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfL8xCE4AyExdUVTmiJhfYO7/video?n=5
+      dynamicTitleIndex: 5
+    - title: Netherlands Goal Song 2026 FIFA World Cup
+      url: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfL8xCE4AyExdUVTmiJhfYO7/video?n=6
+      dynamicTitleIndex: 6
+    - title: "\u3010\u516C\u5F0F\u3011\u300EBLACKFOX\u300F\u671F\u9593\u9650\u5B9A\u672C\u7DE8\u914D\u4FE1"
+      url: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfL8xCE4AyExdUVTmiJhfYO7/video?n=7
+      dynamicTitleIndex: 7
+  - name: "\u624B\u52D5\u8A2D\u5B9A"
+    randomPlayback: 0
+    titleSourceUrl: 
+    videos:
+    - title: " \u5553\u793A \uFF5E\u86EE\u795E\u30B9\u30B5\u30CE\u30AA\u8A0E\u6EC5\u6226\uFF5E "
+      url: https://www.youtube.com/watch?v=KU_BB4midl8
+      dynamicTitleIndex: -1
+    - title: " \u30ED\u30F3\u30B0\u30D5\u30A9\u30FC\u30EB \uFF5E\u7570\u754C\u907A\u69CB
+        \u30B7\u30EB\u30AF\u30B9\uFF65\u30C4\u30A4\u30CB\u30F3\u30B0\uFF5E "
+      url: https://www.youtube.com/watch?v=4W2UVwG55Fs
+      dynamicTitleIndex: -1

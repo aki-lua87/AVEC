@@ -1,0 +1,5 @@
+{
+  "name": "CommonVideoPlaylist.KineL",
+  "references": ["CommonVideoPlaylist.Runtime", "Kinel.VideoPlayer.Udon", "UdonSharp.Runtime", "VRC.Udon"],
+  "autoReferenced": true
+}

@@ -1,0 +1,12 @@
+{
+  "name": "AVEC.Extension.DynamicPlaylist",
+  "references": [
+    "AVEC.Core.Runtime",
+    "CommonVideoPlaylist.Runtime",
+    "UdonSharp.Runtime",
+    "VRC.Udon",
+    "VRC.Udon.Serialization.OdinSerializer",
+    "Unity.ugui"
+  ],
+  "autoReferenced": true
+}
