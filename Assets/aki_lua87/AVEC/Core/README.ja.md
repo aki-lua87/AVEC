@@ -13,7 +13,7 @@ Unity 2022.3.22f1 / VRChat Worlds SDK 3.10.5を対象としています。
 
 未導入のプレイヤー・機能用Connectorは導入しないでください。各パッケージの依存先はRelease Builderと出力manifestに表示します。Coreや機能からExtensionを自動ダウンロードすることはありません。
 
-PlaylistのPrefabは`Features/Playlist/Prefabs/CommonVideoPlaylist.prefab`、Remoteは`Features/Remote/Prefabs/CommonGestureRemote.prefab`です。空のDefaultPlaylistは`Features/Playlist/Samples/Playlists/DefaultPlaylist.asset`です。
+ワールドに配置するPrefabは`Assets/aki_lua87/AVEC/Prefabs/`に集約しています。Playlistは`CommonVideoPlaylist.prefab`、Remoteは`CommonGestureRemote.prefab`、持ち運べる操作一覧は`CommonGestureGuide.prefab`です。内部参照用の子Prefabは各機能のフォルダで管理します。空のDefaultPlaylistは`Features/Playlist/Samples/Playlists/DefaultPlaylist.asset`です。
 
 動的プレイリストのExtensionを導入すると、本体の編集画面とInspectorに「動的プレイリストを開く」が表示されます。専用画面で挿入先PlaylistDataを選択し、チャンネル／YouTubeプレイリストを取得してプレビューした後、タブを挿入して保存します。DefaultPlaylistへ挿入する場合は参照中のすべてのUIが共有するため、通常は専用のデータを作成して指定します。
 

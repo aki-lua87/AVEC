@@ -17,11 +17,15 @@ namespace aki_lua87.CommonGestureRemote
         public override int _Playback(int action)
         {
             if (NetworkCalling.InNetworkCall || !_Ready() || !Utilities.IsValid(Networking.LocalPlayer)) return 0;
-            if (action != 8 && action != 12 && action != 13 && action != 16) return 5;
+            if (action == 21) action = player.paused ? 13 : 12;
+            if (action != 8 && action != 12 && action != 13 && action != 16 && action != 17 && action != 19) return 5;
+            if ((action == 12 || action == 13 || action == 17) && !player.isPlaying) return 4;
+            if (action == 17 && (player.isLive || player.duration <= 0f || !player.allowSeeking)) return 4;
             if (player.locked && !Networking.IsMaster && !(player.isAllowInstanceOwner && Networking.LocalPlayer.isInstanceOwner)) return 2;
             player.TakeOwnership();
             if (!Networking.IsOwner(player.gameObject)) return 2;
-            if (action == 16) player.loop = !player.loop;
+            if (action == 16 || action == 19) player.loop = action == 19 || !player.loop;
+            else if (action == 17) { player.clockTime = Networking.GetServerTimeInMilliseconds(); player.time = 0f; player.Play(); }
             else if (action == 8) player.Stop();
             else if (action == 12) player.Pause();
             else player.Play();

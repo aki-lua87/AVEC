@@ -17,9 +17,16 @@ namespace aki_lua87.CommonGestureRemote
         public override int _Playback(int action)
         {
             if (NetworkCalling.InNetworkCall || !_Ready() || !Utilities.IsValid(Networking.LocalPlayer)) return 0;
-            if (action != 8 && action != 12 && action != 13 && action != 16) return 5;
+            if (action == 21) action = player.core.IsPlaying ? 12 : 13;
+            if (action != 8 && action != 12 && action != 13 && action != 16 && action != 17 && action != 19) return 5;
+            if ((action == 12 || action == 13 || action == 17) && !player.core.IsReady) return 4;
+            if (action == 17 && (player.core.Duration <= 0f || float.IsInfinity(player.core.Duration) || float.IsNaN(player.core.Duration))) return 4;
             if (player.Locked) return 2;
-            if (action == 16) player.RepeatOne = !player.RepeatOne;
+            if (action == 16 || action == 19) {
+                bool repeat = action == 19 || !player.RepeatOne;
+                player.RepeatAll = false; player.Shuffle = false; player.RepeatOne = repeat; player.core.Loop = repeat;
+            }
+            else if (action == 17) { player.core.Progress = 0f; player._Play(); }
             else if (action == 8) player._Stop();
             else if (action == 12) player._Pause();
             else player._Play();

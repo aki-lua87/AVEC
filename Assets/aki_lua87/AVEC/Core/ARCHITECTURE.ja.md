@@ -2,6 +2,7 @@
 
 ```text
 Assets/aki_lua87/AVEC/
+  Prefabs/                      ワールドに配置するPrefab（Playlist・Remote・操作一覧）
   Core/                         共通の登録・検出・実行時フック・フォント
   Features/
     Playlist/                   データ編集、UI、連続再生、共通キュー
@@ -40,3 +41,5 @@ Editorの`FeatureExtensionRegistry.Register`へID・対象機能・開く処理�
 動的取得結果は先にプレビューし、明示的な挿入操作で元のPlaylistDataを保存します。既存タブは保持して末尾へ追加し、挿入前に本体編集ウィンドウの未保存変更を確認します。保存と開いているUIへの反映は既存のUndo処理を使います。
 
 配布定義はRelease BuilderのPackagesです。CollectPathsで出力範囲を確認でき、IncludeDependenciesを使わず第三者プレイヤー・シーンを除外します。manifestは各パッケージの依存先を記録します。
+
+配置用Prefabは`Prefabs/`に集約し、内部参照用の子Prefabは各機能のフォルダに残します。Release Builderは集約フォルダ全体を同梱せず、Playlistに`CommonVideoPlaylist.prefab`、Remoteに`CommonGestureRemote.prefab`と`CommonGestureGuide.prefab`を明示的に収録します。デモ専用の説明パネルは`Demo/Prefabs/`に置き、配布対象に含めません。

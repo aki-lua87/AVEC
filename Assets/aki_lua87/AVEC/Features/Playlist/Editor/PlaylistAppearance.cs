@@ -67,7 +67,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (label == null || layout == null) return;
             Undo.RecordObject(label, "Fit playlist title");
             label.resizeTextForBestFit = true;
-            label.resizeTextMinSize = 1;
+            label.resizeTextMinSize = Mathf.Min(14, Mathf.Max(1, label.fontSize));
             label.resizeTextMaxSize = Mathf.Max(1, label.fontSize);
             label.horizontalOverflow = HorizontalWrapMode.Wrap;
             label.verticalOverflow = VerticalWrapMode.Truncate;

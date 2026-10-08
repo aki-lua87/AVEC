@@ -7,7 +7,7 @@ using VRC.SDK3.UdonNetworkCalling;
 
 namespace aki_lua87.CommonGestureRemote
 {
-    [UdonBehaviourSyncMode(BehaviourSyncMode.NoVariableSync)]
+    [UdonBehaviourSyncMode(BehaviourSyncMode.None)]
     public class GestureRemote : UdonSharpBehaviour
     {
         public Transform tip;
@@ -23,6 +23,15 @@ namespace aki_lua87.CommonGestureRemote
         public bool scaleWithAvatar = true;
         public Color drawingColor = new Color(.3f, .75f, 1f);
         public Color matchedColor = new Color(.3f, 1f, .65f);
+        public Transform helpPanel;
+        public Text helpCommands;
+        public Transform helpHint;
+        public RectTransform helpStick;
+        public CanvasGroup helpHintGroup;
+        [Min(.5f)] public float helpHoldSeconds = 2f;
+        [Min(1f)] public float helpIdleSeconds = 5f;
+        public Vector3 helpOffset = new Vector3(.18f, .16f, .08f);
+        [Min(.0001f)] public float helpUIScale = .00065f;
         // Editor-baked, persisted arrays; shared authoring data never enters Udon.
         [HideInInspector] public string[] gestures = new string[0];
         [HideInInspector] public string[] labels = new string[0];
@@ -47,23 +56,39 @@ namespace aki_lua87.CommonGestureRemote
         private Vector3 lastTrailPoint;
         private const int MaxTrailPoints = 256;
         private const int MaxDirections = 3;
+        private float helpAxis;
+        private float helpDownSince = -1f;
+        private float lastActivity;
+        private bool helpShown;
+        private bool helpSeen;
 
         private void Start()
         {
             ClearVisuals();
+            HideHelp();
             var pickup = (VRC.SDK3.Components.VRCPickup)GetComponent(typeof(VRC.SDK3.Components.VRCPickup));
             if (pickup != null && Utilities.IsValid(Networking.LocalPlayer))
                 pickup.AutoHold = Networking.LocalPlayer.IsUserInVR() ? VRC_Pickup.AutoHoldMode.No : VRC_Pickup.AutoHoldMode.Yes;
         }
-        public override void OnPickup() { if (!NetworkCalling.InNetworkCall) held = true; }
-        public override void OnDrop() { held = false; Cancel(); }
-        public override void OnOwnershipTransferred(VRCPlayerApi owner)
+        public override void OnPickup()
         {
-            if (!Utilities.IsValid(owner) || !owner.isLocal) { held = false; Cancel(); }
+            if (NetworkCalling.InNetworkCall) return;
+            held = true; helpSeen = false; helpAxis = 0f;
+            lastActivity = Time.time;
+            HideHelp();
+        }
+        public override void OnDrop() { held = false; Cancel(); HideHelp(); }
+        public override void InputLookVertical(float value, VRC.Udon.Common.UdonInputEventArgs args)
+        {
+            if (NetworkCalling.InNetworkCall || !held || !Utilities.IsValid(Networking.LocalPlayer) || !Networking.LocalPlayer.IsUserInVR()) return;
+            if (args.handType != VRC.Udon.Common.HandType.RIGHT) return;
+            helpAxis = value;
         }
         public override void OnPickupUseDown()
         {
             if (NetworkCalling.InNetworkCall || !held || drawing || tip == null || !Utilities.IsValid(Networking.LocalPlayer)) return;
+            lastActivity = Time.time; helpDownSince = -1f;
+            if (helpHint != null) helpHint.gameObject.SetActive(false);
             var head = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
             basis = head.rotation;
             headOrigin = head.position;
@@ -83,6 +108,7 @@ namespace aki_lua87.CommonGestureRemote
         public override void OnPickupUseUp()
         {
             if (NetworkCalling.InNetworkCall || !drawing) return;
+            lastActivity = Time.time;
             if (!held || !Utilities.IsValid(Networking.LocalPlayer) || Time.time - startedAt > timeout) { Cancel(); return; }
             SampleInput();
             drawing = false;
@@ -100,6 +126,7 @@ namespace aki_lua87.CommonGestureRemote
         }
         public override void PostLateUpdate()
         {
+            UpdateHelp();
             if (drawing)
             {
                 if (!held || !Utilities.IsValid(Networking.LocalPlayer) || Time.time - startedAt > timeout) { Cancel(); return; }
@@ -110,6 +137,52 @@ namespace aki_lua87.CommonGestureRemote
             if (tip != null) label.transform.position = (drawing || desktop ? strokeTip : tip.position) + (basis * Vector3.up) * .07f;
             if (Utilities.IsValid(Networking.LocalPlayer))
                 label.transform.rotation = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).rotation;
+        }
+        private void UpdateHelp()
+        {
+            if (!held || !Utilities.IsValid(Networking.LocalPlayer)) return;
+            bool vr = Networking.LocalPlayer.IsUserInVR();
+            bool down = vr ? helpAxis <= -.65f : Input.GetKey(KeyCode.H);
+            if (drawing || !down) helpDownSince = -1f;
+            else if (!helpShown)
+            {
+                if (helpDownSince < 0f) helpDownSince = Time.time;
+                lastActivity = Time.time;
+                if (Time.time - helpDownSince >= helpHoldSeconds && helpPanel != null)
+                {
+                    helpShown = true; helpSeen = true;
+                    helpPanel.gameObject.SetActive(true);
+                }
+            }
+            bool hint = vr && !drawing && !helpSeen && !helpShown && !down && Time.time - lastActivity >= helpIdleSeconds;
+            if (helpHint != null && helpHint.gameObject.activeSelf != hint) helpHint.gameObject.SetActive(hint);
+            if (!helpShown && !hint) return;
+            var head = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
+            float scale = scaleWithAvatar && vr ? Mathf.Clamp(Networking.LocalPlayer.GetAvatarEyeHeightAsMeters() / 1.6f, .25f, 3f) : 1f;
+            Vector3 origin = vr && tip != null ? tip.position : head.position + head.rotation * new Vector3(0, -.18f, .65f);
+            if (helpShown && helpPanel != null)
+            {
+                helpPanel.position = origin + head.rotation * (helpOffset * scale);
+                helpPanel.rotation = head.rotation;
+                helpPanel.localScale = Vector3.one * (helpUIScale * scale);
+            }
+            if (hint && helpHint != null)
+            {
+                helpHint.position = origin + head.rotation * new Vector3(.1f * scale, .09f * scale, .04f * scale);
+                helpHint.rotation = head.rotation;
+                helpHint.localScale = Vector3.one * (helpUIScale * scale);
+                float cycle = Mathf.Repeat(Time.time - lastActivity - helpIdleSeconds, 2.4f);
+                float tilt = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(cycle / .65f));
+                if (cycle > 1.9f) tilt = 1f - Mathf.SmoothStep(0f, 1f, (cycle - 1.9f) / .5f);
+                if (helpStick != null) helpStick.anchoredPosition = new Vector2(-65f, 12f - 22f * tilt);
+                if (helpHintGroup != null) helpHintGroup.alpha = .7f + .3f * tilt;
+            }
+        }
+        private void HideHelp()
+        {
+            helpShown = false; helpDownSince = -1f;
+            if (helpPanel != null) helpPanel.gameObject.SetActive(false);
+            if (helpHint != null) helpHint.gameObject.SetActive(false);
         }
         private void SampleInput()
         {
@@ -167,7 +240,9 @@ namespace aki_lua87.CommonGestureRemote
                 customEventTarget.SendCustomEvent(customEvents[index]);
                 return 1;
             }
-            RemoteTarget target = action == 1 || action == 2 || action == 9 || action == 10 || action == 11 || (action == 16 && playlistTarget != null && playlistTarget._Ready()) ? playlistTarget : playerTarget;
+            bool sequence = action == 1 || action == 2 || action == 9 || action == 10 || action == 11 || action == 18 || action == 20;
+            bool repeat = action == 16 || action == 19;
+            RemoteTarget target = sequence || (repeat && playlistTarget != null && playlistTarget._Ready()) ? playlistTarget : playerTarget;
             return target == null ? 0 : target._Execute(action, volumeStep);
         }
         private void AddTrail(Vector3 point)
@@ -189,6 +264,6 @@ namespace aki_lua87.CommonGestureRemote
             if (trail != null) { trail.enabled = false; trail.positionCount = 0; }
             if (label != null) label.gameObject.SetActive(false);
         }
-        private void OnDisable() { held = false; Cancel(); }
+        private void OnDisable() { held = false; helpAxis = 0f; Cancel(); HideHelp(); }
     }
 }

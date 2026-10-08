@@ -13,3 +13,12 @@
 今回、解消済みコンパイルエラーのConsole表示がUdonSharpの開始を阻害していたため、履歴47件を`Library/AVEC-ConsoleHistory-before-compile.json`へ保管して表示を整理した後、再コンパイルした。
 
 手動確認: 各Connectorで再生・停止・自然終了・キュー、Remote操作、DynamicPlaylistの取得プレビューと挿入、実行時タイトル更新、複数人同期・途中参加を確認する。旧版を利用する環境への更新はMIGRATION.ja.mdのGUID保持手順に従う。
+
+## 配置用Prefabの集約（2026-10-06）
+
+- 配置用のCommonVideoPlaylist、CommonGestureRemote、CommonGestureGuideをUnityのMoveAssetでAVEC/Prefabsへ移動。3件すべてのGUID・Prefab内容が移動前と一致。
+- 生成処理・説明書・移行案内を新しい配置へ更新。既存Prefabの再生成、全体Bake、テーマ反映は未実施。
+- Release Builderの13個のCollectPathsを確認。Playlistは配置用Prefab1件、Remoteは2件を収録し、その他のパッケージには混在しない。Demoのワールド説明パネルは全パッケージで対象外。
+- GUID参照がない空フォルダ9件を削除。旧CommonAssets 1、MVPL、CommonGestureRemoteとCommonVideoPlaylist（各Extensionsを含む）、Demo/Themes、移動元のPlaylist/PrefabsとRemote/Prefabs。
+- C#・UdonSharpコンパイル完了。今回のUdonSharpコンパイルでエラー0。シーン内42140コンポーネントの編集時シリアライズ値を照合し、差分・欠落とも0。
+- 開いているシーンは保存・再ロードせず保持。コンパイル後のシーンは未保存状態。Play、VRChat動作確認、別プロジェクトへのインポート、配布物生成は未実施。

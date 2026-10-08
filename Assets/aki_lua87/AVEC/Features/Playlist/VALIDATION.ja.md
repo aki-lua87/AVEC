@@ -147,3 +147,17 @@
 - シーンはインメモリで変更し、未保存のまま保持。Playモード・VRChat試験は未実施。
 
 手動確認: キューと通常タブの切り替え → URL入力から追加 → 既存動画の＋から追加 → 混在キューの自然終了・削除・同期・途中参加 → デモでジャンプを確認。
+
+## 表示・レイ操作・リモコン拡張（2026-10-06）
+
+- UnityMCPでCommonAssetsDemoのインメモリ状態とPrefab overridesを確認してから対象プロパティのみ変更。
+- 4台のCanvasScaler.dynamicPixelsPerUnitを4以上に設定。長いタブ名のBest Fit最小値を14pxに変更。フォント・フォントサイズ・色は保持。
+- Selectable NavigationをNone、ScrollRect.scrollSensitivityを0に設定。スクロールバー／一覧のレイドラッグを使用。
+- キュー／履歴を32行のスクロール一覧に変更。既存6行は再利用。ページボタン・タブ件数・ページ件数を非表示。履歴の右側再生アイコンを非表示にし、行全体に再生クリックを配線。
+- Playback progressのSpriteを均一な白テクスチャへ変更し、既存アクセント色で単色表示。
+- C#とUdonSharpの最終コンパイル成功。4台の256行分のクリック参照・index・view・Program Sourceを編集時に検査し、不一致なし。
+- 12,928件の保存前プロパティを照合。レイアウトシステムが駆動する値と依頼した変更を除き、既存Transform・フォント・色・動画データ・接続・リモコン感度を保持。
+- Prefab編集直後にUdonSharpEditorUtilityの遅延hideFlags処理が破棄済みPrefabのUdonBehaviourを参照する例外が1件発生。コンパイルエラーとは別。以後のPrefabアンロードは同SDKの既存Factoryと同様に遅延し、現存する参照・配線を再検査した。
+- CommonAssetsDemoシーンは未保存。Play／VRChat試験、別プロジェクトへのインポート、Release Builder実行は未実施。
+
+手動確認: VRで小さな日本語・長いタブ名を確認 → コントローラー軸で動かず、レイでスクロールできること → 7件以上のキュー／履歴から末尾までアクセス → 履歴行の再生・キュー削除 → 単色の再生位置バー → 2クライアントで共有再生とローカルUIを確認。

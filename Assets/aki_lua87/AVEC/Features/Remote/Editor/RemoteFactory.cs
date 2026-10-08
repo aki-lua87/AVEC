@@ -16,7 +16,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
     public static class RemoteFactory
     {
         public const string Root = aki_lua87.AVEC.Editor.PackageLayout.Remote;
-        public const string PrefabPath = Root + "/Prefabs/CommonGestureRemote.prefab";
+        public const string PrefabPath = aki_lua87.AVEC.Editor.PackageLayout.Prefabs + "/CommonGestureRemote.prefab";
         public const string DataPath = Root + "/Samples/DefaultGestures.asset";
 
         [MenuItem("Tools/AVEC/Remote/Generate Assets")]
@@ -53,7 +53,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
         [MenuItem("Tools/AVEC/Remote/Create Sample Prefab")]
         public static void CreatePrefab()
         {
-            Directory.CreateDirectory(Root + "/Prefabs");
+            Directory.CreateDirectory(aki_lua87.AVEC.Editor.PackageLayout.Prefabs);
             Directory.CreateDirectory(Root + "/Samples");
             Directory.CreateDirectory(Root + "/Materials");
             AssetDatabase.Refresh();
@@ -87,7 +87,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
             pickup.DisallowTheft = true;
             pickup.InteractionText = "Gesture Remote / 持つ";
             pickup.UseText = "トリガーを引いて描く → 離して実行";
-            root.AddComponent<VRCObjectSync>();
+            // Each client carries its own remote; playback is synchronized by the player.
             var grip = new GameObject("Grip").transform;
             grip.SetParent(root.transform, false);
             pickup.ExactGun = null;
@@ -128,6 +128,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
             text.supportRichText = false; text.raycastTarget = false; text.color = remote.drawingColor;
             text.text = "→↑  音量 +10%";
             remote.label = text;
+            RemoteHelpBuilder.Ensure(setup);
             // Hide the whole label canvas at rest, while runtime toggles its text.
             textGo.SetActive(false);
             RemoteBaker.Bake(setup);

@@ -15,7 +15,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
     public static class PlaylistFactory
     {
         public const string Root = aki_lua87.AVEC.Editor.PackageLayout.Playlist;
-        public const string PrefabPath = Root + "/Prefabs/CommonVideoPlaylist.prefab";
+        public const string PrefabPath = aki_lua87.AVEC.Editor.PackageLayout.Prefabs + "/CommonVideoPlaylist.prefab";
         [MenuItem("Tools/AVEC/Playlist/1 Create Program Assets")]
         public static void Programs()
         {
@@ -48,7 +48,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         public static void CreateSample()
         {
             if (AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath) != null) { Debug.Log("[CVP] Existing prefab preserved."); return; }
-            Directory.CreateDirectory(Root + "/Prefabs");
+            Directory.CreateDirectory(aki_lua87.AVEC.Editor.PackageLayout.Prefabs);
             Directory.CreateDirectory(Root + "/Samples/Playlists");
             AssetDatabase.Refresh();
             var data = AssetDatabase.LoadAssetAtPath<PlaylistData>(PlaylistAssets.DefaultPath);

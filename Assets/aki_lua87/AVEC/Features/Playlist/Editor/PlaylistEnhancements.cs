@@ -127,7 +127,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             var rect = go.GetComponent<RectTransform>(); rect.anchorMin = Vector2.zero; rect.anchorMax = new Vector2(1, 0); rect.pivot = new Vector2(.5f, 0);
             rect.offsetMin = new Vector2(4, 1); rect.offsetMax = new Vector2(-4, 5);
             var image = go.GetComponent<Image>(); image.color = view.accentColor; image.raycastTarget = false;
-            image.sprite = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+            image.sprite = PlaylistPresentation.SolidProgress();
             image.type = Image.Type.Filled; image.fillMethod = Image.FillMethod.Horizontal; image.fillOrigin = 0; image.fillAmount = 0;
             go.SetActive(false); return image;
         }

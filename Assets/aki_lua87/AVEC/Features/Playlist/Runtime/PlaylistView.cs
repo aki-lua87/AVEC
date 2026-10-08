@@ -152,18 +152,17 @@ namespace aki_lua87.CommonVideoPlaylist
         public void _RefreshQueue()
         {
             int count = adapter == null ? 0 : adapter._QueueCount();
-            if (queueButtonLabel != null) queueButtonLabel.text = "キュー (" + count + ")";
+            if (queueButtonLabel != null) queueButtonLabel.text = "キュー";
             if (queueLabels.Length == 0) return;
             int pages = Mathf.Max(1, (count + queueLabels.Length - 1) / queueLabels.Length);
             queuePage = Mathf.Clamp(queuePage, 0, pages - 1);
-            if (queuePageLabel != null) queuePageLabel.text = count == 0 ? "キューは空です" : (queuePage + 1) + " / " + pages;
+            if (queuePageLabel != null) queuePageLabel.text = "";
             for (int i = 0; i < queueLabels.Length; i++)
             {
                 int index = queuePage * queueLabels.Length + i;
                 bool visible = index < count;
                 if (i < queueRows.Length && queueRows[i] != null) queueRows[i].SetActive(visible);
-                bool playing = visible && adapter._QueueIsPlaying(index);
-                if (queueLabels[i] != null) queueLabels[i].text = visible ? (playing ? "再生中  " : (index + 1) + ". ") + adapter._QueueTitle(index) : "";
+                if (queueLabels[i] != null) queueLabels[i].text = visible ? adapter._QueueDisplayTitle(index) : "";
             }
         }
         public void _ToggleHistory()
@@ -192,16 +191,16 @@ namespace aki_lua87.CommonVideoPlaylist
         public void _RefreshHistory()
         {
             int count = adapter == null ? 0 : adapter._HistoryCount();
-            if (historyButtonLabel != null) historyButtonLabel.text = "履歴 (" + count + ")";
+            if (historyButtonLabel != null) historyButtonLabel.text = "履歴";
             if (historyLabels.Length == 0) return;
             int pages = Mathf.Max(1, (count + historyLabels.Length - 1) / historyLabels.Length);
             historyPage = Mathf.Clamp(historyPage, 0, pages - 1);
-            if (historyPageLabel != null) historyPageLabel.text = count == 0 ? "履歴は空です" : (historyPage + 1) + " / " + pages;
+            if (historyPageLabel != null) historyPageLabel.text = "";
             for (int i = 0; i < historyLabels.Length; i++)
             {
                 int index = historyPage * historyLabels.Length + i;
                 if (i < historyRows.Length && historyRows[i] != null) historyRows[i].SetActive(index < count);
-                if (historyLabels[i] != null) historyLabels[i].text = index < count ? (index + 1) + ". " + adapter._HistoryTitle(index) : "";
+                if (historyLabels[i] != null) historyLabels[i].text = index < count ? adapter._HistoryDisplayTitle(index) : "";
             }
         }
         public bool _EntryVisible(int index) { return hiddenEntries == null || index >= hiddenEntries.Length || !hiddenEntries[index]; }

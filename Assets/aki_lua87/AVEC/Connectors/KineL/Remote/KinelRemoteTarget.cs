@@ -41,11 +41,20 @@ namespace aki_lua87.CommonGestureRemote
         public override int _Playback(int action)
         {
             if (NetworkCalling.InNetworkCall || !_Ready() || !Utilities.IsValid(Networking.LocalPlayer)) return 0;
-            if (action != 8 && action != 12 && action != 13 && action != 16) return 5;
+            if (action == 21) action = player.IsPause ? 13 : 12;
+            if (action != 8 && action != 12 && action != 13 && action != 16 && action != 17 && action != 19) return 5;
+            if ((action == 12 || action == 13 || action == 17) && !player.IsPlaying && !player.IsPause) return 4;
+            if (action == 17) {
+                float duration = player.GetVideoPlayerController().GetCurrentVideoPlayer().GetDuration();
+                if (duration <= 0 || float.IsInfinity(duration) || float.IsNaN(duration)) return 4;
+            }
             if (player.IsLock && !Networking.IsMaster) return 2;
+            // KineL.Play resets the clock when called during playback.
+            if ((action == 13 && player.IsPlaying) || (action == 12 && player.IsPause)) return 1;
             player.TakeOwnership();
             if (!Networking.IsOwner(player.gameObject)) return 2;
-            if (action == 16) { player.Loop = !player.Loop; player.RequestSerialization(); }
+            if (action == 16 || action == 19) { player.Loop = action == 19 || !player.Loop; player.RequestSerialization(); }
+            else if (action == 17) { player.SetVideoTime(0f); player.Play(); }
             else if (action == 8) player.ResetGlobal();
             else if (action == 12) player.Pause();
             else player.Play();

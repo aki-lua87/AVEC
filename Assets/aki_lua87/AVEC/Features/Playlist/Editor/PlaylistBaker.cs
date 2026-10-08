@@ -56,6 +56,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             view.tabImages = tabImages.ToArray(); view.videoImages = videoImages.ToArray();
             view.titleSourceUrls = titleSources.ToArray(); view.dynamicTitleIndices = titleIndices.ToArray(); view.videoLabels = labels.ToArray();
             PlaylistEnhancements.Apply(setup);
+            PlaylistPresentation.Apply(setup);
             aki_lua87.AVEC.Editor.FeatureExtensionRegistry.Bake("Playlist", setup);
             // Data updates preserve manually tuned UI colors and layout.
             if (view.heading != null) view.heading.text = "キュー";

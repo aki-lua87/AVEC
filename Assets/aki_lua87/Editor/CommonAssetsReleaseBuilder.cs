@@ -14,14 +14,14 @@ namespace aki_lua87.CommonAssets.Editor
     public class CommonAssetsReleaseBuilder : EditorWindow
     {
         const string Root = "Assets/aki_lua87/AVEC";
-        public sealed class PackageSpec { public string Name; public string[] Folders; public string[] Requires; }
+        public sealed class PackageSpec { public string Name; public string[] Folders; public string[] Assets = new string[0]; public string[] Requires; }
         public static readonly PackageSpec[] Packages = CreatePackages();
         static PackageSpec[] CreatePackages()
         {
             var packages = new System.Collections.Generic.List<PackageSpec> {
                 new PackageSpec { Name="AVEC-Core", Folders=new[]{Root+"/Core"}, Requires=new string[0] },
-                new PackageSpec { Name="AVEC-Playlist", Folders=new[]{Root+"/Features/Playlist"}, Requires=new[]{"AVEC-Core"} },
-                new PackageSpec { Name="AVEC-Remote", Folders=new[]{Root+"/Features/Remote"}, Requires=new[]{"AVEC-Core"} }
+                new PackageSpec { Name="AVEC-Playlist", Folders=new[]{Root+"/Features/Playlist"}, Assets=new[]{Root+"/Prefabs/CommonVideoPlaylist.prefab"}, Requires=new[]{"AVEC-Core"} },
+                new PackageSpec { Name="AVEC-Remote", Folders=new[]{Root+"/Features/Remote"}, Assets=new[]{Root+"/Prefabs/CommonGestureRemote.prefab",Root+"/Prefabs/CommonGestureGuide.prefab"}, Requires=new[]{"AVEC-Core"} }
             };
             foreach (var player in new[]{"IwaSync","KineL","VizVid","YamaPlayer"})
                 foreach (var feature in new[]{"Playlist","Remote"}) packages.Add(new PackageSpec {
@@ -34,8 +34,8 @@ namespace aki_lua87.CommonAssets.Editor
             return packages.ToArray();
         }
         static string[] Names => Packages.Select(p=>p.Name).ToArray();
-        static bool Exists(int index) => Packages[index].Folders.All(Directory.Exists);
-        public static string[] CollectPaths(int index) => AssetDatabase.FindAssets("",Packages[index].Folders).Select(AssetDatabase.GUIDToAssetPath).Where(p=>!p.EndsWith(".unity",StringComparison.OrdinalIgnoreCase)).Distinct().ToArray();
+        static bool Exists(int index) => Packages[index].Folders.All(Directory.Exists) && Packages[index].Assets.All(File.Exists);
+        public static string[] CollectPaths(int index) => AssetDatabase.FindAssets("",Packages[index].Folders).Select(AssetDatabase.GUIDToAssetPath).Concat(Packages[index].Assets).Where(p=>!p.EndsWith(".unity",StringComparison.OrdinalIgnoreCase)).Distinct().ToArray();
         static bool[] NormalizeSelection(bool[] selected)
         {
             if (selected != null && selected.Length == Packages.Length) return selected;

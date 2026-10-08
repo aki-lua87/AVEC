@@ -38,7 +38,9 @@ namespace aki_lua87.CommonGestureRemote.Editor
             setup.remote.labels = bindings.Select(b => b.label).ToArray();
             setup.remote.actions = bindings.Select(b => (int)b.action).ToArray();
             setup.remote.customEvents = bindings.Select(b => b.customEvent ?? "").ToArray();
+            RemoteHelpBuilder.UpdateCommands(setup.remote, setup.data);
             RemoteConnections.Save(setup.remote);
+            GestureGuideBuilder.RefreshLoaded(setup.data);
         }
         public static void BakeLoaded()
         {
@@ -50,6 +52,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
                 else if (setup.remote != null) { setup.remote.playerTarget = null; setup.remote.playlistTarget = null; }
                 Bake(setup);
             }
+            GestureGuideBuilder.RefreshLoaded();
         }
     }
     [InitializeOnLoad]

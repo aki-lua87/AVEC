@@ -13,27 +13,43 @@ MonoBehaviour:
   m_Name: DefaultGestures
   m_EditorClassIdentifier: 
   bindings:
-  - gesture: "\u2192"
+  - gesture: "\u2192\u2190\u2192"
     label: "\u6B21\u306E\u52D5\u753B"
     action: 1
     customEvent: 
-  - gesture: "\u2190"
+  - gesture: "\u2190\u2192\u2190"
     label: "\u524D\u306E\u52D5\u753B"
     action: 2
     customEvent: 
   - gesture: "\u2192\u2191"
-    label: "\u97F3\u91CF +10%"
+    label: "\u97F3\u91CF\u3092\u4E0A\u3052\u308B"
     action: 3
     customEvent: 
   - gesture: "\u2192\u2193"
-    label: "\u97F3\u91CF -10%"
+    label: "\u97F3\u91CF\u3092\u4E0B\u3052\u308B"
     action: 4
     customEvent: 
-  - gesture: "\u2191\u2193"
-    label: "\u30DF\u30E5\u30FC\u30C8\u5207\u66FF"
+  - gesture: "\u2193\u2191"
+    label: "\u30DF\u30E5\u30FC\u30C8\uFF0F\u89E3\u9664"
     action: 14
     customEvent: 
-  - gesture: "\u2193\u2191"
-    label: "1\u52D5\u753B\u30EA\u30D4\u30FC\u30C8\u5207\u66FF"
-    action: 16
+  - gesture: "\u2191\u2193"
+    label: "\u4E00\u6642\u505C\u6B62\uFF0F\u518D\u751F\u30FB\u518D\u958B"
+    action: 21
+    customEvent: 
+  - gesture: "\u2190\u2193\u2191"
+    label: "1\u52D5\u753B\u30EA\u30D4\u30FC\u30C8\u306B\u8A2D\u5B9A"
+    action: 19
+    customEvent: 
+  - gesture: "\u2190\u2193\u2192"
+    label: "\u9806\u9001\u308A\u518D\u751F\u306B\u8A2D\u5B9A"
+    action: 18
+    customEvent: 
+  - gesture: "\u2190\u2193\u2190"
+    label: "\u30B7\u30E3\u30C3\u30D5\u30EB\u518D\u751F\u306B\u8A2D\u5B9A"
+    action: 20
+    customEvent: 
+  - gesture: "\u2191\u2190\u2193"
+    label: "\u73FE\u5728\u306E\u52D5\u753B\u3092\u521D\u3081\u304B\u3089\u518D\u751F"
+    action: 17
     customEvent: 

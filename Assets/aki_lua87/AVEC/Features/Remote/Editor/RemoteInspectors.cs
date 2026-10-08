@@ -45,9 +45,11 @@ namespace aki_lua87.CommonGestureRemote.Editor
             EditorGUILayout.HelpBox("上下左右を最大3ステップで登録します。同方向の連続は1ステップになります。トリガーを離すと実行します。\nミュート・音量は自分のみ、再生・リピートは接続先の同期範囲に反映します。", MessageType.Info);
             EditorGUI.BeginChangeCheck();
             DrawDefaultInspector();
-            if (EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck()) {
                 foreach (var setup in UnityEngine.Object.FindObjectsOfType<RemoteSetup>(true))
                     if (setup.data == target && RemoteBaker.ValidateData(setup.data) == null && !EditorApplication.isPlayingOrWillChangePlaymode) RemoteBaker.Bake(setup);
+                if (!EditorApplication.isPlayingOrWillChangePlaymode) GestureGuideBuilder.RefreshLoaded((GestureData)target);
+            }
             string error = RemoteBaker.ValidateData((GestureData)target);
             if (error != null) EditorGUILayout.HelpBox(error, MessageType.Error);
         }
@@ -115,6 +117,9 @@ namespace aki_lua87.CommonGestureRemote.Editor
                     details = EditorGUILayout.Foldout(details, "感度・表示・画面設定", true);
                     if (details)
                         foreach (string field in new[] { "minimumStroke", "directionBias", "timeout", "volumeStep", "scaleWithAvatar", "tip", "trail", "label", "drawingColor", "matchedColor" })
+                            EditorGUILayout.PropertyField(remote.FindProperty(field));
+                    if (details)
+                        foreach (string field in new[] { "helpHoldSeconds", "helpIdleSeconds", "helpOffset", "helpUIScale", "helpPanel", "helpCommands", "helpHint", "helpStick", "helpHintGroup" })
                             EditorGUILayout.PropertyField(remote.FindProperty(field));
                     bool remoteChanged = EditorGUI.EndChangeCheck();
                     remote.ApplyModifiedProperties();

@@ -12,6 +12,9 @@
 |CommonGestureRemote/Extensions/各プレイヤー|AVEC/Connectors/各プレイヤー/Remote|
 |CommonGestureRemote/Extensions/CommonVideoPlaylist|AVEC/Extensions/PlaylistRemote|
 |移動後のFeatures/Playlist/Fonts|AVEC/Core/Fonts|
+|AVEC/Features/Playlist/Prefabs/CommonVideoPlaylist.prefab|AVEC/Prefabs/CommonVideoPlaylist.prefab|
+|AVEC/Features/Remote/Prefabs/CommonGestureRemote.prefab|AVEC/Prefabs/CommonGestureRemote.prefab|
+|AVEC/Features/Remote/Prefabs/CommonGestureGuide.prefab|AVEC/Prefabs/CommonGestureGuide.prefab|
 
 表のすべてのパスは`Assets/aki_lua87/`からの相対パスです。移動してからCore・必要な機能・Connector・Extensionを更新します。元は本体に含まれていた動的取り込み・タイトル取得を使う場合はDynamicPlaylistのExtensionも導入してください。
 
