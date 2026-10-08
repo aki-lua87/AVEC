@@ -30,10 +30,10 @@ MonoBehaviour:
     action: 4
     customEvent: 
   - gesture: "\u2191\u2193"
-    label: "\u30D7\u30EC\u30A4\u30E4\u30FC OFF\uFF08\u81EA\u5206\uFF09"
-    action: 5
+    label: "\u30DF\u30E5\u30FC\u30C8\u5207\u66FF"
+    action: 14
     customEvent: 
   - gesture: "\u2193\u2191"
-    label: "\u30D7\u30EC\u30A4\u30E4\u30FC ON\uFF08\u81EA\u5206\uFF09"
-    action: 6
+    label: "1\u52D5\u753B\u30EA\u30D4\u30FC\u30C8\u5207\u66FF"
+    action: 16
     customEvent: 

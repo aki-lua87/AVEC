@@ -46,9 +46,15 @@ namespace aki_lua87.CommonGestureRemote
         private int pointCount;
         private Vector3 lastTrailPoint;
         private const int MaxTrailPoints = 256;
-        private const int MaxDirections = 8;
+        private const int MaxDirections = 3;
 
-        private void Start() { ClearVisuals(); }
+        private void Start()
+        {
+            ClearVisuals();
+            var pickup = (VRC.SDK3.Components.VRCPickup)GetComponent(typeof(VRC.SDK3.Components.VRCPickup));
+            if (pickup != null && Utilities.IsValid(Networking.LocalPlayer))
+                pickup.AutoHold = Networking.LocalPlayer.IsUserInVR() ? VRC_Pickup.AutoHoldMode.No : VRC_Pickup.AutoHoldMode.Yes;
+        }
         public override void OnPickup() { if (!NetworkCalling.InNetworkCall) held = true; }
         public override void OnDrop() { held = false; Cancel(); }
         public override void OnOwnershipTransferred(VRCPlayerApi owner)
@@ -161,7 +167,7 @@ namespace aki_lua87.CommonGestureRemote
                 customEventTarget.SendCustomEvent(customEvents[index]);
                 return 1;
             }
-            RemoteTarget target = action == 1 || action == 2 || action == 9 || action == 10 || action == 11 ? playlistTarget : playerTarget;
+            RemoteTarget target = action == 1 || action == 2 || action == 9 || action == 10 || action == 11 || (action == 16 && playlistTarget != null && playlistTarget._Ready()) ? playlistTarget : playerTarget;
             return target == null ? 0 : target._Execute(action, volumeStep);
         }
         private void AddTrail(Vector3 point)

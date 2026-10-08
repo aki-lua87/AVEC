@@ -14,6 +14,7 @@ namespace aki_lua87.CommonGestureRemote
             if (NetworkCalling.InNetworkCall || !_Ready()) return 0;
             if (action == 1 || action == 2) return view.adapter._StepVideo(view, action == 1 ? 1 : -1);
             if (action == 9) return view.adapter._TogglePlaybackMode(view, view._SelectedTab());
+            if (action == 16) return view.adapter._ToggleRepeat();
             if (action == 10 || action == 11) return view._StepTab(action == 10 ? 1 : -1);
             return 5;
         }

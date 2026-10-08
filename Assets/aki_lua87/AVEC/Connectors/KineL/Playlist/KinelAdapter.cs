@@ -26,10 +26,21 @@ namespace aki_lua87.CommonVideoPlaylist
             if (NetworkCalling.InNetworkCall || !_Available()) return 0;
             if (!stop && !player.IsPlaying && !player.IsPause) return 4;
             if (!_AcquireSequenceControl()) return 2;
-            if (stop) { _CancelSequence(); player.ResetGlobal(); } else player.Play();
+            if (!player.IsPlaying && !player.IsPause) return 4;
+            if (stop) player.Pause(); else player.Play();
             return 1;
         }
         private void Start() { if (views.Length > 0 && player != null) player.RegisterListener(this); }
+        public override void _SetNativeMode(int mode) { if (player == null) return; player.Loop = mode == 2; player.RequestSerialization(); }
+        public override bool _GetNativeRepeat() { return player != null && player.Loop; }
+        public override float _GetProgress()
+        {
+            if (!_Available()) return -1f;
+            var video = player.GetVideoPlayerController().GetCurrentVideoPlayer();
+            if (video == null) return -1f;
+            float duration = video.GetDuration();
+            return duration <= 0f || float.IsInfinity(duration) || float.IsNaN(duration) ? -1f : UnityEngine.Mathf.Clamp01(video.GetTime() / duration);
+        }
         public void OnKinelVideoStart() { if (!NetworkCalling.InNetworkCall) _NativeStarted(); }
         public void OnKinelVideoReady() { if (!NetworkCalling.InNetworkCall) _NativeStarted(); }
         public void OnKinelVideoEnd() { if (!NetworkCalling.InNetworkCall) _NativeEnded(); }
@@ -39,7 +50,7 @@ namespace aki_lua87.CommonVideoPlaylist
         public override bool _Available() { return player != null && player.gameObject.activeInHierarchy && player.GetVideoPlayerController() != null; }
         public override VRCUrl _CurrentUrl() { return player == null ? VRCUrl.Empty : player.GetUrl(); }
         public override bool _IsLocalPlayback() { return false; }
-        public override bool _NativeReady() { return player != null && player.IsPlaying; }
+        public override bool _NativeReady() { return player != null && (player.IsPlaying || player.IsPause); }
         public override bool _AcquireSequenceControl()
         {
             if (NetworkCalling.InNetworkCall || !_Available() || !Utilities.IsValid(Networking.LocalPlayer)) return false;

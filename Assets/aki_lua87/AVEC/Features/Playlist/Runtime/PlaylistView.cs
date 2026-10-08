@@ -17,6 +17,18 @@ namespace aki_lua87.CommonVideoPlaylist
         public Image playbackModeIcon;
         public Sprite orderedIcon;
         public Sprite randomIcon;
+        public Sprite repeatIcon;
+        public GameObject historyPanel;
+        public Text historyButtonLabel;
+        public Text historyPageLabel;
+        public Image historyTabImage;
+        public Text[] historyLabels = new Text[0];
+        public GameObject[] historyRows = new GameObject[0];
+        // Persisted references to row progress bars, created without rebuilding rows.
+        [HideInInspector] public Image[] videoProgress = new Image[0];
+        [HideInInspector] public Image[] queueProgress = new Image[0];
+        [System.NonSerialized] public bool[] hiddenEntries;
+        private int historyPage;
         public Slider volumeSlider;
         public Text volumeLabel;
         public Text connectionLabel;
@@ -66,6 +78,9 @@ namespace aki_lua87.CommonVideoPlaylist
         public void _RefreshVolume()
         {
             _RefreshQueue();
+            _RefreshHistory();
+            _RefreshProgress();
+            _RefreshPlaybackMode();
             if (connectionLabel != null) connectionLabel.text = adapter == null || !adapter._Available() ? "未接続" : connectionName;
             if (audioLinkLabel != null) audioLinkLabel.text = _AudioLinkStatus();
             float value = adapter == null ? -1f : adapter._GetVolume();
@@ -83,6 +98,8 @@ namespace aki_lua87.CommonVideoPlaylist
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || queuePanel == null) return;
             queuePanel.SetActive(true);
+            if (historyPanel != null) historyPanel.SetActive(false);
+            if (historyTabImage != null) historyTabImage.color = normalColor;
             if (queueAddPanel != null) queueAddPanel.SetActive(false);
             if (videoScroll != null) videoScroll.gameObject.SetActive(false);
             selectedTab = -1;
@@ -129,7 +146,7 @@ namespace aki_lua87.CommonVideoPlaylist
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || queueLabels.Length == 0) return;
             int result = adapter == null ? 0 : adapter._RemoveQueued(queuePage * queueLabels.Length + slot);
-            SetStatus(result == 1 ? "キューから削除しました" : result == 2 ? "操作権限がありません" : "接続先を確認してください");
+            SetStatus(result == 1 ? "キューから削除しました" : result == 2 ? "操作権限がありません" : result == 4 ? "再生中の項目は終了後に削除されます" : "接続先を確認してください");
             _RefreshQueue();
         }
         public void _RefreshQueue()
@@ -145,7 +162,68 @@ namespace aki_lua87.CommonVideoPlaylist
                 int index = queuePage * queueLabels.Length + i;
                 bool visible = index < count;
                 if (i < queueRows.Length && queueRows[i] != null) queueRows[i].SetActive(visible);
-                if (queueLabels[i] != null) queueLabels[i].text = visible ? (index + 1) + ". " + adapter._QueueTitle(index) : "";
+                bool playing = visible && adapter._QueueIsPlaying(index);
+                if (queueLabels[i] != null) queueLabels[i].text = visible ? (playing ? "再生中  " : (index + 1) + ". ") + adapter._QueueTitle(index) : "";
+            }
+        }
+        public void _ToggleHistory()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || historyPanel == null) return;
+            selectedTab = -2;
+            historyPanel.SetActive(true);
+            if (queuePanel != null) queuePanel.SetActive(false);
+            if (videoScroll != null) videoScroll.gameObject.SetActive(false);
+            if (queueAddPanel != null) queueAddPanel.SetActive(false);
+            if (heading != null) heading.text = "再生履歴";
+            if (queueTabImage != null) queueTabImage.color = normalColor;
+            if (historyTabImage != null) historyTabImage.color = selectedColor;
+            for (int i = 0; i < tabImages.Length; i++) if (tabImages[i] != null) tabImages[i].color = normalColor;
+            _RefreshHistory();
+            SetStatus("履歴を選択すると再生します（最新32件）");
+        }
+        public void _HistoryNextPage() { if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return; historyPage++; _RefreshHistory(); }
+        public void _HistoryPreviousPage() { if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return; historyPage--; _RefreshHistory(); }
+        public void _PlayHistorySlot(int slot)
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            int result = adapter == null ? 0 : adapter._PlayHistory(historyPage * historyLabels.Length + slot);
+            SetStatus(result == 1 ? "履歴の再生を要求しました" : result == 2 ? "操作権限がありません" : result == 7 ? "読み込み間隔を空けて再試行してください" : "履歴を再生できません");
+        }
+        public void _RefreshHistory()
+        {
+            int count = adapter == null ? 0 : adapter._HistoryCount();
+            if (historyButtonLabel != null) historyButtonLabel.text = "履歴 (" + count + ")";
+            if (historyLabels.Length == 0) return;
+            int pages = Mathf.Max(1, (count + historyLabels.Length - 1) / historyLabels.Length);
+            historyPage = Mathf.Clamp(historyPage, 0, pages - 1);
+            if (historyPageLabel != null) historyPageLabel.text = count == 0 ? "履歴は空です" : (historyPage + 1) + " / " + pages;
+            for (int i = 0; i < historyLabels.Length; i++)
+            {
+                int index = historyPage * historyLabels.Length + i;
+                if (i < historyRows.Length && historyRows[i] != null) historyRows[i].SetActive(index < count);
+                if (historyLabels[i] != null) historyLabels[i].text = index < count ? (index + 1) + ". " + adapter._HistoryTitle(index) : "";
+            }
+        }
+        public bool _EntryVisible(int index) { return hiddenEntries == null || index >= hiddenEntries.Length || !hiddenEntries[index]; }
+        public void _RefreshVisibleEntries()
+        {
+            for (int i = 0; i < videoImages.Length; i++) if (videoImages[i] != null)
+                videoImages[i].gameObject.SetActive(i < videoTabs.Length && videoTabs[i] == selectedTab && _EntryVisible(i));
+        }
+        public void _RefreshProgress()
+        {
+            float progress = adapter == null || !adapter._Available() ? -1f : adapter._GetProgress();
+            for (int i = 0; i < videoProgress.Length; i++)
+            {
+                var bar = videoProgress[i]; if (bar == null) continue;
+                bool playing = progress >= 0f && adapter != null && adapter._IsPlayingEntry(this, i);
+                bar.gameObject.SetActive(playing); if (playing) bar.fillAmount = progress;
+            }
+            for (int i = 0; i < queueProgress.Length; i++)
+            {
+                var bar = queueProgress[i]; if (bar == null) continue;
+                bool playing = progress >= 0f && adapter != null && adapter._QueueIsPlaying(queuePage * queueLabels.Length + i);
+                bar.gameObject.SetActive(playing); if (playing) bar.fillAmount = progress;
             }
         }
         public string _AudioLinkStatus()
@@ -177,35 +255,21 @@ namespace aki_lua87.CommonVideoPlaylist
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
             int result = adapter == null ? 0 : adapter._ControlPlayback(true);
-            SetStatus(result == 1 ? "停止を要求しました" : result == 2 ? "操作権限がありません" : "接続先を確認してください");
+            SetStatus(result == 1 ? "一時停止を要求しました" : result == 2 ? "操作権限がありません" : "接続先を確認してください");
         }
         public void _StartPlayback()
         {
-            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || adapter == null || !adapter._Available()) { SetStatus("接続先を確認してください"); return; }
-            if (adapter._QueueCount() > 0 && VRCUrl.IsNullOrEmpty(adapter._CurrentUrl())) {
-                int queuedResult = adapter._PlayQueueNext();
-                SetStatus(queuedResult == 1 ? "キューの再生を要求しました" : queuedResult == 2 ? "操作権限がありません" : queuedResult == 7 ? "読み込み間隔を空けて再試行してください" : "キューを再生できません");
-                return;
-            }
-            if (!VRCUrl.IsNullOrEmpty(adapter._CurrentUrl()))
-            {
-                int result = adapter._ControlPlayback(false);
-                if (result != 4)
-                {
-                    SetStatus(result == 1 ? "再生を要求しました" : result == 2 ? "操作権限がありません" : "接続先を確認してください");
-                    return;
-                }
-            }
-            if (selectedVideo >= 0 && selectedVideo < videoTabs.Length && videoTabs[selectedVideo] == _SelectedTab()) { _SelectVideo(selectedVideo); return; }
-            for (int i = 0; i < videoTabs.Length; i++)
-                if (videoTabs[i] == _SelectedTab() && i < urls.Length && !VRCUrl.IsNullOrEmpty(urls[i])) { _SelectVideo(i); return; }
-            SetStatus("このタブに再生できる動画がありません");
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            int result = adapter == null ? 0 : adapter._ControlPlayback(false);
+            SetStatus(result == 1 ? "再開を要求しました" : result == 2 ? "操作権限がありません" : result == 4 ? "再開できる動画がありません。動画を選択してください" : "接続先を確認してください");
         }
 
         public void _SelectTab(int index)
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
             if (queuePanel != null) queuePanel.SetActive(false);
+            if (historyPanel != null) historyPanel.SetActive(false);
+            if (historyTabImage != null) historyTabImage.color = normalColor;
             if (queueAddPanel != null) queueAddPanel.SetActive(false);
             if (videoScroll != null) videoScroll.gameObject.SetActive(true);
             if (queueTabImage != null) queueTabImage.color = normalColor;
@@ -225,7 +289,7 @@ namespace aki_lua87.CommonVideoPlaylist
             for (int i = 0; i < videoImages.Length; i++)
             {
                 if (videoImages[i] == null) continue;
-                bool visible = i < videoTabs.Length && videoTabs[i] == index;
+                bool visible = i < videoTabs.Length && videoTabs[i] == index && _EntryVisible(i);
                 videoImages[i].gameObject.SetActive(visible);
                 if (visible) count++;
             }
@@ -275,7 +339,7 @@ namespace aki_lua87.CommonVideoPlaylist
             int tab = videoTabs[current];
             for (int i = current + 1; i < videoTabs.Length; i++)
             {
-                if (videoTabs[i] != tab) continue;
+                if (videoTabs[i] != tab || !_EntryVisible(i)) continue;
                 if (i >= urls.Length || i >= titles.Length || VRCUrl.IsNullOrEmpty(urls[i])) continue;
                 string raw = urls[i].Get();
                 if (raw.StartsWith("http://") || raw.StartsWith("https://")) return i;
@@ -295,8 +359,9 @@ namespace aki_lua87.CommonVideoPlaylist
         {
             bool random = adapter != null ? adapter._IsRandomMode(this, selectedTab)
                 : randomTabs != null && selectedTab >= 0 && selectedTab < randomTabs.Length && randomTabs[selectedTab];
-            if (playbackModeIcon != null) { playbackModeIcon.sprite = random ? randomIcon : orderedIcon; playbackModeIcon.color = random ? accentColor : iconColor; }
-            if (playbackModeLabel != null) playbackModeLabel.text = random ? "ランダム再生" : "順番再生";
+            bool repeat = adapter != null && adapter._IsRepeatMode();
+            if (playbackModeIcon != null) { playbackModeIcon.sprite = repeat ? repeatIcon : random ? randomIcon : orderedIcon; playbackModeIcon.color = repeat || random ? accentColor : iconColor; }
+            if (playbackModeLabel != null) playbackModeLabel.text = repeat ? "1動画リピート" : random ? "ランダム再生" : "順番再生";
         }
         public void _TogglePlaybackMode()
         {

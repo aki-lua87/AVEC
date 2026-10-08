@@ -64,10 +64,13 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist
                     if (position < 0) continue;
                     // A shorter response must not leave a previous video's title on a reused slot.
                     string title = originalTitles[i];
+                    if (view.hiddenEntries == null || view.hiddenEntries.Length != view.titles.Length) view.hiddenEntries = new bool[view.titles.Length];
+                    view.hiddenEntries[i] = position >= list.DataList.Count || string.IsNullOrEmpty(list.DataList[position].String);
                     if (position < list.DataList.Count && !string.IsNullOrEmpty(list.DataList[position].String)) title = list.DataList[position].String;
                     view.titles[i] = title;
                     if (i < view.videoLabels.Length && view.videoLabels[i] != null) view.videoLabels[i].text = title;
                 }
+                view._RefreshVisibleEntries();
             }
         }
 

@@ -114,13 +114,13 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 var data = JsonUtility.FromJson<Response>(await response.Content.ReadAsStringAsync());
                 if (data?.titles == null || data.urls == null || data.urls.Length == 0 || data.titles.Length != data.urls.Length)
                     throw new InvalidOperationException("プレイリストの動画一覧を取得できませんでした。空のリストや非公開リストは取り込めません。");
-                var videos = new PlaylistEntry[data.urls.Length];
+                var videos = new PlaylistEntry[dynamic ? 20 : data.urls.Length];
                 for (int i = 0; i < videos.Length; i++)
                 {
-                    if (!Uri.TryCreate(data.urls[i], UriKind.Absolute, out var url) || (url.Scheme != "https" && url.Scheme != "http"))
+                    if (i < data.urls.Length && (!Uri.TryCreate(data.urls[i], UriKind.Absolute, out var url) || (url.Scheme != "https" && url.Scheme != "http")))
                         throw new InvalidOperationException("プレイリストの動画一覧に不正なURLが含まれています。");
                     videos[i] = new PlaylistEntry {
-                        title = string.IsNullOrEmpty(data.titles[i]) ? (i + 1).ToString() : data.titles[i],
+                        title = i >= data.titles.Length || string.IsNullOrEmpty(data.titles[i]) ? (i + 1).ToString() : data.titles[i],
                         url = dynamic ? Server + "/yt/pl/" + id + "/video?n=" + i : data.urls[i],
                         dynamicTitleIndex = dynamic ? i : -1
                     };

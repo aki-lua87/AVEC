@@ -11,10 +11,12 @@ namespace aki_lua87.CommonVideoPlaylist
         public bool isTab;
         public bool enqueue;
         public bool removeQueueSlot;
+        public bool historySlot;
         public void _Click()
         {
             if (view == null) return;
-            if (enqueue) view._EnqueueVideo(index);
+            if (historySlot) view._PlayHistorySlot(index);
+            else if (enqueue) view._EnqueueVideo(index);
             else if (removeQueueSlot) view._RemoveQueueSlot(index);
             else if (isTab) view._SelectTab(index);
             else view._SelectVideo(index);

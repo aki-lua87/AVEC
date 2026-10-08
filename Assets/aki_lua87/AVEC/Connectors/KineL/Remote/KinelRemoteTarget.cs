@@ -41,11 +41,12 @@ namespace aki_lua87.CommonGestureRemote
         public override int _Playback(int action)
         {
             if (NetworkCalling.InNetworkCall || !_Ready() || !Utilities.IsValid(Networking.LocalPlayer)) return 0;
-            if (action != 8 && action != 12 && action != 13) return 5;
+            if (action != 8 && action != 12 && action != 13 && action != 16) return 5;
             if (player.IsLock && !Networking.IsMaster) return 2;
             player.TakeOwnership();
             if (!Networking.IsOwner(player.gameObject)) return 2;
-            if (action == 8) player.ResetGlobal();
+            if (action == 16) { player.Loop = !player.Loop; player.RequestSerialization(); }
+            else if (action == 8) player.ResetGlobal();
             else if (action == 12) player.Pause();
             else player.Play();
             return 1;

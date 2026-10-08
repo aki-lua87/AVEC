@@ -20,7 +20,8 @@ namespace aki_lua87.CommonVideoPlaylist
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !_Available()) return 0;
             if (!stop && !player.core.IsReady) return 4;
             if (!_AcquireSequenceControl()) return 2;
-            if (stop) { _CancelSequence(); player._Stop(); } else player._Play();
+            if (!player.core.IsReady) return 4;
+            if (stop) player._Pause(); else player._Play();
             return 1;
         }
         private void Start()
@@ -33,6 +34,9 @@ namespace aki_lua87.CommonVideoPlaylist
             player.core._AddListener(this, "_OnVideoError");
             player._AddListener(this, "_OnStop");
         }
+        public override void _SetNativeMode(int mode) { if (!_Available()) return; player.RepeatAll = false; player.RepeatOne = mode == 2; player.Shuffle = mode == 1; player.core.Loop = mode == 2; }
+        public override bool _GetNativeRepeat() { return _Available() && (player.RepeatOne || player.core.Loop); }
+        public override float _GetProgress() { return !_Available() || player.core.Duration <= 0f || float.IsInfinity(player.core.Duration) || float.IsNaN(player.core.Duration) ? -1f : UnityEngine.Mathf.Clamp01(player.core.Time / player.core.Duration); }
         public void _onVideoStart() { _NativeStarted(); }
         public void _onVideoReady() { _NativeStarted(); }
         public void _onVideoEnd() { _NativeEnded(); }

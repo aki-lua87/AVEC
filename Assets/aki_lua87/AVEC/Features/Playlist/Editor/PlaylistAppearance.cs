@@ -65,11 +65,13 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             var label = row.GetComponentInChildren<Text>(true);
             var layout = row.GetComponent<LayoutElement>();
             if (label == null || layout == null) return;
-            label.resizeTextForBestFit = false;
-            label.horizontalOverflow = HorizontalWrapMode.Overflow;
+            Undo.RecordObject(label, "Fit playlist title");
+            label.resizeTextForBestFit = true;
+            label.resizeTextMinSize = 1;
+            label.resizeTextMaxSize = Mathf.Max(1, label.fontSize);
+            label.horizontalOverflow = HorizontalWrapMode.Wrap;
             label.verticalOverflow = VerticalWrapMode.Truncate;
             label.supportRichText = false;
-            layout.preferredHeight = layout.minHeight;
             var viewport = row.transform.Find("Title viewport") as RectTransform;
             if (viewport == null)
             {
@@ -85,16 +87,19 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             }
             var rect = label.rectTransform;
             rect.anchorMin = Vector2.zero;
-            rect.anchorMax = new Vector2(0, 1);
+            rect.anchorMax = Vector2.one;
             rect.pivot = new Vector2(0, .5f);
             rect.anchoredPosition = Vector2.zero;
-            rect.sizeDelta = new Vector2(Mathf.Max(viewport.rect.width, label.preferredWidth + 2), 0);
+            rect.sizeDelta = Vector2.zero;
             var marquee = viewport.GetComponent<PlaylistTitleMarquee>();
             if (marquee == null) marquee = viewport.gameObject.AddUdonSharpComponent<PlaylistTitleMarquee>();
             Undo.RecordObject(marquee, "Scroll playlist title");
             marquee.label = label;
             marquee.viewport = viewport;
             UdonSharpEditorUtility.CopyProxyToUdon(marquee);
+            PlaylistConnections.Save(label);
+            PlaylistConnections.Save(rect);
+            PlaylistConnections.Save(marquee);
         }
         static void Hide(Transform root,string name) { var t=root.Find(name); if(t!=null){t.gameObject.SetActive(false);PlaylistConnections.Save(t.gameObject);} }
         static void Position(Transform root,string name,float x,float y,float w,float h) { var t=root.Find(name); if(t!=null) Place(t.GetComponent<RectTransform>(),x,y,w,h); }
@@ -133,7 +138,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 view.playbackModeIcon=IconButton(view,"Playback mode","ordered","_TogglePlaybackMode",824,18);
             }
             if(view.transform.Find("Play")==null)IconButton(view,"Play","play","_StartPlayback",24,451);
-            if(view.transform.Find("Stop")==null)IconButton(view,"Stop","stop","_StopPlayback",84,451);
+            if(view.transform.Find("Stop")==null)IconButton(view,"Stop","pause","_StopPlayback",84,451);
             EnsureConnectionLabel(setup);
             if(view.volumeSlider!=null) { EnsureVolumeIcon(setup); return; }
             var caption=Text(view.transform,"Volume caption","音量 (自分)",18); Place(caption.rectTransform,150,454,108,42);

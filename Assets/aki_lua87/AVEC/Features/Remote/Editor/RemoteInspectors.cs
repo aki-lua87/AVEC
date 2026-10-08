@@ -4,12 +4,45 @@ using UnityEngine;
 
 namespace aki_lua87.CommonGestureRemote.Editor
 {
+    [CustomPropertyDrawer(typeof(GestureBinding))]
+    public class GestureBindingDrawer : PropertyDrawer
+    {
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label) => EditorGUIUtility.singleLineHeight * 4 + 12;
+        public override void OnGUI(Rect rect, SerializedProperty property, GUIContent label)
+        {
+            EditorGUI.BeginProperty(rect, label, property);
+            float h = EditorGUIUtility.singleLineHeight;
+            var line = new Rect(rect.x, rect.y, rect.width, h);
+            var gesture = property.FindPropertyRelative("gesture");
+            string path = RemoteBaker.Normalize(gesture.stringValue);
+            string[] names = { "なし", "→", "←", "↑", "↓" };
+            string[] directions = { "", "R", "L", "U", "D" };
+            EditorGUI.PrefixLabel(line, new GUIContent("方向（最大3）"));
+            float start = rect.x + EditorGUIUtility.labelWidth;
+            float width = (rect.width - EditorGUIUtility.labelWidth) / 3;
+            string updated = "";
+            EditorGUI.BeginChangeCheck();
+            for (int i = 0; i < 3; i++) {
+                string value = i < path.Length ? path.Substring(i, 1) : "";
+                int selected = System.Array.IndexOf(directions, value);
+                int next = EditorGUI.Popup(new Rect(start + i * width, line.y, width - 3, h), Mathf.Max(0, selected), names);
+                updated += directions[next];
+            }
+            if (EditorGUI.EndChangeCheck()) gesture.stringValue = updated;
+            line.y += h + 3; EditorGUI.PropertyField(line, property.FindPropertyRelative("label"), new GUIContent("表示名"));
+            line.y += h + 3; EditorGUI.PropertyField(line, property.FindPropertyRelative("action"), new GUIContent("機能"));
+            line.y += h + 3;
+            using (new EditorGUI.DisabledScope(property.FindPropertyRelative("action").intValue != 15))
+                EditorGUI.PropertyField(line, property.FindPropertyRelative("customEvent"), new GUIContent("イベント名"));
+            EditorGUI.EndProperty();
+        }
+    }
     [CustomEditor(typeof(GestureData))]
     public class GestureDataEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
-            EditorGUILayout.HelpBox("→ ← ↑ ↓ または R L U D で登録します。一致中は候補を表示し、トリガーを離すと実行します。\nLocalPower: 自分の画面・音声のみ / Stop・Pause・Resume: 接続先の同期範囲に反映", MessageType.Info);
+            EditorGUILayout.HelpBox("上下左右を最大3ステップで登録します。同方向の連続は1ステップになります。トリガーを離すと実行します。\nミュート・音量は自分のみ、再生・リピートは接続先の同期範囲に反映します。", MessageType.Info);
             EditorGUI.BeginChangeCheck();
             DrawDefaultInspector();
             if (EditorGUI.EndChangeCheck())
@@ -89,14 +122,10 @@ namespace aki_lua87.CommonGestureRemote.Editor
                     var playerTarget = setup.remote.playerTarget;
                     if (playerTarget != null)
                     {
-                        if (playerTarget.screens.Length == 0 && playerTarget.screenGraphics.Length == 0)
-                            EditorGUILayout.HelpBox("OFF対象の画面が未設定です。画面設定にRendererまたはGraphicを指定してください。", MessageType.Warning);
                         if (details)
                         {
                             var t = new SerializedObject(playerTarget);
                             t.Update(); EditorGUI.BeginChangeCheck();
-                            EditorGUILayout.PropertyField(t.FindProperty("screens"), new GUIContent("OFF対象の画面 Renderer"), true);
-                            EditorGUILayout.PropertyField(t.FindProperty("screenGraphics"), new GUIContent("OFF対象の画面 Graphic"), true);
                             foreach (string field in new[] { "audioSources", "volumeSliders", "muteModules" })
                                 if (t.FindProperty(field) != null) EditorGUILayout.PropertyField(t.FindProperty(field), true);
                             bool targetChanged = EditorGUI.EndChangeCheck(); t.ApplyModifiedProperties();
@@ -111,7 +140,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
                     }
                 }
                 if (!string.IsNullOrEmpty(error)) EditorGUILayout.HelpBox(error, MessageType.Error);
-                EditorGUILayout.HelpBox("持つ → トリガーを引いて描く → 候補名を確認して離す。\nデスクトップ: 持ったまま左クリック＋視点移動。OFFは描画と音声を隠し、動画の同期・読み込みは継続します。", MessageType.Info);
+                EditorGUILayout.HelpBox("持つ → トリガーを引いて描く → 候補名を確認して離す。\nVR: グリップを離すと手放します。デスクトップ: 持ったまま左クリック＋視点移動。", MessageType.Info);
             }
         }
         void Attempt(Action action) { try { action(); error = null; } catch (Exception e) { error = e.Message; } }

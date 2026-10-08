@@ -9,21 +9,25 @@ namespace aki_lua87.CommonVideoPlaylist
     {
         public VideoCore player;
         public bool streamMode;
-        public override float _GetVolume() { return player == null ? -1f : player.volume; }
+        public override float _GetVolume() { return player == null ? -1f : UnityEngine.Mathf.InverseLerp(player.minVolume, player.maxVolume, player.volume); }
         public override int _SetVolume(float value)
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !_Available()) return 0;
-            player.volume = UnityEngine.Mathf.Clamp01(value); return 1;
+            player.volume = UnityEngine.Mathf.Lerp(player.minVolume, player.maxVolume, UnityEngine.Mathf.Clamp01(value)); return 1;
         }
         public override int _ControlPlayback(bool stop)
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !_Available()) return 0;
             if (!stop && !player.isPlaying) return 4;
             if (!_AcquireSequenceControl()) return 2;
-            if (stop) { _CancelSequence(); player.Stop(); } else player.Play();
+            if (!player.isPlaying) return 4;
+            if (stop) player.Pause(); else player.Play();
             player.RequestSerialization(); return 1;
         }
         public IwaSyncSequenceListener sequenceListener;
+        public override void _SetNativeMode(int mode) { if (player == null) return; player.loop = mode == 2; player.RequestSerialization(); }
+        public override bool _GetNativeRepeat() { return player != null && player.loop; }
+        public override float _GetProgress() { return player == null || player.duration <= 0f || float.IsInfinity(player.duration) ? -1f : UnityEngine.Mathf.Clamp01(player.time / player.duration); }
         private void Start()
         {
             if (views.Length > 0 && player != null && sequenceListener != null) player.AddListener(sequenceListener);

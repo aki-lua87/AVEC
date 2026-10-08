@@ -19,7 +19,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
             {
                 var b = data.bindings[i];
                 string path = b == null ? "" : Normalize(b.gesture);
-                if (path.Length == 0 || path.Length > 8 || path.Any(c => !"RLUD".Contains(c))) return (i + 1) + "行目: 上下左右を1～8方向で入力してください。";
+                if (path.Length == 0 || path.Length > 3 || path.Any(c => !"RLUD".Contains(c))) return (i + 1) + "行目: 上下左右を1～3ステップで入力してください。";
                 for (int j = 1; j < path.Length; j++) if (path[j] == path[j - 1]) return (i + 1) + "行目: 同方向の連続指定は1つにまとめてください。";
                 if (!used.Add(path)) return (i + 1) + "行目: ジェスチャーが重複しています。";
                 if (string.IsNullOrWhiteSpace(b.label) || !Enum.IsDefined(typeof(RemoteAction), b.action)) return (i + 1) + "行目: 表示名と操作を設定してください。";

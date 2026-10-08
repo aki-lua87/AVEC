@@ -15,6 +15,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             var texture=new Texture2D(64,64,TextureFormat.RGBA32,false);var pixels=new Color32[4096];
             if(name=="play") { for(int y=12;y<=52;y++)for(int x=16;x<=50-Mathf.Abs(y-32)*1.7f;x++)pixels[y*64+x]=Color.white; }
             else if(name=="stop") { for(int y=15;y<49;y++)for(int x=15;x<49;x++)pixels[y*64+x]=Color.white; }
+            else if(name=="pause") { for(int y=13;y<51;y++)for(int x=17;x<47;x++)if(x<27||x>=37)pixels[y*64+x]=Color.white; }
+            else if(name=="repeat") { Line(pixels,16,18,50,18);Line(pixels,50,18,50,46);Line(pixels,50,46,14,46);Line(pixels,14,46,14,18);Arrow(pixels,50,18);Line(pixels,14,46,23,37);Line(pixels,14,46,23,55);Line(pixels,32,24,32,40);Line(pixels,27,36,32,40); }
             else if(name=="speaker") {
                 Line(pixels,10,24,20,24); Line(pixels,10,24,10,40); Line(pixels,10,40,20,40);
                 Line(pixels,20,24,32,14); Line(pixels,20,40,32,50); Line(pixels,32,14,32,50);

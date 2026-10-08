@@ -10,18 +10,19 @@ namespace aki_lua87.CommonGestureRemote
     {
         public VideoCore player;
         public override bool _Ready() { return player != null && player.gameObject.activeInHierarchy; }
-        public override float _GetVolume() { return player == null ? 0f : player.volume; }
-        public override void _SetVolume(float value) { if (!NetworkCalling.InNetworkCall && player != null) player.volume = value; }
+        public override float _GetVolume() { return player == null ? 0f : UnityEngine.Mathf.InverseLerp(player.minVolume, player.maxVolume, player.volume); }
+        public override void _SetVolume(float value) { if (!NetworkCalling.InNetworkCall && player != null) player.volume = UnityEngine.Mathf.Lerp(player.minVolume, player.maxVolume, UnityEngine.Mathf.Clamp01(value)); }
         public override bool _GetMute() { return player != null && player.muted; }
         public override void _SetMute(bool value) { if (!NetworkCalling.InNetworkCall && player != null) player.muted = value; }
         public override int _Playback(int action)
         {
             if (NetworkCalling.InNetworkCall || !_Ready() || !Utilities.IsValid(Networking.LocalPlayer)) return 0;
-            if (action != 8 && action != 12 && action != 13) return 5;
+            if (action != 8 && action != 12 && action != 13 && action != 16) return 5;
             if (player.locked && !Networking.IsMaster && !(player.isAllowInstanceOwner && Networking.LocalPlayer.isInstanceOwner)) return 2;
             player.TakeOwnership();
             if (!Networking.IsOwner(player.gameObject)) return 2;
-            if (action == 8) player.Stop();
+            if (action == 16) player.loop = !player.loop;
+            else if (action == 8) player.Stop();
             else if (action == 12) player.Pause();
             else player.Play();
             player.RequestSerialization();

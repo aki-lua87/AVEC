@@ -17,9 +17,10 @@ namespace aki_lua87.CommonGestureRemote
         public override int _Playback(int action)
         {
             if (NetworkCalling.InNetworkCall || !_Ready() || !Utilities.IsValid(Networking.LocalPlayer)) return 0;
-            if (action != 8 && action != 12 && action != 13) return 5;
+            if (action != 8 && action != 12 && action != 13 && action != 16) return 5;
             if (player.Locked) return 2;
-            if (action == 8) player._Stop();
+            if (action == 16) player.RepeatOne = !player.RepeatOne;
+            else if (action == 8) player._Stop();
             else if (action == 12) player._Pause();
             else player._Play();
             return 1;

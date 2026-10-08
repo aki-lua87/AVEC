@@ -55,6 +55,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             view.randomTabs = randomTabs.ToArray();
             view.tabImages = tabImages.ToArray(); view.videoImages = videoImages.ToArray();
             view.titleSourceUrls = titleSources.ToArray(); view.dynamicTitleIndices = titleIndices.ToArray(); view.videoLabels = labels.ToArray();
+            PlaylistEnhancements.Apply(setup);
             aki_lua87.AVEC.Editor.FeatureExtensionRegistry.Bake("Playlist", setup);
             // Data updates preserve manually tuned UI colors and layout.
             if (view.heading != null) view.heading.text = "キュー";
@@ -86,7 +87,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         static void Clear(Transform content)
         {
             for (int i = content.childCount - 1; i >= 0; i--) {
-                if (content.GetChild(i).name == "Queue toggle") continue;
+                if (content.GetChild(i).name == "Queue toggle" || content.GetChild(i).name == "History toggle") continue;
                 Undo.DestroyObjectImmediate(content.GetChild(i).gameObject);
             }
         }

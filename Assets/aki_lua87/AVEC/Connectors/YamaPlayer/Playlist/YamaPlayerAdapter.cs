@@ -20,13 +20,17 @@ namespace aki_lua87.CommonVideoPlaylist
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !_Available() || !Utilities.IsValid(Networking.LocalPlayer)) return 0;
             if (!stop && controller.Stopped) return 4;
-            if (!player.InvokeBeforeEvent(stop ? "BeforeUserStopVideo" : "BeforeUserPlayTrack")) return 2;
+            if (controller.Stopped || controller.IsLoading) return 4;
+            if (!player.InvokeBeforeEvent(stop ? "BeforeUserPauseVideo" : "BeforeUserPlayTrack")) return 2;
             controller.TakeOwnership();
             if (!controller.IsLocal && !Networking.IsOwner(controller.gameObject)) return 2;
-            if (stop) { _CancelSequence(); controller.Stop(); } else controller.Play();
+            if (stop) controller.Pause(); else controller.Play();
             return 1;
         }
         public YamaSequenceListener sequenceListener;
+        public override void _SetNativeMode(int mode) { if (controller == null) return; controller.Repeat = 0; controller.Loop = mode == 2; }
+        public override bool _GetNativeRepeat() { return controller != null && controller.Loop; }
+        public override float _GetProgress() { return !_Available() || controller.Duration <= 0f || float.IsInfinity(controller.Duration) || float.IsNaN(controller.Duration) ? -1f : UnityEngine.Mathf.Clamp01(controller.VideoTime / controller.Duration); }
         private void Start()
         {
             if (views.Length > 0 && controller != null && sequenceListener != null) controller.AddListener(sequenceListener);
@@ -34,7 +38,7 @@ namespace aki_lua87.CommonVideoPlaylist
         public override bool _Available() { return player != null && player.gameObject.activeInHierarchy && controller != null && controller.Handler != null; }
         public override VRCUrl _CurrentUrl() { return controller == null ? VRCUrl.Empty : TrackUtils.GetUrl(controller.Track); }
         public override bool _IsLocalPlayback() { return controller != null && controller.IsLocal; }
-        public override bool _NativeReady() { return controller != null && controller.IsPlaying; }
+        public override bool _NativeReady() { return controller != null && (controller.IsPlaying || controller.Paused); }
         public override bool _AcquireSequenceControl()
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !_Available() || !Utilities.IsValid(Networking.LocalPlayer)) return false;

@@ -82,15 +82,15 @@ namespace aki_lua87.CommonGestureRemote.Editor
             var collider = root.AddComponent<BoxCollider>();
             collider.size = new Vector3(.06f, .028f, .18f);
             var pickup = root.AddComponent<VRCPickup>();
-            pickup.AutoHold = VRC_Pickup.AutoHoldMode.Yes;
-            pickup.orientation = VRC_Pickup.PickupOrientation.Gun;
+            pickup.AutoHold = VRC_Pickup.AutoHoldMode.No;
+            pickup.orientation = VRC_Pickup.PickupOrientation.Any;
             pickup.DisallowTheft = true;
             pickup.InteractionText = "Gesture Remote / 持つ";
             pickup.UseText = "トリガーを引いて描く → 離して実行";
             root.AddComponent<VRCObjectSync>();
             var grip = new GameObject("Grip").transform;
             grip.SetParent(root.transform, false);
-            pickup.ExactGun = grip;
+            pickup.ExactGun = null;
             var remote = root.AddUdonSharpComponent<GestureRemote>();
             var setup = root.AddComponent<RemoteSetup>();
             setup.remote = remote; setup.data = data;
