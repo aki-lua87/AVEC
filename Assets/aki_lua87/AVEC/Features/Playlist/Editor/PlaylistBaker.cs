@@ -59,7 +59,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             PlaylistPresentation.Apply(setup);
             aki_lua87.AVEC.Editor.FeatureExtensionRegistry.Bake("Playlist", setup);
             // Data updates preserve manually tuned UI colors and layout.
-            if (view.heading != null) view.heading.text = "キュー";
+            if (view.heading != null) view.heading.text = "再生キュー";
             if (view.queueTabImage != null) view.queueTabImage.color = view.selectedColor;
             if (view.queuePanel != null) view.queuePanel.SetActive(true);
             if (view.queueAddPanel != null) view.queueAddPanel.SetActive(false);

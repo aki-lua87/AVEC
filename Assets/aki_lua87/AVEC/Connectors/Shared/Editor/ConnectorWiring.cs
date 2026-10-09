@@ -22,6 +22,18 @@ namespace aki_lua87.AVEC.Connectors.Editor
                 var sliders = UnityEngine.Object.FindObjectsOfType<UnityEngine.UI.Slider>(true).Where(s => s.gameObject.scene == player.gameObject.scene &&
                     Enumerable.Range(0, s.onValueChanged.GetPersistentEventCount()).Any(i => s.onValueChanged.GetPersistentMethodName(i) == "set_volume" && audios.Contains(s.onValueChanged.GetPersistentTarget(i) as AudioSource))).ToArray();
                 type.GetField("volumeSliders").SetValue(adapter, sliders);
+                var moduleType = Resolve("Kinel.VideoPlayer.Udon.Module.AudioModule");
+                if (moduleType != null)
+                {
+                    var modules = UnityEngine.Object.FindObjectsOfType(moduleType, true).OfType<Component>().Where(m =>
+                    {
+                        var sources = moduleType.GetField("sources").GetValue(m) as AudioSource[];
+                        return m.gameObject.scene == player.gameObject.scene && sources != null && sources.Length > 0 && sources.All(a => a != null && audios.Contains(a));
+                    }).ToArray();
+                    var array = Array.CreateInstance(moduleType, modules.Length);
+                    for (int i = 0; i < modules.Length; i++) array.SetValue(modules[i], i);
+                    type.GetField("muteModules").SetValue(adapter, array);
+                }
             }
             if (kind == 3)
             {

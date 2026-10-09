@@ -413,7 +413,7 @@ MonoBehaviour:
         \u30B7\u30EB\u30AF\u30B9\uFF65\u30C4\u30A4\u30CB\u30F3\u30B0\uFF5E "
       url: https://www.youtube.com/watch?v=4W2UVwG55Fs
       dynamicTitleIndex: -1
-  - name: PL7oV1TD1jAncnL_k8BgyZSOE2o0aYBDmc
+  - name: "test \u6016\u3044CM"
     randomPlayback: 0
     titleSourceUrl: 
     videos:
@@ -938,3 +938,76 @@ MonoBehaviour:
     - title: Private video
       url: https://www.youtube.com/watch?v=6PziwBSBLqI
       dynamicTitleIndex: -1
+  - name: 'test '
+    randomPlayback: 0
+    titleSourceUrl: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/titles
+    videos:
+    - title: "\u3010\u672C\u7DE8\u30E9\u30A4\u30D6\u30B7\u30FC\u30F3\u3011\u661F\u964D\u308B\u6D77
+        \u2013 Aqu3ra / \u6708\u898B\u30E4\u30C1\u30E8(cv.\u65E9\u898B\u6C99\u7E54)
+        from #\u8D85\u304B\u3050\u3084\u59EB \uFF01"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=0
+      dynamicTitleIndex: 0
+    - title: "\u3010\u672C\u7DE8\u30E9\u30A4\u30D6\u30B7\u30FC\u30F3\u3011\u30EF\u30FC\u30EB\u30C9\u30A4\u30BA\u30DE\u30A4\u30F3
+        CPK! Remix (\u304B\u3050\u3084 & \u6708\u898B\u30E4\u30C1\u30E8 ver.) \u2013
+        ryo (supercell) from \u8D85\u304B\u3050\u3084\u59EB\uFF01"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=1
+      dynamicTitleIndex: 1
+    - title: "\u3010\u672C\u7DE8\u5192\u982D\u6620\u50CF5\u520642\u79D2\u516C\u958B\u3011\u5287\u4E2D\u6B4C\u300CRemember\u300Dyuigot
+        / \u6708\u898B\u30E4\u30C1\u30E8 (cv.\u65E9\u898B\u6C99\u7E54)\u3010\u6620\u753B\u300E\u8D85\u304B\u3050\u3084\u59EB\uFF01\u300F\u3011"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=2
+      dynamicTitleIndex: 2
+    - title: "\u300E\u304B\u3050\u3084\uFF1F\u304B\u3050\u3084\u304B\u3042\uFF5E\uFF5E\uFF01\u300F\uFF5Cfrom
+        #\u8D85\u304B\u3050\u3084\u59EB\uFF01#cosmicprincesskaguya\u3010\u672C\u7DE8\u6620\u50CF\u3011"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=3
+      dynamicTitleIndex: 3
+    - title: "\u300E\u3044\u3063\u3066\u3089\u3063\u3057\u3083\u3044\uFF01\u300F\uFF5Cfrom
+        #\u8D85\u304B\u3050\u3084\u59EB\uFF01#cosmicprincesskaguya\u3010\u672C\u7DE8\u6620\u50CF\u3011"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=4
+      dynamicTitleIndex: 4
+    - title: "\u3010\u672C\u7DE8\u6620\u50CF\u3011\u30CF\u30C3\u30D4\u30FC\u30B7\u30F3\u30BB\u30B5\u30A4\u30B6(COVER)
+        \u2013 \u304B\u3050\u3084 (cv.\u590F\u5409\u3086\u3046\u3053) from \u8D85\u304B\u3050\u3084\u59EB\uFF01"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=5
+      dynamicTitleIndex: 5
+    - title: "\u3010\u672C\u7DE8\u6620\u50CF\u3011\u300C\u304B\u3050\u3084\u3001\u5E30\u3063\u3061\u3083\u3046\u306E\uFF1F\u300Dfrom
+        \u8D85\u304B\u3050\u3084\u59EB\uFF01"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=6
+      dynamicTitleIndex: 6
+    - title: 8
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=7
+      dynamicTitleIndex: 7
+    - title: 9
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=8
+      dynamicTitleIndex: 8
+    - title: 10
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=9
+      dynamicTitleIndex: 9
+    - title: 11
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=10
+      dynamicTitleIndex: 10
+    - title: 12
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=11
+      dynamicTitleIndex: 11
+    - title: 13
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=12
+      dynamicTitleIndex: 12
+    - title: 14
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=13
+      dynamicTitleIndex: 13
+    - title: 15
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=14
+      dynamicTitleIndex: 14
+    - title: 16
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=15
+      dynamicTitleIndex: 15
+    - title: 17
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=16
+      dynamicTitleIndex: 16
+    - title: 18
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=17
+      dynamicTitleIndex: 17
+    - title: 19
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=18
+      dynamicTitleIndex: 18
+    - title: 20
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=19
+      dynamicTitleIndex: 19

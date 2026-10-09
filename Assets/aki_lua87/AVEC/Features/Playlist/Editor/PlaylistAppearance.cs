@@ -137,8 +137,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 view.orderedIcon=PlaylistIcons.Get("ordered"); view.randomIcon=PlaylistIcons.Get("shuffle");
                 view.playbackModeIcon=IconButton(view,"Playback mode","ordered","_TogglePlaybackMode",824,18);
             }
-            if(view.transform.Find("Play")==null)IconButton(view,"Play","play","_StartPlayback",24,451);
-            if(view.transform.Find("Stop")==null)IconButton(view,"Stop","pause","_StopPlayback",84,451);
+            if(view.transform.Find("Play")==null)IconButton(view,"Play","play","_TogglePlayback",24,451);
+            EnsureTransportControls(view);
             EnsureConnectionLabel(setup);
             if(view.volumeSlider!=null) { EnsureVolumeIcon(setup); return; }
             var caption=Text(view.transform,"Volume caption","音量 (自分)",18); Place(caption.rectTransform,150,454,108,42);
@@ -156,6 +156,53 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             PlaylistConnections.Save(view);
             EnsureVolumeIcon(setup);
         }
+        // Narrow migration: preserve every existing RectTransform, theme and data override.
+        public static void EnsureTransportControls(PlaylistView view)
+        {
+            if (view == null) return;
+            Undo.RecordObject(view, "Add mute and playback toggle controls");
+            var play = view.transform.Find("Play");
+            if (play != null)
+            {
+                var button = play.GetComponent<Button>();
+                if (button != null) SetControlEvent(button, view, "_TogglePlayback", "_StartPlayback");
+                var icon = play.Find("Icon");
+                if (icon != null) view.transportIcon = icon.GetComponent<Image>();
+                view.playIcon = PlaylistIcons.Get("play"); view.pauseIcon = PlaylistIcons.Get("pause");
+            }
+            var stop = view.transform.Find("Stop");
+            if (stop != null && stop.gameObject.activeSelf) { Undo.RecordObject(stop.gameObject, "Consolidate playback buttons"); stop.gameObject.SetActive(false); PlaylistConnections.Save(stop.gameObject); }
+            var speaker = view.transform.Find("Volume caption/Icon");
+            if (speaker != null)
+            {
+                view.volumeIcon = speaker.GetComponent<Image>();
+                view.speakerIcon = PlaylistIcons.Get("speaker"); view.mutedIcon = PlaylistIcons.Get("speaker-muted");
+                var button = speaker.GetComponent<Button>();
+                if (button == null) button = Undo.AddComponent<Button>(speaker.gameObject);
+                button.targetGraphic = view.volumeIcon;
+                if (view.volumeIcon != null) { Undo.RecordObject(view.volumeIcon, "Enable mute icon input"); view.volumeIcon.raycastTarget = true; PlaylistConnections.Save(view.volumeIcon); }
+                SetControlEvent(button, view, "_ToggleMute", null);
+            }
+            PlaylistConnections.Save(view);
+        }
+        static void SetControlEvent(Button button, PlaylistView view, string method, string previous)
+        {
+            var backing = UdonSharpEditorUtility.GetBackingUdonBehaviour(view);
+            if (backing == null) return;
+            Undo.RecordObject(button, "Wire playlist control");
+            var serialized = new SerializedObject(button);
+            var calls = serialized.FindProperty("m_OnClick.m_PersistentCalls.m_Calls");
+            for (int i = 0; i < calls.arraySize; i++)
+            {
+                var call = calls.GetArrayElementAtIndex(i);
+                if (call.FindPropertyRelative("m_Target").objectReferenceValue != backing || call.FindPropertyRelative("m_MethodName").stringValue != "SendCustomEvent") continue;
+                var argument = call.FindPropertyRelative("m_Arguments.m_StringArgument");
+                if (argument.stringValue == method) return;
+                if (previous != null && argument.stringValue == previous) { argument.stringValue = method; serialized.ApplyModifiedProperties(); PlaylistConnections.Save(button); return; }
+            }
+            UnityEventTools.AddStringPersistentListener(button.onClick, backing.SendCustomEvent, method);
+            PlaylistConnections.Save(button);
+        }
         public static void EnsureVolumeIcon(PlaylistSetup setup)
         {
             var caption = setup.transform.Find("Volume caption");
@@ -172,6 +219,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             icon.sprite = PlaylistIcons.Get("speaker"); icon.preserveAspect = true; icon.raycastTarget = false;
             icon.color = text == null ? setup.view.iconColor : text.color;
             PlaylistConnections.Save(icon);
+            EnsureTransportControls(setup.view);
         }
         public static void EnsureConnectionLabel(PlaylistSetup setup)
         {

@@ -114,12 +114,13 @@ namespace aki_lua87.CommonGestureRemote.Editor
                     remote.Update();
                     EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(remote.FindProperty("customEventTarget"), new GUIContent("カスタムイベントの接続先"));
+                    EditorGUILayout.PropertyField(remote.FindProperty("summonEnabled"), new GUIContent("召喚を有効にする", "このリモコンを右スティック下の長押しで召喚します。複数配置している場合、使うものだけONにしてください。"));
                     details = EditorGUILayout.Foldout(details, "感度・表示・画面設定", true);
                     if (details)
                         foreach (string field in new[] { "minimumStroke", "directionBias", "timeout", "volumeStep", "scaleWithAvatar", "tip", "trail", "label", "drawingColor", "matchedColor" })
                             EditorGUILayout.PropertyField(remote.FindProperty(field));
                     if (details)
-                        foreach (string field in new[] { "helpHoldSeconds", "helpIdleSeconds", "helpOffset", "helpUIScale", "helpPanel", "helpCommands", "helpHint", "helpStick", "helpHintGroup" })
+                        foreach (string field in new[] { "helpHoldSeconds", "summonHoldSeconds", "helpIdleSeconds", "helpOffset", "helpUIScale", "helpPanel", "helpCommands", "helpHint", "helpStick", "helpHintGroup" })
                             EditorGUILayout.PropertyField(remote.FindProperty(field));
                     bool remoteChanged = EditorGUI.EndChangeCheck();
                     remote.ApplyModifiedProperties();

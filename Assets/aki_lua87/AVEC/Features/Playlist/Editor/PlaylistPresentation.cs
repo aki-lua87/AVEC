@@ -29,8 +29,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 text.resizeTextMinSize = Mathf.Min(Mathf.Max(text.resizeTextMinSize, 14), Mathf.Max(1, text.fontSize));
                 PlaylistConnections.Save(text);
             }
-            if (view.queueButtonLabel != null) { view.queueButtonLabel.text = "キュー"; PlaylistConnections.Save(view.queueButtonLabel); }
-            if (view.historyButtonLabel != null) { view.historyButtonLabel.text = "履歴"; PlaylistConnections.Save(view.historyButtonLabel); }
+            if (view.queueButtonLabel != null) { view.queueButtonLabel.text = "再生キュー"; PlaylistConnections.Save(view.queueButtonLabel); }
+            if (view.historyButtonLabel != null) { view.historyButtonLabel.text = "再生履歴"; PlaylistConnections.Save(view.historyButtonLabel); }
             ScrollList(view, false);
             ScrollList(view, true);
             var solid = SolidProgress();

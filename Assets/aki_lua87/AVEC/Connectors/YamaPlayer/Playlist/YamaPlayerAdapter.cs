@@ -16,6 +16,14 @@ namespace aki_lua87.CommonVideoPlaylist
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !_Available()) return 0;
             controller.Volume = UnityEngine.Mathf.Clamp01(value); return 1;
         }
+        public override bool _IsPlaybackRunning() { return controller != null && controller.Handler != null && controller.IsPlaying; }
+        public override bool _GetMute() { return controller != null && controller.Mute; }
+        public override int _SetMute(bool value)
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !_Available()) return 0;
+            if (!player.InvokeBeforeEvent("BeforeUserChangeMute")) return 2; controller.Mute = value;
+            return 1;
+        }
         public override int _ControlPlayback(bool stop)
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !_Available() || !Utilities.IsValid(Networking.LocalPlayer)) return 0;
@@ -28,7 +36,7 @@ namespace aki_lua87.CommonVideoPlaylist
             return 1;
         }
         public YamaSequenceListener sequenceListener;
-        public override void _SetNativeMode(int mode) { if (controller == null) return; controller.Repeat = 0; controller.Loop = mode == 2; }
+        public override void _SetNativeMode(int mode) { if (controller == null) return; controller.Repeat = 0; controller.Loop = mode == 2; controller.ShufflePlay = mode == 1; }
         public override bool _GetNativeRepeat() { return controller != null && controller.Loop; }
         public override float _GetProgress() { return !_Available() || controller.Duration <= 0f || float.IsInfinity(controller.Duration) || float.IsNaN(controller.Duration) ? -1f : UnityEngine.Mathf.Clamp01(controller.VideoTime / controller.Duration); }
         private void Start()

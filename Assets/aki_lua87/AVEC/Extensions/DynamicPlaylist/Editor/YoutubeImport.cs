@@ -125,9 +125,30 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                         dynamicTitleIndex = dynamic ? i : -1
                     };
                 }
-                return new PlaylistTab { name = id, titleSourceUrl = dynamic ? source : "", videos = videos };
+                string title = await FetchPlaylistTitle(client, id);
+                return new PlaylistTab { name = title, titleSourceUrl = dynamic ? source : "", videos = videos };
             }
         }
+        // The current /titles response contains video titles/URLs, but no playlist name.
+        // Fetch display metadata only in the Editor; failure must not reject usable videos.
+        static async Task<string> FetchPlaylistTitle(HttpClient client, string id)
+        {
+            try
+            {
+                using (var response = await client.GetAsync("https://www.youtube.com/playlist?list=" + Uri.EscapeDataString(id)))
+                {
+                    if (!response.IsSuccessStatusCode) return id;
+                    string html = await response.Content.ReadAsStringAsync();
+                    var match = Regex.Match(html, "<meta\\s+property=\"og:title\"\\s+content=\"([^\"]+)\"", RegexOptions.IgnoreCase);
+                    if (!match.Success) return id;
+                    string title = System.Net.WebUtility.HtmlDecode(match.Groups[1].Value).Trim();
+                    return string.IsNullOrWhiteSpace(title) || title == "YouTube" ? id : title;
+                }
+            }
+            catch (HttpRequestException) { return id; }
+            catch (TaskCanceledException) { return id; }
+        }
+
     }
 
 }

@@ -15,6 +15,14 @@ namespace aki_lua87.CommonVideoPlaylist
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !_Available()) return 0;
             player.core.Volume = UnityEngine.Mathf.Clamp01(value); return 1;
         }
+        public override bool _IsPlaybackRunning() { return _Available() && player.core.IsPlaying; }
+        public override bool _GetMute() { return _Available() && player.core.Muted; }
+        public override int _SetMute(bool value)
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !_Available()) return 0;
+            player.core.Muted = value;
+            return 1;
+        }
         public override int _ControlPlayback(bool stop)
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !_Available()) return 0;

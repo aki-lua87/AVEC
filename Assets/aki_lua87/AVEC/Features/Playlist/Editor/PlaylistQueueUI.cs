@@ -15,7 +15,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (view.queuePanel == null)
             {
                 Undo.RecordObject(view, "Add playlist queue UI");
-                var toggle = Button(setup.transform, "Queue toggle", "キュー (0)", view, "_ToggleQueue", 202, 18, 102, 42, view.normalColor);
+                var toggle = Button(setup.transform, "Queue toggle", "再生キュー", view, "_ToggleQueue", 202, 18, 102, 42, view.normalColor);
                 view.queueButtonLabel = toggle.GetComponentInChildren<Text>();
                 var panel = Box(setup.transform, "Queue panel", setup.theme == null ? view.normalColor : setup.theme.surface);
                 var videos = setup.transform.Find("Videos") as RectTransform;
@@ -25,10 +25,10 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                     panel.localScale = videos.localScale; panel.localRotation = videos.localRotation;
                 } else PlaylistAppearance.Place(panel, 232, 106, 644, 328);
                 float width = panel.rect.width;
-                var header = Label(panel, "Queue heading", "再生待ちキュー", view, 18);
+                var header = Label(panel, "Queue heading", "再生キュー", view, 18);
                 PlaylistAppearance.Place(header.rectTransform, 12, 3, width - 210, 32);
                 Button(panel, "Start queued playback", "再生", view, "_StartQueuedPlayback", width - 182, 3, 76, 30, view.normalColor);
-                Button(panel, "Clear queue", "全消去", view, "_ClearQueue", width - 98, 3, 86, 30, view.normalColor);
+                Button(panel, "Clear queue", "クリア", view, "_ClearQueue", width - 98, 3, 86, 30, view.normalColor);
                 view.queueLabels = new Text[6]; view.queueRows = new GameObject[6];
                 for (int i = 0; i < 6; i++) {
                     var row = Box(panel, "Queue row " + i, view.normalColor);
@@ -54,9 +54,44 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 panel.gameObject.SetActive(false);
                 PlaylistConnections.Save(panel.gameObject); PlaylistConnections.Save(view);
             }
+            UpdateQueueLabels(view);
             EnsureTabLayout(setup);
             for (int i = 0; i < view.videoImages.Length; i++)
                 if (view.videoImages[i] != null) EnsureAddButton(setup, view.videoImages[i].gameObject, i);
+        }
+        // Update only the requested labels and icon, preserving layout and button events.
+        public static void UpdateQueueLabels(PlaylistView view)
+        {
+            if (view == null) return;
+            if (view.queueButtonLabel != null) { Undo.RecordObject(view.queueButtonLabel, "Rename queue tab"); view.queueButtonLabel.text = "再生キュー"; PlaylistConnections.Save(view.queueButtonLabel); }
+            if (view.historyButtonLabel != null) { Undo.RecordObject(view.historyButtonLabel, "Rename history tab"); view.historyButtonLabel.text = "再生履歴"; PlaylistConnections.Save(view.historyButtonLabel); }
+            if (view.heading != null && (view.heading.text == "キュー" || view.heading.text == "再生待ちキュー")) { Undo.RecordObject(view.heading, "Rename queue heading"); view.heading.text = "再生キュー"; PlaylistConnections.Save(view.heading); }
+            if (view.queuePanel == null) return;
+            var panel = view.queuePanel.transform;
+            var clear = panel.Find("Clear queue");
+            var clearLabel = clear == null ? null : clear.GetComponentInChildren<Text>(true);
+            if (clearLabel != null) { Undo.RecordObject(clearLabel, "Rename clear button"); clearLabel.text = "クリア"; PlaylistConnections.Save(clearLabel); }
+            var heading = panel.Find("Queue heading");
+            var headingLabel = heading == null ? null : heading.GetComponent<Text>();
+            if (headingLabel != null) { Undo.RecordObject(headingLabel, "Rename queue heading"); headingLabel.text = "再生キュー"; PlaylistConnections.Save(headingLabel); }
+            var play = panel.Find("Start queued playback");
+            if (play == null) return;
+            var label = play.GetComponentInChildren<Text>(true);
+            if (label != null) { Undo.RecordObject(label, "Replace queue play text with icon"); label.enabled = false; PlaylistConnections.Save(label); }
+            var existing = play.Find("Icon");
+            Image icon;
+            if (existing == null)
+            {
+                var go = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+                Undo.RegisterCreatedObjectUndo(go, "Add queue play icon"); go.transform.SetParent(play, false);
+                icon = go.GetComponent<Image>();
+                icon.rectTransform.anchorMin = icon.rectTransform.anchorMax = icon.rectTransform.pivot = new Vector2(.5f, .5f);
+                icon.rectTransform.anchoredPosition = Vector2.zero; icon.rectTransform.sizeDelta = new Vector2(24f, 24f);
+                icon.color = label == null ? view.iconColor : label.color;
+            }
+            else { icon = existing.GetComponent<Image>(); if (icon == null) return; Undo.RecordObject(icon, "Update queue play icon"); }
+            icon.sprite = PlaylistIcons.Get("play"); icon.preserveAspect = true; icon.raycastTarget = false;
+            PlaylistConnections.Save(icon);
         }
         static void EnsureTabLayout(PlaylistSetup setup)
         {

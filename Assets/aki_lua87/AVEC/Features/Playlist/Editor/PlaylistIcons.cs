@@ -17,10 +17,11 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             else if(name=="stop") { for(int y=15;y<49;y++)for(int x=15;x<49;x++)pixels[y*64+x]=Color.white; }
             else if(name=="pause") { for(int y=13;y<51;y++)for(int x=17;x<47;x++)if(x<27||x>=37)pixels[y*64+x]=Color.white; }
             else if(name=="repeat") { Line(pixels,16,18,50,18);Line(pixels,50,18,50,46);Line(pixels,50,46,14,46);Line(pixels,14,46,14,18);Arrow(pixels,50,18);Line(pixels,14,46,23,37);Line(pixels,14,46,23,55);Line(pixels,32,24,32,40);Line(pixels,27,36,32,40); }
-            else if(name=="speaker") {
+            else if(name=="speaker" || name=="speaker-muted") {
                 Line(pixels,10,24,20,24); Line(pixels,10,24,10,40); Line(pixels,10,40,20,40);
                 Line(pixels,20,24,32,14); Line(pixels,20,40,32,50); Line(pixels,32,14,32,50);
-                for(int y=12;y<=52;y++)for(int x=36;x<60;x++) {
+                if(name=="speaker-muted") Line(pixels,8,54,56,10);
+                else for(int y=12;y<=52;y++)for(int x=36;x<60;x++) {
                     float radius=new Vector2(x-32,y-32).magnitude;
                     if(x-32>=Mathf.Abs(y-32)*.65f && (Mathf.Abs(radius-14)<1.6f || Mathf.Abs(radius-24)<1.6f))pixels[y*64+x]=Color.white;
                 }

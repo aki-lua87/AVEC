@@ -31,13 +31,15 @@ namespace aki_lua87.CommonVideoPlaylist
         private int stopRevision;
         private bool stopDuringEnd;
         private float lastLoadTime = -10f;
-        // FIFO entries refer to the editor-baked views, avoiding URL/title network payloads.
+        // FIFO keeps source indices for playback, and captures titles at submission for all clients.
         [UdonSynced] private int[] syncedQueueViews = new int[0];
         [UdonSynced] private int[] syncedQueueVideos = new int[0];
         [UdonSynced] private bool syncedQueueOnly;
         private int[] queueViews = new int[0];
         private int[] queueVideos = new int[0];
         private bool queueOnly;
+        [UdonSynced] private string[] syncedQueueTitles = new string[0];
+        private string[] queueTitles = new string[0];
         [UdonSynced] private VRCUrl[] syncedQueueUrls = new VRCUrl[0];
         [UdonSynced] private VRCUrl syncedQueuePlayingUrl = new VRCUrl("");
         private VRCUrl[] queueUrls = new VRCUrl[0];
@@ -120,10 +122,8 @@ namespace aki_lua87.CommonVideoPlaylist
             int length = Mathf.Min(32, historyUrls.Length + 1);
             var newUrls = new VRCUrl[length]; var newTitles = new string[length]; var newSubmitters = new string[length];
             for (int i = 1; i < length; i++) { newUrls[i] = historyUrls[i - 1]; newTitles[i] = historyTitles[i - 1]; newSubmitters[i] = historySubmitters[i - 1]; }
-            var view = ActiveView();
             newUrls[0] = url;
-            newTitles[0] = MatchesCurrent() && ValidEntry(view, cursorVideo) ? view.titles[cursorVideo]
-                : MatchesCurrent() && !string.IsNullOrEmpty(queuePlayingTitle) ? queuePlayingTitle : url.Get();
+            newTitles[0] = MatchesCurrent() && !string.IsNullOrEmpty(queuePlayingTitle) ? queuePlayingTitle : url.Get();
             if (string.IsNullOrEmpty(newTitles[0])) newTitles[0] = url.Get();
             newSubmitters[0] = MatchesCurrent() ? playingSubmitter : "";
             historyUrls = newUrls; historyTitles = newTitles; historySubmitters = newSubmitters;
@@ -146,10 +146,20 @@ namespace aki_lua87.CommonVideoPlaylist
         public virtual float _GetVolume() { return -1f; }
         public virtual int _SetVolume(float value) { return 0; }
         public virtual int _ControlPlayback(bool stop) { return 0; }
+        public virtual bool _IsPlaybackRunning() { return false; }
+        public virtual bool _GetMute() { return false; }
+        public virtual int _SetMute(bool value) { return 0; }
         public int _QueueCount() { return queueViews.Length; }
         public string _QueueDisplayTitle(int index)
         {
             return FormatSubmission(index >= 0 && index < queueSubmitters.Length ? queueSubmitters[index] : "", _QueueTitle(index));
+        }
+        private void AppendQueueTitle(string title)
+        {
+            var values = new string[queueTitles.Length + 1];
+            System.Array.Copy(queueTitles, values, queueTitles.Length);
+            values[values.Length - 1] = title;
+            queueTitles = values;
         }
         private void AppendQueueSubmitter()
         {
@@ -161,11 +171,8 @@ namespace aki_lua87.CommonVideoPlaylist
         public string _QueueTitle(int index)
         {
             if (index < 0 || index >= queueViews.Length || index >= queueVideos.Length) return "";
-            int source = queueViews[index];
-            if (source == -1 && index < queueUrls.Length) return queueUrls[index].Get();
-            if (source < 0 || source >= views.Length || !ValidEntry(views[source], queueVideos[index])) return "無効な動画";
-            string title = views[source].titles[queueVideos[index]];
-            return string.IsNullOrEmpty(title) ? views[source].urls[queueVideos[index]].Get() : title;
+            if (index < queueTitles.Length && !string.IsNullOrEmpty(queueTitles[index])) return queueTitles[index];
+            return index < queueUrls.Length && !VRCUrl.IsNullOrEmpty(queueUrls[index]) ? queueUrls[index].Get() : "無効な動画";
         }
         public int _EnqueueFrom(PlaylistView view, int index)
         {
@@ -182,6 +189,7 @@ namespace aki_lua87.CommonVideoPlaylist
             var inputs = new VRCUrl[length + 1];
             System.Array.Copy(queueUrls, inputs, length); inputs[length] = VRCUrl.Empty; queueUrls = inputs;
             AppendQueueSubmitter();
+            AppendQueueTitle(string.IsNullOrEmpty(view.titles[index]) ? view.urls[index].Get() : view.titles[index]);
             CommitCursor();
             if (VRCUrl.IsNullOrEmpty(_CurrentUrl()) && !_NativeReady())
                 SendCustomEventDelayedSeconds(nameof(_StartQueue), Mathf.Max(.1f, 5.1f - (Time.realtimeSinceStartup - lastLoadTime)));
@@ -201,6 +209,7 @@ namespace aki_lua87.CommonVideoPlaylist
             sources[length] = -1; videos[length] = -1; inputs[length] = url;
             queueViews = sources; queueVideos = videos; queueUrls = inputs;
             AppendQueueSubmitter();
+            AppendQueueTitle(raw);
             CommitCursor();
             if (VRCUrl.IsNullOrEmpty(_CurrentUrl()) && !_NativeReady())
                 SendCustomEventDelayedSeconds(nameof(_StartQueue), Mathf.Max(.1f, 5.1f - (Time.realtimeSinceStartup - lastLoadTime)));
@@ -226,13 +235,13 @@ namespace aki_lua87.CommonVideoPlaylist
             int length = queueViews.Length - 1;
             var sources = new int[length]; var videos = new int[length];
             var inputs = new VRCUrl[length];
-            var names = new string[length];
+            var names = new string[length]; var titles = new string[length];
             for (int from = 0, to = 0; from < queueViews.Length; from++)
             {
                 if (from == index) continue;
-                sources[to] = queueViews[from]; videos[to] = queueVideos[from]; inputs[to] = queueUrls[from]; names[to] = queueSubmitters[from]; to++;
+                sources[to] = queueViews[from]; videos[to] = queueVideos[from]; inputs[to] = queueUrls[from]; names[to] = queueSubmitters[from]; titles[to] = queueTitles[from]; to++;
             }
-            queueViews = sources; queueVideos = videos; queueUrls = inputs; queueSubmitters = names;
+            queueViews = sources; queueVideos = videos; queueUrls = inputs; queueSubmitters = names; queueTitles = titles;
         }
         private int PlayQueued()
         {
@@ -254,7 +263,7 @@ namespace aki_lua87.CommonVideoPlaylist
                 queueActive = true; CommitCursor(); return 1;
             }
             if (source < 0 || source >= views.Length) return 3;
-            int result = PlayEntry(views[source], queueVideos[0], false, queueSubmitters[0]);
+            int result = PlayEntry(views[source], queueVideos[0], false, queueSubmitters[0], _QueueTitle(0));
             if (result == 1) { queueActive = true; queueOnly = true; CommitCursor(); }
             return result;
         }
@@ -286,7 +295,7 @@ namespace aki_lua87.CommonVideoPlaylist
             if (System.Array.IndexOf(views, view) < 0) return 0;
             if (nextMode < 0 || nextMode > 2) return 3;
             if (!_AcquireSequenceControl() || !CanWrite()) return 2;
-            if (modeOverride == nextMode && _GetNativeRepeat() == (nextMode == 2)) return 1;
+            if (modeOverride == nextMode && _GetNativeRepeat() == (nextMode == 2)) { _SetNativeMode(nextMode); return 1; }
             modeOverride = nextMode;
             if (nextMode != 2) previousMode = nextMode;
             _SetNativeMode(nextMode);
@@ -318,7 +327,7 @@ namespace aki_lua87.CommonVideoPlaylist
         public int _PlayFrom(PlaylistView view, int index)
         {
             if (NetworkCalling.InNetworkCall) return 0;
-            return PlayEntry(view, index, true, LocalSubmitter());
+            return PlayEntry(view, index, true, LocalSubmitter(), null);
         }
 
         // Manual remote navigation shares the native-player cursor; no second cursor is synced.
@@ -328,6 +337,19 @@ namespace aki_lua87.CommonVideoPlaylist
             if (NetworkCalling.InNetworkCall || requesting || !_Available()) return 0;
             if (fallback == null || System.Array.IndexOf(views, fallback) < 0) return 3;
             if (Time.realtimeSinceStartup - lastLoadTime < 5.1f) return 7;
+            if (direction > 0 && queueViews.Length > (queueActive ? 1 : 0))
+            {
+                if (!_AcquireSequenceControl() || !CanWrite()) return 2;
+                // Keep the current queue entry if the successor request is rejected.
+                int[] oldViews = queueViews; int[] oldVideos = queueVideos;
+                VRCUrl[] oldUrls = queueUrls; string[] oldTitles = queueTitles; string[] oldNames = queueSubmitters;
+                bool oldActive = queueActive;
+                if (queueActive) FinishQueued();
+                int queuedResult = PlayQueued();
+                if (queuedResult != 1) { queueViews = oldViews; queueVideos = oldVideos; queueUrls = oldUrls; queueTitles = oldTitles; queueSubmitters = oldNames; queueActive = oldActive; }
+                return queuedResult;
+            }
+            if (direction > 0 && queueActive) return 4;
             var view = ActiveView();
             int current = cursorVideo;
             if (!ValidEntry(view, current) || !MatchesCurrent())
@@ -335,13 +357,13 @@ namespace aki_lua87.CommonVideoPlaylist
                 view = fallback;
                 int selectedTab = fallback._SelectedTab();
                 for (int i = 0; i < view.urls.Length; i++)
-                    if (ValidEntry(view, i) && view.videoTabs[i] == selectedTab) return PlayEntry(view, i, true, LocalSubmitter());
+                    if (ValidEntry(view, i) && view.videoTabs[i] == selectedTab) return PlayEntry(view, i, true, LocalSubmitter(), null);
                 return 4;
             }
             int next = NavigationIndex(view, current, direction);
             if (next < 0) return 4;
             // Preserve the current random seed but make a manual selection the new pass origin.
-            int result = PlayEntry(view, next, false, LocalSubmitter());
+            int result = PlayEntry(view, next, false, LocalSubmitter(), null);
             if (result == 1) { FinishQueued(); queueOnly = false; sequenceStart = next; CommitCursor(); }
             return result;
         }
@@ -363,7 +385,7 @@ namespace aki_lua87.CommonVideoPlaylist
             return next;
         }
 
-        private int PlayEntry(PlaylistView view, int index, bool beginSequence, string submitter)
+        private int PlayEntry(PlaylistView view, int index, bool beginSequence, string submitter, string capturedTitle)
         {
             if (NetworkCalling.InNetworkCall || view == null || !_Available()) return 0;
             int source = System.Array.IndexOf(views, view);
@@ -372,7 +394,9 @@ namespace aki_lua87.CommonVideoPlaylist
             requesting = true;
             // Starting an AVEC sequence applies its authored mode, overriding native defaults.
             _SetNativeMode(modeOverride == 2 ? 2 : _IsRandomMode(view, view.videoTabs[index]) ? 1 : 0);
-            int result = _Request(view.urls[index], view.titles[index]);
+            string title = string.IsNullOrEmpty(capturedTitle) ? view.titles[index] : capturedTitle;
+            if (string.IsNullOrEmpty(title)) title = view.urls[index].Get();
+            int result = _Request(view.urls[index], title);
             requesting = false;
             if (result != 1) return result;
             // Queue APIs can transfer a frontend without transferring its playback core.
@@ -392,7 +416,7 @@ namespace aki_lua87.CommonVideoPlaylist
             cursorView = source; cursorVideo = index; revision++;
             playingSubmitter = submitter;
             queuePlayingUrl = VRCUrl.Empty;
-            queuePlayingTitle = "";
+            queuePlayingTitle = title;
             endPending = false; armed = false;
             CommitCursor();
             // Wait for the actual native Ready/Start callback, even if a queued URL
@@ -429,6 +453,7 @@ namespace aki_lua87.CommonVideoPlaylist
                 syncedModeOverride = modeOverride;
                 syncedQueueViews = (int[])queueViews.Clone(); syncedQueueVideos = (int[])queueVideos.Clone();
                 syncedQueueOnly = queueOnly;
+                syncedQueueTitles = (string[])queueTitles.Clone();
                 syncedQueueUrls = (VRCUrl[])queueUrls.Clone(); syncedQueuePlayingUrl = queuePlayingUrl;
                 syncedQueueSubmitters = (string[])queueSubmitters.Clone(); syncedPlayingSubmitter = playingSubmitter;
                 syncedQueuePlayingTitle = queuePlayingTitle;
@@ -456,6 +481,8 @@ namespace aki_lua87.CommonVideoPlaylist
             queueViews = syncedQueueViews == null ? new int[0] : (int[])syncedQueueViews.Clone();
             queueVideos = syncedQueueVideos == null ? new int[0] : (int[])syncedQueueVideos.Clone();
             queueOnly = syncedQueueOnly;
+            queueTitles = syncedQueueTitles == null ? new string[0] : (string[])syncedQueueTitles.Clone();
+            if (queueTitles.Length != queueViews.Length) queueTitles = new string[queueViews.Length];
             queueUrls = syncedQueueUrls == null ? new VRCUrl[0] : (VRCUrl[])syncedQueueUrls.Clone();
             queueSubmitters = syncedQueueSubmitters == null ? new string[0] : (string[])syncedQueueSubmitters.Clone();
             playingSubmitter = syncedPlayingSubmitter;
@@ -530,7 +557,7 @@ namespace aki_lua87.CommonVideoPlaylist
                 _CancelSequence();
                 return;
             }
-            int result = PlayEntry(view, next, false, playingSubmitter);
+            int result = PlayEntry(view, next, false, playingSubmitter, null);
             if (result != 1)
             {
                 view._SequenceStatus("次の動画を再生できませんでした。接続先・権限・URLを確認してください。");

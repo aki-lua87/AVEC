@@ -79,7 +79,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             tab.name = "History toggle"; if (existingTab == null) Undo.RegisterCreatedObjectUndo(tab, "Add history tab");
             tab.transform.SetSiblingIndex(view.queueTabImage.transform.GetSiblingIndex() + 1);
             view.historyTabImage = tab.GetComponent<Image>(); view.historyTabImage.color = view.normalColor;
-            view.historyButtonLabel = tab.GetComponentInChildren<Text>(true); view.historyButtonLabel.text = "履歴 (0)";
+            view.historyButtonLabel = tab.GetComponentInChildren<Text>(true); view.historyButtonLabel.text = "再生履歴";
             Wire(tab.GetComponent<Button>(), view, "_ToggleHistory");
             var existingPanel = view.transform.Find("History panel");
             var panel = existingPanel == null ? Object.Instantiate(view.queuePanel, view.queuePanel.transform.parent, false) : existingPanel.gameObject;

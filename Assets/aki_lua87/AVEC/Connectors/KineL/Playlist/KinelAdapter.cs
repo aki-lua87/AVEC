@@ -12,6 +12,7 @@ namespace aki_lua87.CommonVideoPlaylist
         // Editor-detected native volume UI targets, persisted for Udon.
         public UnityEngine.AudioSource[] audioSources = new UnityEngine.AudioSource[0];
         public UnityEngine.UI.Slider[] volumeSliders = new UnityEngine.UI.Slider[0];
+        public Kinel.VideoPlayer.Udon.Module.AudioModule[] muteModules = new Kinel.VideoPlayer.Udon.Module.AudioModule[0];
         public override float _GetVolume() { return audioSources.Length == 0 || audioSources[0] == null ? -1f : audioSources[0].volume; }
         public override int _SetVolume(float value)
         {
@@ -19,6 +20,21 @@ namespace aki_lua87.CommonVideoPlaylist
             value = UnityEngine.Mathf.Clamp01(value);
             for (int i = 0; i < audioSources.Length; i++) if (audioSources[i] != null) audioSources[i].volume = value;
             for (int i = 0; i < volumeSliders.Length; i++) if (volumeSliders[i] != null) volumeSliders[i].SetValueWithoutNotify(value);
+            return 1;
+        }
+        public override bool _IsPlaybackRunning() { return player != null && player.IsPlaying && !player.IsPause; }
+        public override bool _GetMute() { return audioSources.Length > 0 && audioSources[0] != null && audioSources[0].mute; }
+        public override int _SetMute(bool value)
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !_Available()) return 0;
+            if (audioSources.Length == 0) return 0;
+            for (int i = 0; i < muteModules.Length; i++)
+            {
+                var module = muteModules[i]; if (module == null) continue;
+                object current = module.GetProgramVariable("mute");
+                if (current != null && (bool)current != value) module.ToggleMute();
+            }
+            for (int i = 0; i < audioSources.Length; i++) if (audioSources[i] != null) audioSources[i].mute = value;
             return 1;
         }
         public override int _ControlPlayback(bool stop)

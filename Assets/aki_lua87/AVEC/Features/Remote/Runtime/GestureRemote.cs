@@ -28,8 +28,11 @@ namespace aki_lua87.CommonGestureRemote
         public Transform helpHint;
         public RectTransform helpStick;
         public CanvasGroup helpHintGroup;
-        [Min(.5f)] public float helpHoldSeconds = 2f;
+        [Min(.5f)] public float helpHoldSeconds = 4f / 3f;
         [Min(1f)] public float helpIdleSeconds = 5f;
+        [Tooltip("右スティックの下長押しで、このリモコンを手元へ召喚できるようにします。ガイド表示には影響しません。")]
+        public bool summonEnabled = true;
+        [Min(1f)] public float summonHoldSeconds = 3f;
         public Vector3 helpOffset = new Vector3(.18f, .16f, .08f);
         [Min(.0001f)] public float helpUIScale = .00065f;
         // Editor-baked, persisted arrays; shared authoring data never enters Udon.
@@ -61,6 +64,8 @@ namespace aki_lua87.CommonGestureRemote
         private float lastActivity;
         private bool helpShown;
         private bool helpSeen;
+        private float summonDownSince = -1f;
+        private bool summonConsumed;
 
         private void Start()
         {
@@ -80,7 +85,7 @@ namespace aki_lua87.CommonGestureRemote
         public override void OnDrop() { held = false; Cancel(); HideHelp(); }
         public override void InputLookVertical(float value, VRC.Udon.Common.UdonInputEventArgs args)
         {
-            if (NetworkCalling.InNetworkCall || !held || !Utilities.IsValid(Networking.LocalPlayer) || !Networking.LocalPlayer.IsUserInVR()) return;
+            if (NetworkCalling.InNetworkCall || !Utilities.IsValid(Networking.LocalPlayer) || !Networking.LocalPlayer.IsUserInVR()) return;
             if (args.handType != VRC.Udon.Common.HandType.RIGHT) return;
             helpAxis = value;
         }
@@ -126,6 +131,7 @@ namespace aki_lua87.CommonGestureRemote
         }
         public override void PostLateUpdate()
         {
+            UpdateSummon();
             UpdateHelp();
             if (drawing)
             {
@@ -137,6 +143,30 @@ namespace aki_lua87.CommonGestureRemote
             if (tip != null) label.transform.position = (drawing || desktop ? strokeTip : tip.position) + (basis * Vector3.up) * .07f;
             if (Utilities.IsValid(Networking.LocalPlayer))
                 label.transform.rotation = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head).rotation;
+        }
+        private void UpdateSummon()
+        {
+            if (!summonEnabled) { summonDownSince = -1f; summonConsumed = false; return; }
+            if (!Utilities.IsValid(Networking.LocalPlayer) || !Networking.LocalPlayer.IsUserInVR()) return;
+            if (held || helpAxis > -.65f) { summonDownSince = -1f; if (helpAxis > -.65f) summonConsumed = false; return; }
+            if (summonConsumed) return;
+            var pickup = (VRC.SDK3.Components.VRCPickup)GetComponent(typeof(VRC.SDK3.Components.VRCPickup));
+            if (pickup == null || pickup.IsHeld) { summonDownSince = -1f; return; }
+            if (summonDownSince < 0f) summonDownSince = Time.time;
+            if (Time.time - summonDownSince < summonHoldSeconds) return;
+            summonConsumed = true; summonDownSince = -1f;
+            var sync = GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+            if (sync != null)
+            {
+                Networking.SetOwner(Networking.LocalPlayer, gameObject);
+                if (!Networking.IsOwner(gameObject)) return;
+                sync.FlagDiscontinuity();
+            }
+            var hand = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.RightHand);
+            // Bring the grip near the hand without forcing a pickup or changing its scale.
+            var body = GetComponent<Rigidbody>();
+            if (body != null) { body.velocity = Vector3.zero; body.angularVelocity = Vector3.zero; }
+            transform.SetPositionAndRotation(hand.position + hand.rotation * new Vector3(0f, 0f, .08f), hand.rotation);
         }
         private void UpdateHelp()
         {
@@ -264,6 +294,6 @@ namespace aki_lua87.CommonGestureRemote
             if (trail != null) { trail.enabled = false; trail.positionCount = 0; }
             if (label != null) label.gameObject.SetActive(false);
         }
-        private void OnDisable() { held = false; helpAxis = 0f; Cancel(); HideHelp(); }
+        private void OnDisable() { held = false; helpAxis = 0f; summonDownSince = -1f; summonConsumed = false; Cancel(); HideHelp(); }
     }
 }

@@ -31,6 +31,12 @@ namespace aki_lua87.CommonVideoPlaylist
         private int historyPage;
         public Slider volumeSlider;
         public Text volumeLabel;
+        public Image volumeIcon;
+        public Sprite speakerIcon;
+        public Sprite mutedIcon;
+        public Image transportIcon;
+        public Sprite playIcon;
+        public Sprite pauseIcon;
         public Text connectionLabel;
         // Editor-baked destination name; persisted because PlaylistSetup is EditorOnly.
         [HideInInspector] public string connectionName = "";
@@ -83,6 +89,8 @@ namespace aki_lua87.CommonVideoPlaylist
             _RefreshPlaybackMode();
             if (connectionLabel != null) connectionLabel.text = adapter == null || !adapter._Available() ? "未接続" : connectionName;
             if (audioLinkLabel != null) audioLinkLabel.text = _AudioLinkStatus();
+            if (volumeIcon != null) volumeIcon.sprite = adapter != null && adapter._GetMute() ? mutedIcon : speakerIcon;
+            if (transportIcon != null) transportIcon.sprite = adapter != null && adapter._IsPlaybackRunning() ? pauseIcon : playIcon;
             float value = adapter == null ? -1f : adapter._GetVolume();
             if (volumeSlider != null) { volumeSlider.interactable = value >= 0f; if (value >= 0f) volumeSlider.SetValueWithoutNotify(value); }
             if (volumeLabel != null) volumeLabel.text = value < 0f ? "—" : Mathf.RoundToInt(value * 100f) + "%";
@@ -103,7 +111,7 @@ namespace aki_lua87.CommonVideoPlaylist
             if (queueAddPanel != null) queueAddPanel.SetActive(false);
             if (videoScroll != null) videoScroll.gameObject.SetActive(false);
             selectedTab = -1;
-            if (heading != null) heading.text = "キュー";
+            if (heading != null) heading.text = "再生キュー";
             if (queueTabImage != null) queueTabImage.color = selectedColor;
             for (int i = 0; i < tabImages.Length; i++) if (tabImages[i] != null) tabImages[i].color = normalColor;
             _RefreshQueue();
@@ -152,7 +160,7 @@ namespace aki_lua87.CommonVideoPlaylist
         public void _RefreshQueue()
         {
             int count = adapter == null ? 0 : adapter._QueueCount();
-            if (queueButtonLabel != null) queueButtonLabel.text = "キュー";
+            if (queueButtonLabel != null) queueButtonLabel.text = "再生キュー";
             if (queueLabels.Length == 0) return;
             int pages = Mathf.Max(1, (count + queueLabels.Length - 1) / queueLabels.Length);
             queuePage = Mathf.Clamp(queuePage, 0, pages - 1);
@@ -191,7 +199,7 @@ namespace aki_lua87.CommonVideoPlaylist
         public void _RefreshHistory()
         {
             int count = adapter == null ? 0 : adapter._HistoryCount();
-            if (historyButtonLabel != null) historyButtonLabel.text = "履歴";
+            if (historyButtonLabel != null) historyButtonLabel.text = "再生履歴";
             if (historyLabels.Length == 0) return;
             int pages = Mathf.Max(1, (count + historyLabels.Length - 1) / historyLabels.Length);
             historyPage = Mathf.Clamp(historyPage, 0, pages - 1);
@@ -248,6 +256,19 @@ namespace aki_lua87.CommonVideoPlaylist
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || volumeSlider == null) return;
             int result = adapter == null ? 0 : adapter._SetVolume(Mathf.Clamp01(volumeSlider.value));
             if (result != 1) SetStatus("音量を変更できません。接続先を確認してください");
+            _RefreshVolume();
+        }
+        public void _ToggleMute()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            int result = adapter == null ? 0 : adapter._SetMute(!adapter._GetMute());
+            SetStatus(result == 1 ? (adapter._GetMute() ? "ミュートしました（自分のみ）" : "ミュートを解除しました（自分のみ）") : result == 2 ? "操作権限がありません" : "接続先を確認してください");
+            _RefreshVolume();
+        }
+        public void _TogglePlayback()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            if (adapter != null && adapter._IsPlaybackRunning()) _StopPlayback(); else _StartPlayback();
             _RefreshVolume();
         }
         public void _StopPlayback()
