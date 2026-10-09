@@ -35,7 +35,8 @@ namespace aki_lua87.CommonAssets.Editor
         }
         static string[] Names => Packages.Select(p=>p.Name).ToArray();
         static bool Exists(int index) => Packages[index].Folders.All(Directory.Exists) && Packages[index].Assets.All(File.Exists);
-        public static string[] CollectPaths(int index) => AssetDatabase.FindAssets("",Packages[index].Folders).Select(AssetDatabase.GUIDToAssetPath).Concat(Packages[index].Assets).Where(p=>!p.EndsWith(".unity",StringComparison.OrdinalIgnoreCase)).Distinct().ToArray();
+        static string[] LegalAssets => new[]{Root+"/Core/LICENSE.txt",Root+"/Core/THIRD_PARTY_NOTICES.txt"};
+        public static string[] CollectPaths(int index) => AssetDatabase.FindAssets("",Packages[index].Folders).Select(AssetDatabase.GUIDToAssetPath).Concat(Packages[index].Assets).Concat(LegalAssets).Where(p=>!p.EndsWith(".unity",StringComparison.OrdinalIgnoreCase)).Distinct().ToArray();
         static bool[] NormalizeSelection(bool[] selected)
         {
             if (selected != null && selected.Length == Packages.Length) return selected;
@@ -75,6 +76,7 @@ namespace aki_lua87.CommonAssets.Editor
             if(!Regex.IsMatch(version??"",@"^[A-Za-z0-9][A-Za-z0-9._-]*$"))throw new ArgumentException("バージョンには英数字・ピリオド・ハイフン・アンダースコアを使用してください。");
             if(selected==null||selected.Length!=Names.Length)throw new ArgumentException("パッケージ選択が不正です。");
             if(!selected.Where((v,i)=>v&&Exists(i)).Any())throw new ArgumentException("出力するパッケージを選択してください。");
+            foreach(string path in LegalAssets)if(!File.Exists(path))throw new FileNotFoundException("ライセンス・帰属表示が見つかりません。AVEC-Coreを導入してください。",path);
             string error=null;Application.LogCallback capture=(message,stack,type)=>{if(type==LogType.Error||type==LogType.Exception)error=message;};
             Application.logMessageReceived+=capture;
             try { UdonSharpCompilerV1.CompileSync(); }
@@ -105,8 +107,9 @@ namespace aki_lua87.CommonAssets.Editor
             }
             string tool="Assets/aki_lua87/Editor/CommonAssetsReleaseBuilder.cs";
             string toolsFile="AVEC-EditorTools-"+version+".unitypackage";
-            AssetDatabase.ExportPackage(new[]{tool},Path.Combine(destination,toolsFile),ExportPackageOptions.Default);
-            entries.Add(new Entry{file=toolsFile,assets=1,sha256=Hash(Path.Combine(destination,toolsFile))});
+            var toolPaths=new[]{tool}.Concat(LegalAssets).ToArray();
+            AssetDatabase.ExportPackage(toolPaths,Path.Combine(destination,toolsFile),ExportPackageOptions.Default);
+            entries.Add(new Entry{file=toolsFile,assets=toolPaths.Length,sha256=Hash(Path.Combine(destination,toolsFile))});
             var manifest=new Manifest{version=version,unity=Application.unityVersion,createdUtc=DateTime.UtcNow.ToString("o"),packages=entries.ToArray()};
             File.WriteAllText(Path.Combine(destination,"manifest.json"),JsonUtility.ToJson(manifest,true));
             string zip=Path.Combine(destination,"AVEC-"+version+".zip");
@@ -114,10 +117,9 @@ namespace aki_lua87.CommonAssets.Editor
             {
                 foreach(var entry in entries)archive.CreateEntryFromFile(Path.Combine(destination,entry.file),entry.file,System.IO.Compression.CompressionLevel.Optimal);
                 archive.CreateEntryFromFile(Path.Combine(destination,"manifest.json"),"manifest.json");
-                foreach(string doc in new[]{"README.ja.md","ARCHITECTURE.ja.md","MIGRATION.ja.md"}) {
-                    string source=Root+"/Core/"+doc;
-                    if(File.Exists(source))archive.CreateEntryFromFile(source,"AVEC/"+doc);
-                }
+                if(File.Exists("README.md"))archive.CreateEntryFromFile("README.md","README.md");
+                archive.CreateEntryFromFile(LegalAssets[0],"LICENSE");
+                archive.CreateEntryFromFile(LegalAssets[1],"THIRD_PARTY_NOTICES.txt");
             }
             Debug.Log("Release created: "+zip);EditorUtility.RevealInFinder(destination);
         }
