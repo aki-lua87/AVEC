@@ -68,8 +68,109 @@ namespace aki_lua87.CommonGestureRemote.Editor
                 remote.helpHint = hint; remote.helpStick = cap.rectTransform; remote.helpHintGroup = group;
                 hint.gameObject.SetActive(false);
             }
+            EnsureHoldProgress(remote);
+            EnsureCallIcon(remote);
             UpdateCommands(remote, setup.data);
             RemoteConnections.Save(remote);
+        }
+
+        // This narrow upgrade preserves existing help layout, text, connections and overrides.
+        public static void EnsureHoldProgress(GestureRemote remote)
+        {
+            if (remote == null || remote.helpHint == null) return;
+            Undo.RecordObject(remote, "Add hold progress references");
+            var ring = remote.helpHint.Find("Stick ring") as RectTransform;
+            if (remote.holdProgress == null && ring != null)
+            {
+                var existing = remote.helpHint.Find("Hold progress");
+                if (existing != null) remote.holdProgress = existing.GetComponent<Image>();
+                else
+                {
+                    var go = new GameObject("Hold progress", typeof(RectTransform), typeof(Image));
+                    Undo.RegisterCreatedObjectUndo(go, "Add hold progress ring");
+                    go.transform.SetParent(remote.helpHint, false);
+                    var rect = go.GetComponent<RectTransform>();
+                    rect.anchorMin = ring.anchorMin; rect.anchorMax = ring.anchorMax; rect.pivot = ring.pivot;
+                    rect.anchoredPosition = ring.anchoredPosition; rect.sizeDelta = ring.sizeDelta + Vector2.one * 8f;
+                    var image = go.GetComponent<Image>();
+                    image.sprite = HoldRingSprite(); image.color = remote.matchedColor;
+                    image.type = Image.Type.Filled; image.fillMethod = Image.FillMethod.Radial360;
+                    image.fillOrigin = (int)Image.Origin360.Top; image.fillClockwise = true;
+                    image.fillAmount = 0f; image.raycastTarget = false;
+                    remote.holdProgress = image;
+                }
+            }
+            if (remote.holdCaption == null)
+            {
+                var caption = remote.helpHint.Find("Hold");
+                if (caption != null) remote.holdCaption = caption.GetComponent<Text>();
+            }
+            RemoteConnections.Save(remote);
+        }
+
+        // Adds only the call pictogram; existing layout and guide visuals are untouched.
+        public static void EnsureCallIcon(GestureRemote remote)
+        {
+            if (remote == null || remote.helpHint == null || remote.helpHint.Find("Remote call icon") != null) return;
+            var go = new GameObject("Remote call icon", typeof(RectTransform));
+            Undo.RegisterCreatedObjectUndo(go, "Add remote call pictogram");
+            go.transform.SetParent(remote.helpHint, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.sizeDelta = new Vector2(34, 78);
+            rect.anchoredPosition = new Vector2(69, 8);
+            rect.localRotation = Quaternion.Euler(0, 0, -15);
+            Color ink = new Color(.93f, .96f, 1f);
+            Color accent = remote.matchedColor;
+            IconPart("Left edge", rect, new Vector2(-15, 0), new Vector2(3, 72), ink);
+            IconPart("Right edge", rect, new Vector2(15, 0), new Vector2(3, 72), ink);
+            IconPart("Top edge", rect, new Vector2(0, 36), new Vector2(33, 3), ink);
+            IconPart("Bottom edge", rect, new Vector2(0, -36), new Vector2(33, 3), ink);
+            IconPart("Indicator", rect, new Vector2(0, 24), new Vector2(18, 5), accent);
+            IconPart("Main button", rect, new Vector2(0, 9), new Vector2(10, 10), accent);
+            for (int row = 0; row < 2; row++) for (int column = 0; column < 2; column++)
+                IconPart("Button " + row + " " + column, rect, new Vector2(-6 + column * 12, -8 - row * 12), new Vector2(5, 5), ink);
+            go.SetActive(false);
+            EditorUtility.SetDirty(remote.helpHint);
+            if (remote.gameObject.scene.IsValid()) UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(remote.gameObject.scene);
+        }
+
+        private static void IconPart(string name, Transform parent, Vector2 position, Vector2 size, Color color)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Image));
+            Undo.RegisterCreatedObjectUndo(go, "Add remote call pictogram part");
+            go.transform.SetParent(parent, false);
+            var rect = go.GetComponent<RectTransform>();
+            rect.anchoredPosition = position; rect.sizeDelta = size;
+            var image = go.GetComponent<Image>();
+            image.color = color; image.raycastTarget = false;
+        }
+
+        private static Sprite HoldRingSprite()
+        {
+            string folder = aki_lua87.AVEC.Editor.PackageLayout.Root + "/Features/Remote/Art";
+            string path = folder + "/HoldProgressRing.png";
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (sprite != null) return sprite;
+            System.IO.Directory.CreateDirectory(folder);
+            const int size = 128;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            var pixels = new Color[size * size];
+            for (int y = 0; y < size; y++) for (int x = 0; x < size; x++)
+            {
+                float radius = new Vector2(x + .5f - size / 2f, y + .5f - size / 2f).magnitude;
+                float alpha = Mathf.Clamp01(Mathf.Min(radius - 56f, 62f - radius));
+                pixels[y * size + x] = new Color(1f, 1f, 1f, alpha);
+            }
+            texture.SetPixels(pixels); texture.Apply();
+            System.IO.File.WriteAllBytes(path, texture.EncodeToPNG());
+            UnityEngine.Object.DestroyImmediate(texture);
+            AssetDatabase.ImportAsset(path);
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            importer.textureType = TextureImporterType.Sprite; importer.spriteImportMode = SpriteImportMode.Single;
+            importer.mipmapEnabled = false; importer.alphaIsTransparency = true;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.SaveAndReimport();
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
 
         public static void UpdateCommands(GestureRemote remote, GestureData data)

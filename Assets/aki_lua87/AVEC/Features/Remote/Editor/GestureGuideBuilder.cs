@@ -21,6 +21,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
                 case RemoteAction.Pause: return "現在の動画を一時停止";
                 case RemoteAction.Resume: return "一時停止した動画を再生";
                 case RemoteAction.PlaybackToggle: return "再生中は一時停止、一時停止中は再開";
+                case RemoteAction.SummonToggle: return "自分のリモコン呼び出しをON/OFF";
                 case RemoteAction.Restart: return "現在の動画を0秒から再生（配信を除く）";
                 case RemoteAction.StopPlayback: return "動画の再生を停止";
                 case RemoteAction.OrderedPlayback: return "順送りに設定（Playlist連携）";

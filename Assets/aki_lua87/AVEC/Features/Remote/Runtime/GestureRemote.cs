@@ -28,9 +28,11 @@ namespace aki_lua87.CommonGestureRemote
         public Transform helpHint;
         public RectTransform helpStick;
         public CanvasGroup helpHintGroup;
+        public Image holdProgress;
+        public Text holdCaption;
         [Min(.5f)] public float helpHoldSeconds = 4f / 3f;
         [Min(1f)] public float helpIdleSeconds = 5f;
-        [Tooltip("右スティックの下長押しで、このリモコンを手元へ召喚できるようにします。ガイド表示には影響しません。")]
+        [Tooltip("右スティックの下長押しで、このリモコンを手元へ呼び出せるようにします。ジェスチャーで自分のON/OFFを切り替えられます。ガイド表示には影響しません。")]
         public bool summonEnabled = true;
         [Min(1f)] public float summonHoldSeconds = 3f;
         public Vector3 helpOffset = new Vector3(.18f, .16f, .08f);
@@ -64,11 +66,22 @@ namespace aki_lua87.CommonGestureRemote
         private float lastActivity;
         private bool helpShown;
         private bool helpSeen;
+        private bool helpConsumed;
         private float summonDownSince = -1f;
         private bool summonConsumed;
+        private Transform[] helpMenuLines = new Transform[3];
+        private bool[] helpMenuLineVisible = new bool[3];
+        private Transform helpCallIcon;
 
         private void Start()
         {
+            if (helpHint != null) helpCallIcon = helpHint.Find("Remote call icon");
+            // Keep the guide pictogram, but omit it from the remote call feedback.
+            if (helpHint != null) for (int i = 0; i < helpMenuLines.Length; i++)
+            {
+                helpMenuLines[i] = helpHint.Find("Command line " + i);
+                if (helpMenuLines[i] != null) helpMenuLineVisible[i] = helpMenuLines[i].gameObject.activeSelf;
+            }
             ClearVisuals();
             HideHelp();
             var pickup = (VRC.SDK3.Components.VRCPickup)GetComponent(typeof(VRC.SDK3.Components.VRCPickup));
@@ -126,6 +139,7 @@ namespace aki_lua87.CommonGestureRemote
                 result == 2 ? "操作権限がありません" : result == 3 ? "設定・URLを確認してください" :
                 result == 4 ? "対象の動画がありません" : result == 5 ? "接続・画面設定を確認してください" :
                 result == 6 ? "自分のプレイヤーがOFFです" : result == 7 ? "読み込み待機中です" : "接続先が無効です";
+            if (result == 1 && actions[selected] == 22) message = summonEnabled ? "呼び出し：ON" : "呼び出し：OFF";
             Show(message, result == 1 ? matchedColor : new Color(1f, .55f, .3f));
             hideAt = Time.time + 1.8f;
         }
@@ -133,6 +147,7 @@ namespace aki_lua87.CommonGestureRemote
         {
             UpdateSummon();
             UpdateHelp();
+            UpdateHoldHint();
             if (drawing)
             {
                 if (!held || !Utilities.IsValid(Networking.LocalPlayer) || Time.time - startedAt > timeout) { Cancel(); return; }
@@ -147,7 +162,7 @@ namespace aki_lua87.CommonGestureRemote
         private void UpdateSummon()
         {
             if (!summonEnabled) { summonDownSince = -1f; summonConsumed = false; return; }
-            if (!Utilities.IsValid(Networking.LocalPlayer) || !Networking.LocalPlayer.IsUserInVR()) return;
+            if (!Utilities.IsValid(Networking.LocalPlayer) || !Networking.LocalPlayer.IsUserInVR()) { summonDownSince = -1f; summonConsumed = false; return; }
             if (held || helpAxis > -.65f) { summonDownSince = -1f; if (helpAxis > -.65f) summonConsumed = false; return; }
             if (summonConsumed) return;
             var pickup = (VRC.SDK3.Components.VRCPickup)GetComponent(typeof(VRC.SDK3.Components.VRCPickup));
@@ -173,20 +188,20 @@ namespace aki_lua87.CommonGestureRemote
             if (!held || !Utilities.IsValid(Networking.LocalPlayer)) return;
             bool vr = Networking.LocalPlayer.IsUserInVR();
             bool down = vr ? helpAxis <= -.65f : Input.GetKey(KeyCode.H);
+            if (!down) helpConsumed = false;
             if (drawing || !down) helpDownSince = -1f;
-            else if (!helpShown)
+            else if (!helpConsumed)
             {
                 if (helpDownSince < 0f) helpDownSince = Time.time;
                 lastActivity = Time.time;
                 if (Time.time - helpDownSince >= helpHoldSeconds && helpPanel != null)
                 {
-                    helpShown = true; helpSeen = true;
-                    helpPanel.gameObject.SetActive(true);
+                    helpConsumed = true; helpDownSince = -1f;
+                    helpShown = !helpShown; helpSeen = true;
+                    helpPanel.gameObject.SetActive(helpShown);
                 }
             }
-            bool hint = vr && !drawing && !helpSeen && !helpShown && !down && Time.time - lastActivity >= helpIdleSeconds;
-            if (helpHint != null && helpHint.gameObject.activeSelf != hint) helpHint.gameObject.SetActive(hint);
-            if (!helpShown && !hint) return;
+            if (!helpShown) return;
             var head = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
             float scale = scaleWithAvatar && vr ? Mathf.Clamp(Networking.LocalPlayer.GetAvatarEyeHeightAsMeters() / 1.6f, .25f, 3f) : 1f;
             Vector3 origin = vr && tip != null ? tip.position : head.position + head.rotation * new Vector3(0, -.18f, .65f);
@@ -196,21 +211,44 @@ namespace aki_lua87.CommonGestureRemote
                 helpPanel.rotation = head.rotation;
                 helpPanel.localScale = Vector3.one * (helpUIScale * scale);
             }
-            if (hint && helpHint != null)
+        }
+        private void UpdateHoldHint()
+        {
+            if (helpHint == null) return;
+            bool valid = Utilities.IsValid(Networking.LocalPlayer);
+            bool vr = valid && Networking.LocalPlayer.IsUserInVR();
+            bool helpHolding = held && !drawing && helpDownSince >= 0f && !helpConsumed;
+            bool summonHolding = !held && summonEnabled && summonDownSince >= 0f && !summonConsumed;
+            bool idleHint = vr && held && !drawing && !helpSeen && !helpShown && helpAxis > -.65f && Time.time - lastActivity >= helpIdleSeconds;
+            bool visible = valid && (helpHolding || summonHolding || idleHint);
+            if (helpHint.gameObject.activeSelf != visible) helpHint.gameObject.SetActive(visible);
+            float progress = helpHolding ? (Time.time - helpDownSince) / Mathf.Max(.01f, helpHoldSeconds) :
+                summonHolding ? (Time.time - summonDownSince) / Mathf.Max(.01f, summonHoldSeconds) : 0f;
+            if (holdProgress != null) holdProgress.fillAmount = Mathf.Clamp01(progress);
+            if (!visible) return;
+            if (holdCaption != null) holdCaption.text = summonHolding ? "呼出" : helpShown ? "閉じる" : "ガイド";
+            if (helpCallIcon != null) helpCallIcon.gameObject.SetActive(summonHolding);
+            for (int i = 0; i < helpMenuLines.Length; i++)
+                if (helpMenuLines[i] != null) helpMenuLines[i].gameObject.SetActive(!summonHolding && helpMenuLineVisible[i]);
+            var head = Networking.LocalPlayer.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
+            float scale = scaleWithAvatar && vr ? Mathf.Clamp(Networking.LocalPlayer.GetAvatarEyeHeightAsMeters() / 1.6f, .25f, 3f) : 1f;
+            // Summon feedback must stay in view even while the remote is far away.
+            Vector3 origin = held && vr && tip != null ? tip.position : head.position + head.rotation * new Vector3(0f, -.18f * scale, .65f * scale);
             {
                 helpHint.position = origin + head.rotation * new Vector3(.1f * scale, .09f * scale, .04f * scale);
                 helpHint.rotation = head.rotation;
                 helpHint.localScale = Vector3.one * (helpUIScale * scale);
                 float cycle = Mathf.Repeat(Time.time - lastActivity - helpIdleSeconds, 2.4f);
-                float tilt = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(cycle / .65f));
-                if (cycle > 1.9f) tilt = 1f - Mathf.SmoothStep(0f, 1f, (cycle - 1.9f) / .5f);
+                float tilt = helpHolding || summonHolding ? 1f : Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(cycle / .65f));
+                if (idleHint && cycle > 1.9f) tilt = 1f - Mathf.SmoothStep(0f, 1f, (cycle - 1.9f) / .5f);
                 if (helpStick != null) helpStick.anchoredPosition = new Vector2(-65f, 12f - 22f * tilt);
                 if (helpHintGroup != null) helpHintGroup.alpha = .7f + .3f * tilt;
             }
         }
         private void HideHelp()
         {
-            helpShown = false; helpDownSince = -1f;
+            helpShown = false; helpDownSince = -1f; helpConsumed = false;
+            if (holdProgress != null) holdProgress.fillAmount = 0f;
             if (helpPanel != null) helpPanel.gameObject.SetActive(false);
             if (helpHint != null) helpHint.gameObject.SetActive(false);
         }
@@ -264,6 +302,14 @@ namespace aki_lua87.CommonGestureRemote
         {
             if (index < 0 || index >= actions.Length || index >= labels.Length) return 3;
             int action = actions[index];
+            // This is a local preference for this remote; no player connection or ownership is needed.
+            if (action == 22)
+            {
+                summonEnabled = !summonEnabled;
+                summonDownSince = -1f;
+                summonConsumed = false;
+                return 1;
+            }
             if (action == 15)
             {
                 if (customEventTarget == null || index >= customEvents.Length || string.IsNullOrEmpty(customEvents[index])) return 0;

@@ -9,7 +9,7 @@ namespace aki_lua87.CommonGestureRemote
         StopPlayback = 8, TogglePlaybackMode = 9, NextTab = 10, PreviousTab = 11,
         Pause = 12, Resume = 13, MuteToggle = 14, CustomEvent = 15, RepeatToggle = 16,
         Restart = 17, OrderedPlayback = 18, RepeatOne = 19, ShufflePlayback = 20,
-        PlaybackToggle = 21
+        PlaybackToggle = 21, SummonToggle = 22
     }
     [Serializable]
     public class GestureBinding
@@ -32,7 +32,8 @@ namespace aki_lua87.CommonGestureRemote
             new GestureBinding { gesture = "←↓↑", label = "1動画リピートに設定", action = RemoteAction.RepeatOne },
             new GestureBinding { gesture = "←↓→", label = "順送り再生に設定", action = RemoteAction.OrderedPlayback },
             new GestureBinding { gesture = "←↓←", label = "シャッフル再生に設定", action = RemoteAction.ShufflePlayback },
-            new GestureBinding { gesture = "↑←↓", label = "現在の動画を初めから再生", action = RemoteAction.Restart }
+            new GestureBinding { gesture = "↑←↓", label = "現在の動画を初めから再生", action = RemoteAction.Restart },
+            new GestureBinding { gesture = "↑→↓", label = "呼び出し ON/OFF", action = RemoteAction.SummonToggle }
         };
     }
 }
