@@ -68,13 +68,16 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             serializedDraft = new SerializedObject(draft);
             tabs = new ReorderableList(serializedDraft, serializedDraft.FindProperty("tabs"), true, true, true, true);
             tabs.drawHeaderCallback = r => EditorGUI.LabelField(r, "タブ（ドラッグで並べ替え）");
-            tabs.drawElementCallback = (r, i, active, focused) => {
+            tabs.drawElementCallback = (r, i, active, focused) =>
+            {
                 r.y += 2; r.height = EditorGUIUtility.singleLineHeight;
-                EditorGUI.PropertyField(r, tabs.serializedProperty.GetArrayElementAtIndex(i).FindPropertyRelative("name"), GUIContent.none);
+                var tab = tabs.serializedProperty.GetArrayElementAtIndex(i);
+                EditorGUI.PropertyField(r, tab.FindPropertyRelative("name"), GUIContent.none);
             };
             tabs.onSelectCallback = l => { selectedTab = l.index; BuildVideos(); };
             tabs.onReorderCallback = l => { selectedTab = l.index; BuildVideos(); };
-            tabs.onAddCallback = l => {
+            tabs.onAddCallback = l =>
+            {
                 int i = l.serializedProperty.arraySize++;
                 var tab = l.serializedProperty.GetArrayElementAtIndex(i);
                 tab.FindPropertyRelative("name").stringValue = "新しいタブ";
@@ -83,7 +86,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 tab.FindPropertyRelative("videos").arraySize = 0;
                 selectedTab = l.index = i; BuildVideos();
             };
-            tabs.onRemoveCallback = l => {
+            tabs.onRemoveCallback = l =>
+            {
                 ReorderableList.defaultBehaviours.DoRemoveButton(l);
                 selectedTab = l.index; BuildVideos();
             };
@@ -97,10 +101,13 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             videos = null;
             if (selectedTab < 0 || selectedTab >= tabs.count) return;
             var tab = tabs.serializedProperty.GetArrayElementAtIndex(selectedTab);
+            var titleSource = tab.FindPropertyRelative("titleSourceUrl");
+            titleSource.isExpanded = !string.IsNullOrWhiteSpace(titleSource.stringValue);
             videos = new ReorderableList(serializedDraft, tab.FindPropertyRelative("videos"), true, true, true, true);
             videos.drawHeaderCallback = r => EditorGUI.LabelField(r, "動画（ドラッグで並べ替え）");
             videos.elementHeightCallback = i => (EditorGUIUtility.singleLineHeight + 4) * 2 + 6;
-            videos.drawElementCallback = (r, i, active, focused) => {
+            videos.drawElementCallback = (r, i, active, focused) =>
+            {
                 var entry = videos.serializedProperty.GetArrayElementAtIndex(i);
                 r.y += 3; r.height = EditorGUIUtility.singleLineHeight;
                 EditorGUI.PropertyField(r, entry.FindPropertyRelative("title"), new GUIContent((i + 1) + ". タイトル"));
@@ -108,7 +115,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 EditorGUI.PropertyField(r, entry.FindPropertyRelative("url"), new GUIContent("動画URL"));
 
             };
-            videos.onAddCallback = l => {
+            videos.onAddCallback = l =>
+            {
                 int i = l.serializedProperty.arraySize++;
                 var entry = l.serializedProperty.GetArrayElementAtIndex(i);
                 entry.FindPropertyRelative("title").stringValue = "新しい動画";
@@ -120,7 +128,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
 
         void OnGUI()
         {
-            if (source == null) { EditorGUILayout.HelpBox("編集対象のPlaylistDataがありません。PlaylistSetupから開いてください。", MessageType.Info); return; }
+            DrawSourceSelector();
+            if (source == null) { EditorGUILayout.HelpBox("編集先にPlaylistDataアセットを指定してください。", MessageType.Info); return; }
             if (draft == null) ReloadDraft();
             if (serializedDraft == null) BuildLists();
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
@@ -132,9 +141,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                     if (GUILayout.Button("保存", EditorStyles.toolbarButton, GUILayout.Width(70))) { GUI.FocusControl(null); SaveChanges(); }
             }
             if (!string.IsNullOrEmpty(message)) EditorGUILayout.HelpBox(message, messageType);
-            EditorGUILayout.LabelField(AssetDatabase.GetAssetPath(source), EditorStyles.wordWrappedMiniLabel);
-            int users = PlaylistAssets.LoadedUsers(source);
-            if (users > 1) EditorGUILayout.HelpBox(users + " 個のUIが共有中です。保存するとすべてへ反映します。別々に使う場合はPlaylistSetupで新規データを作成してください。", MessageType.Warning);
             if (EditorApplication.isPlayingOrWillChangePlaymode) EditorGUILayout.HelpBox("Playモードを終了してから編集してください。", MessageType.Info);
             using (new EditorGUI.DisabledScope(loading || EditorApplication.isPlayingOrWillChangePlaymode))
             {
@@ -154,18 +160,66 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                         {
                             var tab = tabs.serializedProperty.GetArrayElementAtIndex(selectedTab);
                             EditorGUILayout.PropertyField(tab.FindPropertyRelative("name"), new GUIContent("タブ名"));
-                            EditorGUILayout.PropertyField(tab.FindPropertyRelative("randomPlayback"), new GUIContent("初期設定: ランダム再生", "ワールド内の「再生順」ボタンで切り替えられます。ランダム再生はタブ内を一巡して停止します。"));
+                            EditorGUILayout.PropertyField(tab.FindPropertyRelative("randomPlayback"), new GUIContent("ランダム再生", "ワールド内の「再生順」ボタンで切り替えられます。ランダム再生はタブ内を一巡して停止します。"));
                             videos.DoLayoutList();
                         }
                         else EditorGUILayout.HelpBox("左下の＋でタブを追加してください。", MessageType.Info);
                         EditorGUILayout.EndScrollView();
+                        if (videos != null) DrawTitleSource(tabs.serializedProperty.GetArrayElementAtIndex(selectedTab));
                     }
                 }
                 if (serializedDraft.ApplyModifiedProperties()) UpdateDirty();
                 EditorGUILayout.Space();
                 FeatureExtensionRegistry.DrawButtons("Playlist", source);
-                EditorGUILayout.LabelField("編集後に「保存」を押すと、同じデータを使う開いているシーンのUIへ反映します。", EditorStyles.wordWrappedMiniLabel);
+                EditorGUILayout.LabelField("編集後に「保存」を押すと、UIへ反映します。", EditorStyles.wordWrappedMiniLabel);
             }
+        }
+
+        static void DrawTitleSource(SerializedProperty tab)
+        {
+            var url = tab.FindPropertyRelative("titleSourceUrl");
+            url.isExpanded = EditorGUILayout.Foldout(url.isExpanded, "タイトル取得API URL (特殊な設定の場合に利用します。空欄でも問題はないです。)", true);
+            if (url.isExpanded)
+                using (new EditorGUI.IndentLevelScope()) EditorGUILayout.PropertyField(url, GUIContent.none);
+        }
+
+        void DrawSourceSelector()
+        {
+            using (new EditorGUI.DisabledScope(loading || EditorApplication.isPlayingOrWillChangePlaymode))
+            {
+                EditorGUI.BeginChangeCheck();
+                var next = (PlaylistData)EditorGUILayout.ObjectField("編集先", source, typeof(PlaylistData), false);
+                if (EditorGUI.EndChangeCheck() && next != source)
+                {
+                    GUI.FocusControl(null);
+                    if (TryChangeSource(next)) GUIUtility.ExitGUI();
+                }
+            }
+        }
+
+        bool TryChangeSource(PlaylistData next)
+        {
+            if (next == source) return false;
+            serializedDraft?.ApplyModifiedProperties();
+            UpdateDirty();
+            if (hasUnsavedChanges)
+            {
+                int choice = EditorUtility.DisplayDialogComplex("編集先を変更", "現在の編集内容を保存してから切り替えますか？",
+                    "保存して切り替え", "キャンセル", "破棄して切り替え");
+                if (choice == 1) return false;
+                if (choice == 0)
+                {
+                    SaveChanges();
+                    if (hasUnsavedChanges) return false;
+                }
+            }
+            if (draft != null) { Undo.ClearUndo(draft); DestroyImmediate(draft); }
+            draft = null; serializedDraft = null; tabs = null; videos = null;
+            source = next; selectedTab = 0; tabScroll = videoScroll = Vector2.zero;
+            baseline = null; message = null; hasUnsavedChanges = false;
+            if (source != null) ReloadDraft();
+            Repaint();
+            return true;
         }
 
         public override void SaveChanges()
@@ -198,17 +252,17 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                     setup.tabTemplate.GetComponent<UnityEngine.UI.Button>() == null || setup.videoTemplate.GetComponent<UnityEngine.UI.Button>() == null ||
                     setup.tabTemplate.GetComponent<UnityEngine.UI.Image>() == null || setup.videoTemplate.GetComponent<UnityEngine.UI.Image>() == null)
                     throw new InvalidOperationException(setup.name + " のUI参照またはテンプレートを確認してください。");
-            Undo.IncrementCurrentGroup();
-            int group = Undo.GetCurrentGroup();
-            Undo.SetCurrentGroupName("Save playlist and apply UI");
-            try {
-                Undo.RecordObject(target, "Save playlist");
-                JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(edited), target);
-                EditorUtility.SetDirty(target);
-                foreach (var setup in setups) PlaylistBaker.Bake(setup);
-                AssetDatabase.SaveAssetIfDirty(target);
-                Undo.CollapseUndoOperations(group);
-            } catch { Undo.RevertAllDownToGroup(group); throw; }
+            foreach (var setup in setups) PlaylistBaker.ValidateDataRows(setup);
+            // Saving commits the asset. Scene rows are a derived cache, not an Undo transaction.
+            JsonUtility.FromJsonOverwrite(JsonUtility.ToJson(edited), target);
+            EditorUtility.SetDirty(target);
+            AssetDatabase.SaveAssetIfDirty(target);
+            var failures = new List<Exception>();
+            foreach (var setup in setups)
+                try { PlaylistBaker.ApplyData(setup, false); }
+                catch (Exception e) { failures.Add(new InvalidOperationException(setup.name + ": " + e.Message, e)); }
+            if (failures.Count > 0)
+                throw new AggregateException("アセットは保存済みですが、一部のUIへの反映に失敗しました。参照を確認して再保存してください。", failures);
             return setups.Length;
         }
     }

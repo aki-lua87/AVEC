@@ -9,8 +9,21 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
     {
         public static Sprite Get(string name)
         {
+            return Create(name, false);
+        }
+
+        // Refresh only the five shared tab images, preserving GUIDs, importer settings,
+        // scene/Prefab references, and every authored layout or appearance override.
+        public static void RegenerateTabIcons()
+        {
+            foreach (var name in new[] { "tab-static", "tab-dynamic", "tab-history", "tab-queue", "tab-user" })
+                Create(name, true);
+        }
+
+        static Sprite Create(string name, bool regenerate)
+        {
             string path=PlaylistFactory.Root+"/Icons/"+name+".png";
-            var sprite=AssetDatabase.LoadAssetAtPath<Sprite>(path);if(sprite!=null)return sprite;
+            var sprite=AssetDatabase.LoadAssetAtPath<Sprite>(path);if(sprite!=null && !regenerate)return sprite;
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             var texture=new Texture2D(64,64,TextureFormat.RGBA32,false);var pixels=new Color32[4096];
             if(name=="play") { for(int y=12;y<=52;y++)for(int x=16;x<=50-Mathf.Abs(y-32)*1.7f;x++)pixels[y*64+x]=Color.white; }
@@ -27,11 +40,76 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 }
             }
             else if(name=="shuffle") { Line(pixels,10,18,21,18);Line(pixels,21,18,43,46);Line(pixels,43,46,55,46);Line(pixels,10,46,21,46);Line(pixels,21,46,43,18);Line(pixels,43,18,55,18);Arrow(pixels,55,46);Arrow(pixels,55,18); }
+            else if(name=="tab-queue") {
+                // B1: stacked video cards, matching the first comparison sheet's B option.
+                TabLine(pixels,4,4,13,4); TabLine(pixels,15,6,15,14);
+                TabLine(pixels,13,16,4,16); TabLine(pixels,2,14,2,6);
+                TabArc(pixels,4,6,2,180,270); TabArc(pixels,13,6,2,270,360);
+                TabArc(pixels,13,14,2,0,90); TabArc(pixels,4,14,2,90,180);
+                TabLine(pixels,7,7,11,10); TabLine(pixels,11,10,7,13); TabLine(pixels,7,13,7,7);
+                TabLine(pixels,18,7,18,19); TabLine(pixels,18,19,5,19);
+                TabLine(pixels,21,10,21,22); TabLine(pixels,21,22,8,22);
+            }
+            else if(name=="tab-history") {
+                // C: list with a clock.
+                TabLine(pixels,3,4,21,4); TabLine(pixels,3,10,10,10); TabLine(pixels,3,16,8,16);
+                TabArc(pixels,17,16,5,0,360); TabLine(pixels,17,13,17,16); TabLine(pixels,17,16,19,17);
+            }
+            else if(name=="tab-user") {
+                // A: person with list.
+                TabArc(pixels,8,7,3,0,360); TabArc(pixels,8,18,6,180,360);
+                TabLine(pixels,2,18,2,20); TabLine(pixels,14,18,14,20);
+                TabLine(pixels,16,6,22,6); TabLine(pixels,16,12,22,12); TabLine(pixels,17,18,22,18);
+            }
+            else if(name=="tab-static") {
+                // A: list with play triangle.
+                TabLine(pixels,3,5,21,5); TabLine(pixels,3,11,13,11); TabLine(pixels,3,17,11,17);
+                TabLine(pixels,16,13,21,17); TabLine(pixels,21,17,16,21); TabLine(pixels,16,21,16,13);
+            }
+            else if(name=="tab-dynamic") {
+                // B: list with lightning bolt.
+                TabLine(pixels,3,5,21,5); TabLine(pixels,3,11,10,11); TabLine(pixels,3,17,9,17);
+                TabLine(pixels,17,8,12,16); TabLine(pixels,12,16,17,16); TabLine(pixels,17,16,16,22);
+                TabLine(pixels,16,22,22,13); TabLine(pixels,22,13,17,13); TabLine(pixels,17,13,17,8);
+            }
             else { Line(pixels,10,18,55,18);Line(pixels,10,46,55,46);Arrow(pixels,55,18);Arrow(pixels,55,46); }
             texture.SetPixels32(pixels);texture.Apply();File.WriteAllBytes(path,texture.EncodeToPNG());Object.DestroyImmediate(texture);
-            AssetDatabase.ImportAsset(path);var importer=(TextureImporter)AssetImporter.GetAtPath(path);importer.textureType=TextureImporterType.Sprite;importer.spritePixelsPerUnit=64;importer.mipmapEnabled=false;importer.alphaIsTransparency=true;importer.SaveAndReimport();return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            AssetDatabase.ImportAsset(path);
+            if(sprite==null) {
+                var importer=(TextureImporter)AssetImporter.GetAtPath(path);importer.textureType=TextureImporterType.Sprite;importer.spritePixelsPerUnit=64;importer.mipmapEnabled=false;importer.alphaIsTransparency=true;importer.SaveAndReimport();
+            }
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+        // Comparison-sheet coordinates: 24x24, Y down, 1.8 unit rounded strokes.
+        // Coverage gives these tab icons smooth edges without changing other controls.
+        static void TabLine(Color32[] pixels,float ax,float ay,float bx,float by)
+        {
+            const float scale=64f/24f;
+            var a=new Vector2(ax*scale,(24f-ay)*scale);
+            var d=new Vector2((bx-ax)*scale,(ay-by)*scale);
+            for(int y=0;y<64;y++)for(int x=0;x<64;x++) {
+                var p=new Vector2(x+.5f,y+.5f);
+                float t=d.sqrMagnitude>0f?Mathf.Clamp01(Vector2.Dot(p-a,d)/d.sqrMagnitude):0f;
+                byte alpha=(byte)Mathf.RoundToInt(255f*Mathf.Clamp01(.9f*scale+.5f-(p-a-d*t).magnitude));
+                int index=y*64+x;
+                if(alpha>pixels[index].a)pixels[index]=new Color32(255,255,255,alpha);
+            }
+        }
+        static void TabArc(Color32[] pixels,float x,float y,float radius,float start,float end)
+        {
+            for(float angle=start;angle<end;angle+=4f) {
+                float a=angle*Mathf.Deg2Rad,b=Mathf.Min(angle+4f,end)*Mathf.Deg2Rad;
+                TabLine(pixels,x+Mathf.Cos(a)*radius,y+Mathf.Sin(a)*radius,x+Mathf.Cos(b)*radius,y+Mathf.Sin(b)*radius);
+            }
         }
         static void Arrow(Color32[] pixels,int x,int y) { Line(pixels,x,y,x-9,y+9);Line(pixels,x,y,x-9,y-9); }
+        static void Arc(Color32[] pixels,float x,float y,float radius,float start,float end)
+        {
+            for(float angle=start;angle<end;angle+=4f) {
+                float a=angle*Mathf.Deg2Rad,b=Mathf.Min(angle+4,end)*Mathf.Deg2Rad;
+                Line(pixels,x+Mathf.Cos(a)*radius,y+Mathf.Sin(a)*radius,x+Mathf.Cos(b)*radius,y+Mathf.Sin(b)*radius);
+            }
+        }
         static void Line(Color32[] pixels,float ax,float ay,float bx,float by)
         {
             var a=new Vector2(ax,ay);var d=new Vector2(bx-ax,by-ay);

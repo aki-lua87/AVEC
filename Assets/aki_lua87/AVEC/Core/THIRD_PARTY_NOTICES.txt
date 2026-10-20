@@ -1,5 +1,19 @@
 # Third-party notices
 
+## Scope of the AVEC license
+
+The MIT License in LICENSE.txt applies to the original portions of AVEC.
+Third-party fonts and any third-party code incorporated into generated Udon
+programs retain their respective licenses and terms; they are not relicensed
+under AVEC's MIT License.
+
+The native players, RTab, and SDKs are installed separately. Their original
+source files, native prefabs, and installation packages are not bundled by the
+AVEC release builder. Some AVEC behaviours inherit external base classes;
+their compiled Udon programs can therefore contain inherited implementations.
+The notices below also cover those portions of the generated programs.
+Only the integrations selected by the user are required.
+
 ## Zen Maru Gothic Regular
 
 Files: `Fonts/ZenMaruGothic-Regular.ttf` and
@@ -27,15 +41,186 @@ icon library, a copied player icon, or a font glyph rasterized as an icon.
 The original product code, prefabs, data and icons are distributed under the
 MIT License (Copyright (c) 2026 aki_lua87). See LICENSE.txt.
 
-## External dependencies, not bundled
+## iwaSync3
 
-VRChat Worlds SDK / UdonSharp and the native video players (iwaSync3,
-KineL, VizVid, YamaPlayer) are installed separately. AudioLink is optional.
-The adapters call their APIs; the release builder does not export their
-source, prefabs, SDKs, or package contents. Each dependency retains its own
-license and distribution terms. This notice does not license those projects.
+Creator / credit: ikuko (Hoshino Labs.)
+Distribution: https://hoshinolabs.booth.pm/items/2666275
+Terms: https://github.com/hoshinolabs-vrchat/iwaSync3-Public/blob/main/LICENSE.pdf
+Integration version checked: 3.8.0.
+
+AVEC connects to VideoCore and uses VideoCoreEventListener as the base of
+IwaSyncSequenceListener. The original player files are installed separately.
+iwaSync3 is subject to its own VN3-based terms, not AVEC's MIT License.
+The publisher's special terms permit inclusion in distributed worlds subject
+to credit and a link to the iwaSync3 distribution page. This notice does not
+grant permission to redistribute iwaSync3 itself or expand those terms.
+
+## KineL Video Player
+
+Creator: KineL / ni rila
+Project: https://github.com/niwaniwa/KineLVideoPlayer
+License: https://github.com/niwaniwa/KineLVideoPlayer/blob/master/LICENSE
+Integration version checked: 2.5.5.
+
+AVEC calls the separately installed player's APIs. The following license
+applies to KineL code, not to AVEC's independently authored connectors.
+
+MIT License
+
+Copyright (c) 2022 KineL
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+## VizVid
+
+Creators: Jeremy Lam aka. Vistanz, Yama Buta and VizVid Contributors
+Project: https://github.com/JLChnToZ/VVMW
+License: https://github.com/JLChnToZ/VVMW/blob/develop/Packages/idv.jlchntoz.vvmw/LICENSE
+Integration version checked: 1.8.2.
+
+AVEC calls the separately installed player's APIs. The following license
+applies to VizVid code, not to AVEC's independently authored connectors.
+
+The MIT License (MIT)
+
+Copyright (c) 2023-2026 Jeremy Lam aka. Vistanz, Yama Buta and VizVid Contributors.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+## YamaPlayer
+
+Creator: kwxxw (Yamadev / やま)
+Distribution: https://yamadev.booth.pm/items/4768863
+Project and terms: https://github.com/koorimizuw/YamaPlayer
+Integration version checked: 2.0.0-beta.7.
+
+AVEC calls the player's APIs and TrackUtils helpers. YamaSequenceListener
+inherits YamaPlayerListener and YamaPlayerBehaviour. Generated Udon can
+include implementations from those classes and helpers.
+YamaPlayer retains its publisher's terms, not AVEC's MIT License. The
+publisher permits modification, publication as part of a VRChat world, and
+inclusion in paid or free world assets for sale; credit is required for that
+world-asset inclusion. Refer to the publisher's terms for the full scope.
+
+## ProTV 3
+
+Creator: ArchiTechVR
+Documentation: https://protv.dev/start
+License: https://protv.dev/license
+Integration version checked: 3.0.0-beta.31.
+
+ProTVSequenceListener inherits TVPlugin, which in turn uses ArchiTech.SDK
+base classes. Generated Udon includes inherited implementations. The
+following text is retained from the installed ProTV version's LICENSE.md.
+
+(based on the ISC License)
+
+Copyright (c) 2020-2025 ArchiTechVR
+
+Permission to use, copy, modify, and/or distribute this asset for any
+purpose, except for resale in whole or in part, with or without fee is hereby granted,
+provided that the above copyright notice and this permission notice appear in all copies.
+For clarity, permission is expressly granted to distribute and sell assets and prefabs
+which make use of the functions and/or content of this asset.
+
+THE ASSET IS PROVIDED "AS IS" AND THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS ASSET INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS ASSET.
+
+## ArchiTech.SDK (ProTV dependency)
+
+Creator: ArchiTechVR
+Documentation / installation: https://protv.dev/start
+The following text is retained from the installed ArchiTech.SDK LICENSE.md.
+
+(based on the ISC License)
+
+Copyright (c) 2020-2023 ArchiTechVR
+
+Permission to use, copy, modify, and /or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above copyright
+notice and this permission notice appear in all copies.
+
+THE ASSET IS PROVIDED "AS IS" AND THE AUTHOR(S) DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS ASSET INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS ASSET.
+
+## RTab (optional Playlist extension)
+
+Creator / credit: らすた (らすたの雑貨屋)
+Distribution: https://rasta.booth.pm/items/7311462
+Terms linked by the publisher:
+https://drive.google.com/drive/folders/1H81wHrj-B4ACR9DH2bX-C92EJsRWPwph
+
+RTabPlaylistApp inherits TabletAppBehaviour, as described in the publisher's
+app development guide. Generated Udon includes inherited implementations.
+The publisher permits distribution and sale of custom RTab apps and requires
+the RTab BOOTH URL to be included in their distribution/sales description.
+Keep the above distribution link when distributing this extension. RTab's
+original materials and inherited code retain the publisher's terms; this
+notice does not place them under MIT or permit redistribution of RTab itself.
+
+## Other separately installed integrations
+
+VRChat Worlds SDK / UdonSharp:
+https://creators.vrchat.com/sdk/
+SDK license: https://hello.vrchat.com/legal/sdk
+
+AudioLink (optional): https://github.com/llealloo/audiolink
+AVEC detects and connects to an existing installation; AudioLink is not bundled.
+
+YTTL (optional, through VizVid): https://65536.booth.pm/items/4588619
+The installed YTTL source identifies its license as CC0. AVEC calls its
+LoadData API and receives metadata callbacks; YTTL itself is not bundled.
+
+Each dependency retains its own license and distribution terms. Listing a
+dependency does not mean that its authors endorse AVEC.
+
+## Hosted playlist service
 
 The optional YouTube import and dynamic-title features contact
-`https://vrc.akakitune87.net`. That hosted service is not part of the Unity
-source distribution. Import sends channel or playlist IDs to this service;
-dynamic URLs and title updates depend on its availability.
+https://vrc.akakitune87.net, a service operated by AVEC's author.
+Server project: https://github.com/aki-lua87/vrc_video_playlist_server
+Import sends channel or playlist IDs to this service; dynamic URLs and title
+updates depend on its availability. The server implementation is separate
+from the Unity source distribution and is not licensed by AVEC's LICENSE.txt.

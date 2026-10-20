@@ -114,7 +114,8 @@ namespace aki_lua87.CommonGestureRemote.Editor
                     remote.Update();
                     EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(remote.FindProperty("customEventTarget"), new GUIContent("カスタムイベントの接続先"));
-                    EditorGUILayout.PropertyField(remote.FindProperty("summonEnabled"), new GUIContent("呼び出しを初期状態で有効にする", "このリモコンを右スティック下の長押しで呼び出します。ジェスチャーで自分のON/OFFを切り替えられます。複数配置している場合、使うものだけONにしてください。"));
+                    EditorGUILayout.PropertyField(remote.FindProperty("summonEnabled"), new GUIContent("呼び出しを初期状態で有効にする", "このリモコンを右スティック下の長押しで呼び出します。ジェスチャーで自分のON/OFFを切り替えられます。"));
+                    EditorGUILayout.PropertyField(remote.FindProperty("summonArea"), new GUIContent("呼び出し可能範囲（任意）", "未設定ならどこからでも呼び出せます。BoxColliderのCenter／Sizeで範囲を指定します。"));
                     details = EditorGUILayout.Foldout(details, "感度・表示・画面設定", true);
                     if (details)
                         foreach (string field in new[] { "minimumStroke", "directionBias", "timeout", "volumeStep", "scaleWithAvatar", "tip", "trail", "label", "drawingColor", "matchedColor" })
@@ -125,6 +126,12 @@ namespace aki_lua87.CommonGestureRemote.Editor
                     bool remoteChanged = EditorGUI.EndChangeCheck();
                     remote.ApplyModifiedProperties();
                     if (remoteChanged) RemoteConnections.Save(setup.remote);
+                    EditorGUILayout.HelpBox("範囲なし：どこからでも呼び出せます。範囲あり：その中にいる時だけ呼び出せます。重なった範囲では複数のリモコンが対象になります。", MessageType.Info);
+                    string areaError = RemoteSummonAreas.Validate(setup.remote);
+                    if (areaError != null) EditorGUILayout.HelpBox(areaError, MessageType.Warning);
+                    if (RemoteConnections.InScene(setup) && setup.remote.summonArea == null && GUILayout.Button("呼び出し範囲を作成・接続"))
+                        Attempt(() => RemoteSummonAreas.CreateAndAssign(setup));
+                    if (setup.remote.summonArea != null && GUILayout.Button("呼び出し範囲を選択")) Selection.activeGameObject = setup.remote.summonArea.gameObject;
                     var playerTarget = setup.remote.playerTarget;
                     if (playerTarget != null)
                     {

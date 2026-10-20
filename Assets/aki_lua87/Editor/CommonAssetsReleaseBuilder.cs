@@ -20,7 +20,7 @@ namespace aki_lua87.CommonAssets.Editor
         {
             var packages = new System.Collections.Generic.List<PackageSpec> {
                 new PackageSpec { Name="AVEC-Core", Folders=new[]{Root+"/Core"}, Requires=new string[0] },
-                new PackageSpec { Name="AVEC-Playlist", Folders=new[]{Root+"/Features/Playlist"}, Assets=new[]{Root+"/Prefabs/CommonVideoPlaylist.prefab"}, Requires=new[]{"AVEC-Core"} },
+                new PackageSpec { Name="AVEC-Playlist", Folders=new[]{Root+"/Features/Playlist"}, Assets=new[]{Root+"/Prefabs/CommonVideoPlaylist.prefab",Root+"/Prefabs/CommonVideoPlaylistTablet.prefab"}, Requires=new[]{"AVEC-Core"} },
                 new PackageSpec { Name="AVEC-Remote", Folders=new[]{Root+"/Features/Remote"}, Assets=new[]{Root+"/Prefabs/CommonGestureRemote.prefab",Root+"/Prefabs/CommonGestureGuide.prefab"}, Requires=new[]{"AVEC-Core"} }
             };
             foreach (var player in new[]{"IwaSync","KineL","VizVid","YamaPlayer"})
@@ -31,6 +31,12 @@ namespace aki_lua87.CommonAssets.Editor
                 });
             packages.Add(new PackageSpec { Name="AVEC-Extension-DynamicPlaylist", Folders=new[]{Root+"/Extensions/DynamicPlaylist"}, Requires=new[]{"AVEC-Core", "AVEC-Playlist"} });
             packages.Add(new PackageSpec { Name="AVEC-Extension-PlaylistRemote", Folders=new[]{Root+"/Extensions/PlaylistRemote"}, Requires=new[]{"AVEC-Core", "AVEC-Playlist", "AVEC-Remote"} });
+            packages.Add(new PackageSpec { Name="AVEC-Extension-RTabPlaylist", Folders=new[]{Root+"/Extensions/RTabPlaylist"}, Requires=new[]{"AVEC-Core", "AVEC-Playlist", "AVEC-Connector-YamaPlayer-Playlist", "AVEC-Extension-DynamicPlaylist", "RTab (external)", "YamaPlayer (external)"} });
+            foreach (var feature in new[]{"Playlist","Remote"}) packages.Add(new PackageSpec {
+                Name="AVEC-Connector-ProTV-"+feature,
+                Folders=new[]{Root+"/Connectors/Shared", Root+"/Connectors/ProTV/Editor", Root+"/Connectors/ProTV/"+feature},
+                Requires=new[]{"AVEC-Core", "AVEC-"+feature, "ProTV 3 (external)"}
+            });
             return packages.ToArray();
         }
         static string[] Names => Packages.Select(p=>p.Name).ToArray();
@@ -44,6 +50,11 @@ namespace aki_lua87.CommonAssets.Editor
                 var migrated = new bool[Packages.Length]; migrated[0]=selected.Any(v=>v); migrated[1]=selected[0]; migrated[2]=selected[5];
                 for(int i=0;i<4;i++){migrated[3+i*2]=selected[1+i];migrated[4+i*2]=selected[6+i];}
                 migrated[11]=selected[0];migrated[12]=selected[10];return migrated;
+            }
+            if (selected != null && selected.Length < Packages.Length) {
+                var migrated = new bool[Packages.Length];
+                Array.Copy(selected, migrated, selected.Length);
+                return migrated;
             }
             return Enumerable.Repeat(true,Packages.Length).ToArray();
         }

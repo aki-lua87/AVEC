@@ -221,14 +221,23 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
 
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("見た目", EditorStyles.boldLabel);
+                if (setup.GetComponentInParent<PlaylistTabletTouch>() == null && PlaylistConnections.CanConnect(setup)
+                    && GUILayout.Button("現在のUIから手持ちタブレット版を作成"))
+                    Selection.activeGameObject = PlaylistTabletBuilder.Create(setup);
                 serializedObject.Update();
                 EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("theme"),new GUIContent("カラーテーマ"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("theme"),new GUIContent("テーマ"));
                 bool themeChanged=EditorGUI.EndChangeCheck();
                 serializedObject.ApplyModifiedProperties();
                 if(themeChanged)PlaylistAppearance.ApplyTheme(setup);
                 if(setup.theme!=null&&GUILayout.Button("テーマを編集"))Selection.activeObject=setup.theme;
-                EditorGUILayout.HelpBox("Theme Assetを複製して色を編集できます。サイズはルートのScaleで調整してください。",MessageType.Info);
+                serializedObject.Update();
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("showTabIcons"), new GUIContent("タブのアイコンを表示"));
+                bool iconsChanged = EditorGUI.EndChangeCheck();
+                serializedObject.ApplyModifiedProperties();
+                if (iconsChanged) { PlaylistTabIcons.Apply(setup); PlaylistConnections.Save(setup); }
+                EditorGUILayout.HelpBox("Theme Assetで色と表示方式を選べます。Wireframeは背景透過・枠線のみのテーマです。サイズはルートのScaleで調整してください。",MessageType.Info);
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("動画プレイヤーへの接続", EditorStyles.boldLabel);
                 serializedObject.Update();
@@ -281,6 +290,28 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                     PlaylistConnections.RefreshAudioLinkStatus(setup);
                 }
                 EditorGUILayout.Space();
+                EditorGUILayout.LabelField("特殊リスト", EditorStyles.boldLabel);
+                serializedObject.Update();
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("enableQueue"), new GUIContent("再生キューを使用"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("enableHistory"), new GUIContent("再生履歴を使用"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("enableUserList"), new GUIContent("ユーザーリストを使用"));
+                if (serializedObject.FindProperty("enableUserList").boolValue)
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("yttlManager"), new GUIContent("YTTL Manager（任意）"));
+                bool specialChanged = EditorGUI.EndChangeCheck();
+                serializedObject.ApplyModifiedProperties();
+                if (specialChanged) TrySpecialLists(setup);
+                if (setup.enableUserList && setup.yttlManager == null)
+                {
+                    var managers = PlaylistSpecialLists.FindYttl(setup);
+                    if (managers.Length == 1 && GUILayout.Button("シーン内のYTTLを接続"))
+                    {
+                        Undo.RecordObject(setup, "Select YTTL Manager"); setup.yttlManager = managers[0]; TrySpecialLists(setup);
+                    }
+                }
+                EditorGUILayout.LabelField("チェックを変更すると、その場で反映します。", EditorStyles.wordWrappedMiniLabel);
+                EditorGUILayout.HelpBox("ユーザーリストは自分用・同じワールド内で共通です（最大32件）。YTTL未設定でもURLで利用できます。保存用PlayerObjectは公開後に削除・再作成しないでください。", MessageType.Info);
+                EditorGUILayout.Space();
                 advanced = EditorGUILayout.Foldout(advanced, "詳細設定（UIデザイン・参照）", true);
                 if (advanced)
                 {
@@ -306,6 +337,11 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         {
             try { PlaylistBaker.Bake(setup); editError = null; }
             catch (Exception e) { editError = e.Message; }
+        }
+        void TrySpecialLists(PlaylistSetup setup)
+        {
+            try { PlaylistSpecialLists.Apply(setup); editError = null; }
+            catch (Exception e) { editError = e.Message; Debug.LogException(e, setup); }
         }
     }
 }

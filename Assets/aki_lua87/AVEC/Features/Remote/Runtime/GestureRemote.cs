@@ -34,6 +34,8 @@ namespace aki_lua87.CommonGestureRemote
         [Min(1f)] public float helpIdleSeconds = 5f;
         [Tooltip("右スティックの下長押しで、このリモコンを手元へ呼び出せるようにします。ジェスチャーで自分のON/OFFを切り替えられます。ガイド表示には影響しません。")]
         public bool summonEnabled = true;
+        [Tooltip("呼び出しを許可するBoxCollider。未設定ならどこからでも呼び出せます。リモコンの子ではなく、部屋などの固定オブジェクトに配置してください。")]
+        public BoxCollider summonArea;
         [Min(1f)] public float summonHoldSeconds = 3f;
         public Vector3 helpOffset = new Vector3(.18f, .16f, .08f);
         [Min(.0001f)] public float helpUIScale = .00065f;
@@ -62,6 +64,7 @@ namespace aki_lua87.CommonGestureRemote
         private const int MaxTrailPoints = 256;
         private const int MaxDirections = 3;
         private float helpAxis;
+        private float rightStickAxis;
         private float helpDownSince = -1f;
         private float lastActivity;
         private bool helpShown;
@@ -145,6 +148,14 @@ namespace aki_lua87.CommonGestureRemote
         }
         public override void PostLateUpdate()
         {
+            rightStickAxis = helpAxis;
+            if (Utilities.IsValid(Networking.LocalPlayer) && Networking.LocalPlayer.IsUserInVR())
+            {
+                // Some controller bindings do not deliver the vertical look event.
+                // Keep remapped Udon input, with the SDK's physical right-stick axis as fallback.
+                float physicalAxis = Input.GetAxisRaw("Oculus_CrossPlatform_SecondaryThumbstickVertical");
+                if (Mathf.Abs(physicalAxis) > Mathf.Abs(rightStickAxis)) rightStickAxis = physicalAxis;
+            }
             UpdateSummon();
             UpdateHelp();
             UpdateHoldHint();
@@ -163,7 +174,10 @@ namespace aki_lua87.CommonGestureRemote
         {
             if (!summonEnabled) { summonDownSince = -1f; summonConsumed = false; return; }
             if (!Utilities.IsValid(Networking.LocalPlayer) || !Networking.LocalPlayer.IsUserInVR()) { summonDownSince = -1f; summonConsumed = false; return; }
-            if (held || helpAxis > -.65f) { summonDownSince = -1f; if (helpAxis > -.65f) summonConsumed = false; return; }
+            if (held || rightStickAxis > -.65f) { summonDownSince = -1f; if (rightStickAxis > -.65f) summonConsumed = false; return; }
+            // Check the current player position on every held-input frame. Leaving the area
+            // cancels progress, including after a teleport or respawn; no trigger state can go stale.
+            if (!WithinSummonArea()) { summonDownSince = -1f; return; }
             if (summonConsumed) return;
             var pickup = (VRC.SDK3.Components.VRCPickup)GetComponent(typeof(VRC.SDK3.Components.VRCPickup));
             if (pickup == null || pickup.IsHeld) { summonDownSince = -1f; return; }
@@ -183,11 +197,25 @@ namespace aki_lua87.CommonGestureRemote
             if (body != null) { body.velocity = Vector3.zero; body.angularVelocity = Vector3.zero; }
             transform.SetPositionAndRotation(hand.position + hand.rotation * new Vector3(0f, 0f, .08f), hand.rotation);
         }
+        private bool WithinSummonArea()
+        {
+            if (summonArea == null) return true;
+            if (!summonArea.enabled || !summonArea.gameObject.activeInHierarchy) return false;
+            // A range attached to a movable remote would follow the summoned remote.
+            if (summonArea.transform == transform || summonArea.transform.IsChildOf(transform)) return false;
+            // Feet lie on the floor/box boundary and can sink slightly below it.
+            // Test the body instead, including small avatars and seated players.
+            Vector3 bodyPosition = Networking.LocalPlayer.GetPosition() + Vector3.up *
+                Mathf.Clamp(Networking.LocalPlayer.GetAvatarEyeHeightAsMeters() * .5f, .1f, .75f);
+            Vector3 point = summonArea.transform.InverseTransformPoint(bodyPosition) - summonArea.center;
+            Vector3 half = summonArea.size * .5f;
+            return Mathf.Abs(point.x) <= half.x && Mathf.Abs(point.y) <= half.y && Mathf.Abs(point.z) <= half.z;
+        }
         private void UpdateHelp()
         {
             if (!held || !Utilities.IsValid(Networking.LocalPlayer)) return;
             bool vr = Networking.LocalPlayer.IsUserInVR();
-            bool down = vr ? helpAxis <= -.65f : Input.GetKey(KeyCode.H);
+            bool down = vr ? rightStickAxis <= -.65f : Input.GetKey(KeyCode.H);
             if (!down) helpConsumed = false;
             if (drawing || !down) helpDownSince = -1f;
             else if (!helpConsumed)
@@ -219,7 +247,7 @@ namespace aki_lua87.CommonGestureRemote
             bool vr = valid && Networking.LocalPlayer.IsUserInVR();
             bool helpHolding = held && !drawing && helpDownSince >= 0f && !helpConsumed;
             bool summonHolding = !held && summonEnabled && summonDownSince >= 0f && !summonConsumed;
-            bool idleHint = vr && held && !drawing && !helpSeen && !helpShown && helpAxis > -.65f && Time.time - lastActivity >= helpIdleSeconds;
+            bool idleHint = vr && held && !drawing && !helpSeen && !helpShown && rightStickAxis > -.65f && Time.time - lastActivity >= helpIdleSeconds;
             bool visible = valid && (helpHolding || summonHolding || idleHint);
             if (helpHint.gameObject.activeSelf != visible) helpHint.gameObject.SetActive(visible);
             float progress = helpHolding ? (Time.time - helpDownSince) / Mathf.Max(.01f, helpHoldSeconds) :

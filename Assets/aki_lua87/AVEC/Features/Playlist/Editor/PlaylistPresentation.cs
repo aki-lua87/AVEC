@@ -69,16 +69,18 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             return AssetDatabase.LoadAssetAtPath<Sprite>(path);
         }
 
-        static void ScrollList(PlaylistView view, bool history)
+        public static void ScrollUserList(PlaylistView view) => ScrollList(view, false, true);
+
+        static void ScrollList(PlaylistView view, bool history, bool user = false)
         {
-            var panel = history ? view.historyPanel : view.queuePanel;
-            var rows = history ? view.historyRows : view.queueRows;
+            var panel = user ? view.userPanel : history ? view.historyPanel : view.queuePanel;
+            var rows = user ? view.userRows : history ? view.historyRows : view.queueRows;
             if (panel == null || rows.Length == 0 || rows[0] == null) return;
-            foreach (string name in new[] { "Previous queue page", "Next queue page", "Queue page" }) {
+            foreach (string name in user ? new[] { "Previous user page", "Next user page" } : new[] { "Previous queue page", "Next queue page", "Queue page" }) {
                 var old = panel.transform.Find(name);
                 if (old != null) { Undo.RecordObject(old.gameObject, "Remove page controls"); old.gameObject.SetActive(false); PlaylistConnections.Save(old.gameObject); }
             }
-            var pageLabel = history ? view.historyPageLabel : view.queuePageLabel;
+            var pageLabel = user ? view.userPageLabel : history ? view.historyPageLabel : view.queuePageLabel;
             if (pageLabel != null) { pageLabel.gameObject.SetActive(false); PlaylistConnections.Save(pageLabel.gameObject); }
             var viewport = panel.transform.Find("List viewport") as RectTransform;
             RectTransform content;
@@ -117,12 +119,12 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             } else content = viewport.Find("List content") as RectTransform;
             if (content == null) return;
             var allRows = new List<GameObject>(rows);
-            var allLabels = new List<Text>(history ? view.historyLabels : view.queueLabels);
+            var allLabels = new List<Text>(user ? view.userLabels : history ? view.historyLabels : view.queueLabels);
             while (allRows.Count < 32) {
                 var row = Object.Instantiate(rows[0], content, false);
-                row.name = (history ? "History row " : "Queue row ") + allRows.Count;
+                row.name = (user ? "User row " : history ? "History row " : "Queue row ") + allRows.Count;
                 Undo.RegisterCreatedObjectUndo(row, "Add list capacity");
-                allRows.Add(row); allLabels.Add(row.transform.Find("Queue title").GetComponent<Text>());
+                allRows.Add(row); allLabels.Add(row.GetComponentInChildren<Text>(true));
                 row.SetActive(false);
             }
             for (int i = 0; i < allRows.Count; i++) {
@@ -133,7 +135,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 layout.preferredHeight = height > 0 ? height : 38; layout.minHeight = layout.preferredHeight;
                 var rect = row.GetComponent<RectTransform>(); rect.localScale = Vector3.one; rect.localRotation = Quaternion.identity;
                 var oldButton = row.transform.Find("Remove queued item");
-                var button = history ? row.GetComponent<Button>() : oldButton == null ? null : oldButton.GetComponent<Button>();
+                var button = user || history ? row.GetComponent<Button>() : oldButton == null ? null : oldButton.GetComponent<Button>();
                 if (history) {
                     if (oldButton != null) { oldButton.gameObject.SetActive(false); PlaylistConnections.Save(oldButton.gameObject); }
                     if (button == null) button = Undo.AddComponent<Button>(row);
@@ -143,7 +145,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                     var click = button.GetComponent<PlaylistButton>();
                     if (click == null) click = button.gameObject.AddUdonSharpComponent<PlaylistButton>();
                     Undo.RecordObject(click, "List row action"); click.view = view; click.index = i;
-                    click.historySlot = history; click.removeQueueSlot = !history; click.enqueue = false; click.isTab = false;
+                    click.userSlot = user; click.historySlot = history; click.removeQueueSlot = !history && !user; click.enqueue = false; click.isTab = false;
                     PlaylistConnections.Save(click);
                     button.onClick = new Button.ButtonClickedEvent();
                     UnityEventTools.AddStringPersistentListener(button.onClick, UdonSharpEditorUtility.GetBackingUdonBehaviour(click).SendCustomEvent, "_Click");
@@ -151,7 +153,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 }
                 PlaylistConnections.Save(layout); PlaylistConnections.Save(rect);
             }
-            if (history) { view.historyRows = allRows.ToArray(); view.historyLabels = allLabels.ToArray(); }
+            if (user) { view.userRows = allRows.ToArray(); view.userLabels = allLabels.ToArray(); }
+            else if (history) { view.historyRows = allRows.ToArray(); view.historyLabels = allLabels.ToArray(); }
             else {
                 view.queueRows = allRows.ToArray(); view.queueLabels = allLabels.ToArray();
                 view.queueProgress = allRows.Select(row => row.transform.Find("Playback progress")?.GetComponent<Image>()).ToArray();

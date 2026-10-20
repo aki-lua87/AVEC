@@ -19,7 +19,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         }
         public static void ApplyCompact(PlaylistSetup setup)
         {
-            Undo.RegisterFullObjectHierarchyUndo(setup.gameObject, "Compact playlist UI");
+            PlaylistUndo.RegisterFullObjectHierarchyUndo(setup.gameObject, "Compact playlist UI");
             var root = setup.transform;
             root.GetComponent<RectTransform>().sizeDelta = new Vector2(900, 560);
             root.localScale = Vector3.one * .00135f;
@@ -65,7 +65,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             var label = row.GetComponentInChildren<Text>(true);
             var layout = row.GetComponent<LayoutElement>();
             if (label == null || layout == null) return;
-            Undo.RecordObject(label, "Fit playlist title");
+            PlaylistUndo.RecordObject(label, "Fit playlist title");
             label.resizeTextForBestFit = true;
             label.resizeTextMinSize = Mathf.Min(14, Mathf.Max(1, label.fontSize));
             label.resizeTextMaxSize = Mathf.Max(1, label.fontSize);
@@ -76,14 +76,14 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (viewport == null)
             {
                 viewport = new GameObject("Title viewport", typeof(RectTransform), typeof(RectMask2D)).GetComponent<RectTransform>();
-                Undo.RegisterCreatedObjectUndo(viewport.gameObject, "Scroll playlist title");
+                PlaylistUndo.RegisterCreatedObjectUndo(viewport.gameObject, "Scroll playlist title");
                 viewport.SetParent(row.transform, false);
                 viewport.anchorMin = label.rectTransform.anchorMin;
                 viewport.anchorMax = label.rectTransform.anchorMax;
                 viewport.pivot = label.rectTransform.pivot;
                 viewport.offsetMin = label.rectTransform.offsetMin;
                 viewport.offsetMax = label.rectTransform.offsetMax;
-                Undo.SetTransformParent(label.transform, viewport, "Scroll playlist title");
+                PlaylistUndo.SetTransformParent(label.transform, viewport, "Scroll playlist title");
             }
             var rect = label.rectTransform;
             rect.anchorMin = Vector2.zero;
@@ -93,7 +93,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             rect.sizeDelta = Vector2.zero;
             var marquee = viewport.GetComponent<PlaylistTitleMarquee>();
             if (marquee == null) marquee = viewport.gameObject.AddUdonSharpComponent<PlaylistTitleMarquee>();
-            Undo.RecordObject(marquee, "Scroll playlist title");
+            PlaylistUndo.RecordObject(marquee, "Scroll playlist title");
             marquee.label = label;
             marquee.viewport = viewport;
             UdonSharpEditorUtility.CopyProxyToUdon(marquee);
@@ -106,24 +106,30 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         public static void ApplyTheme(PlaylistSetup setup)
         {
             var theme = setup.theme; if (theme == null) return;
-            Undo.RecordObject(setup.view,"Apply playlist theme");
+            PlaylistThemeGraphics.Restore(setup);
+            var view = setup.view;
+            Color oldSelected = view.selectedColor;
+            PlaylistUndo.RecordObject(setup.view,"Apply playlist theme");
             setup.view.normalColor=theme.button; setup.view.selectedColor=theme.selected; setup.view.accentColor=theme.accent;setup.view.iconColor=theme.text;
             foreach (var image in setup.GetComponentsInChildren<Image>(true))
             {
-                Undo.RecordObject(image,"Apply playlist theme");
+                PlaylistUndo.RecordObject(image,"Apply playlist theme");
                 string name=image.name;
+                bool selected = image.color == oldSelected && (System.Array.IndexOf(view.tabImages, image) >= 0 ||
+                    System.Array.IndexOf(view.videoImages, image) >= 0 || image == view.queueTabImage || image == view.historyTabImage || image == view.userTabImage);
+                if (PlaylistThemeGraphics.IsViewport(image)) continue;
                 if(name=="Background")image.color=theme.background;
-                else if(name=="Accent"||name=="Handle"||name=="Volume fill")image.color=theme.accent;
-                else if(name=="Divider"||name=="Scrollbar"||name=="Tabs"||name=="Videos"||name=="Volume rail"||name=="Queue panel")image.color=theme.surface;
-                else if(name=="Icon")image.color=theme.text;
-                else if(name=="Viewport")continue;
-                else image.color=theme.button;
+                else if(name=="Accent"||name=="Handle"||name=="Volume fill"||name=="Playback progress")image.color=theme.accent;
+                else if(name=="Divider"||name=="Track")image.color=theme.outlineOnly?theme.button:theme.surface;
+                else if(name=="Scrollbar"||name=="List scrollbar"||name=="Tabs"||name=="Videos"||name=="Volume rail"||name=="Queue panel"||name=="History panel"||name=="User list panel"||name=="Add video form"||name=="Add user video form")image.color=theme.surface;
+                else if(PlaylistThemeGraphics.IsForeground(view,image))image.color=theme.text;
+                else image.color=selected?theme.selected:theme.button;
                 PlaylistConnections.Save(image);
             }
-            foreach(var text in setup.GetComponentsInChildren<Text>(true)) { Undo.RecordObject(text,"Apply playlist theme"); text.color=text==setup.view.status||text==setup.view.volumeLabel?theme.mutedText:theme.text;PlaylistConnections.Save(text); }
+            foreach(var text in setup.GetComponentsInChildren<Text>(true)) { PlaylistUndo.RecordObject(text,"Apply playlist theme"); text.color=text==setup.view.status||text==setup.view.volumeLabel?theme.mutedText:theme.text;PlaylistConnections.Save(text); }
             var colors=ColorBlock.defaultColorBlock; colors.normalColor=Color.white; colors.highlightedColor=new Color(.85f,.95f,1f); colors.pressedColor=new Color(.65f,.75f,.8f); colors.selectedColor=Color.white;
-            foreach(var button in setup.GetComponentsInChildren<Button>(true)) { Undo.RecordObject(button,"Apply playlist theme"); button.colors=colors;PlaylistConnections.Save(button); }
-            if(setup.view.tabImages.Length>0&&setup.view.tabImages[0]!=null)setup.view.tabImages[0].color=theme.selected;
+            foreach(var button in setup.GetComponentsInChildren<Button>(true)) { PlaylistUndo.RecordObject(button,"Apply playlist theme"); button.colors=colors;PlaylistConnections.Save(button); }
+            PlaylistThemeGraphics.ApplyNew(setup);
             PlaylistConnections.Save(setup.view);
         }
         public static void EnsureControls(PlaylistSetup setup)
@@ -132,7 +138,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             PlaylistQueueUI.Ensure(setup);
             if(view.playbackModeIcon==null)
             {
-                var old=view.transform.Find("Playback mode"); if(old!=null)Undo.DestroyObjectImmediate(old.gameObject);
+                var old=view.transform.Find("Playback mode"); if(old!=null)PlaylistUndo.DestroyObjectImmediate(old.gameObject);
                 view.playbackModeLabel=null;
                 view.orderedIcon=PlaylistIcons.Get("ordered"); view.randomIcon=PlaylistIcons.Get("shuffle");
                 view.playbackModeIcon=IconButton(view,"Playback mode","ordered","_TogglePlaybackMode",824,18);
@@ -160,7 +166,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         public static void EnsureTransportControls(PlaylistView view)
         {
             if (view == null) return;
-            Undo.RecordObject(view, "Add mute and playback toggle controls");
+            PlaylistUndo.RecordObject(view, "Add mute and playback toggle controls");
             var play = view.transform.Find("Play");
             if (play != null)
             {
@@ -171,16 +177,16 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 view.playIcon = PlaylistIcons.Get("play"); view.pauseIcon = PlaylistIcons.Get("pause");
             }
             var stop = view.transform.Find("Stop");
-            if (stop != null && stop.gameObject.activeSelf) { Undo.RecordObject(stop.gameObject, "Consolidate playback buttons"); stop.gameObject.SetActive(false); PlaylistConnections.Save(stop.gameObject); }
+            if (stop != null && stop.gameObject.activeSelf) { PlaylistUndo.RecordObject(stop.gameObject, "Consolidate playback buttons"); stop.gameObject.SetActive(false); PlaylistConnections.Save(stop.gameObject); }
             var speaker = view.transform.Find("Volume caption/Icon");
             if (speaker != null)
             {
                 view.volumeIcon = speaker.GetComponent<Image>();
                 view.speakerIcon = PlaylistIcons.Get("speaker"); view.mutedIcon = PlaylistIcons.Get("speaker-muted");
                 var button = speaker.GetComponent<Button>();
-                if (button == null) button = Undo.AddComponent<Button>(speaker.gameObject);
+                if (button == null) button = PlaylistUndo.AddComponent<Button>(speaker.gameObject);
                 button.targetGraphic = view.volumeIcon;
-                if (view.volumeIcon != null) { Undo.RecordObject(view.volumeIcon, "Enable mute icon input"); view.volumeIcon.raycastTarget = true; PlaylistConnections.Save(view.volumeIcon); }
+                if (view.volumeIcon != null) { PlaylistUndo.RecordObject(view.volumeIcon, "Enable mute icon input"); view.volumeIcon.raycastTarget = true; PlaylistConnections.Save(view.volumeIcon); }
                 SetControlEvent(button, view, "_ToggleMute", null);
             }
             PlaylistConnections.Save(view);
@@ -189,7 +195,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         {
             var backing = UdonSharpEditorUtility.GetBackingUdonBehaviour(view);
             if (backing == null) return;
-            Undo.RecordObject(button, "Wire playlist control");
+            PlaylistUndo.RecordObject(button, "Wire playlist control");
             var serialized = new SerializedObject(button);
             var calls = serialized.FindProperty("m_OnClick.m_PersistentCalls.m_Calls");
             for (int i = 0; i < calls.arraySize; i++)
@@ -208,11 +214,11 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             var caption = setup.transform.Find("Volume caption");
             if (caption == null) return;
             var text = caption.GetComponent<Text>();
-            if (text != null) { Undo.RecordObject(text, "Replace volume caption with icon"); text.enabled = false; PlaylistConnections.Save(text); }
+            if (text != null) { PlaylistUndo.RecordObject(text, "Replace volume caption with icon"); text.enabled = false; PlaylistConnections.Save(text); }
             var existing = caption.Find("Icon");
             var icon = existing == null ? Box(caption, "Icon").GetComponent<Image>() : existing.GetComponent<Image>();
             if (existing == null) {
-                Undo.RegisterCreatedObjectUndo(icon.gameObject, "Add speaker icon");
+                PlaylistUndo.RegisterCreatedObjectUndo(icon.gameObject, "Add speaker icon");
                 var rect = icon.rectTransform; rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f,.5f);
                 rect.anchoredPosition = Vector2.zero; rect.sizeDelta = new Vector2(30,30);
             }
@@ -227,7 +233,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (view == null) return;
             if (view.connectionLabel == null) {
                 view.connectionLabel = Text(setup.transform, "Connected player", "未接続", 16);
-                Undo.RegisterCreatedObjectUndo(view.connectionLabel.gameObject, "Add connected player label");
+                PlaylistUndo.RegisterCreatedObjectUndo(view.connectionLabel.gameObject, "Add connected player label");
                 Place(view.connectionLabel.rectTransform, 310, 18, 500, 22);
                 view.connectionLabel.alignment = TextAnchor.MiddleRight;
                 view.connectionLabel.resizeTextForBestFit = true; view.connectionLabel.resizeTextMinSize = 12; view.connectionLabel.resizeTextMaxSize = 16;
@@ -238,14 +244,14 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (setup.player != null) {
                 destination = setup.playerKind;
             }
-            Undo.RecordObject(view, "Update connected player label");
-            Undo.RecordObject(view.connectionLabel, "Update connected player label");
+            PlaylistUndo.RecordObject(view, "Update connected player label");
+            PlaylistUndo.RecordObject(view.connectionLabel, "Update connected player label");
             view.connectionName = destination;
             view.connectionLabel.text = setup.player == null || view.adapter == null ? "未接続" : destination;
             PlaylistConnections.Save(view.connectionLabel); PlaylistConnections.Save(view);
             if (view.audioLinkLabel == null) {
                 view.audioLinkLabel = Text(setup.transform, "AudioLink status", "AudioLink: 未導入", 14);
-                Undo.RegisterCreatedObjectUndo(view.audioLinkLabel.gameObject, "Add AudioLink status label");
+                PlaylistUndo.RegisterCreatedObjectUndo(view.audioLinkLabel.gameObject, "Add AudioLink status label");
                 Place(view.audioLinkLabel.rectTransform, 310, 40, 500, 20);
                 view.audioLinkLabel.alignment = TextAnchor.MiddleRight;
                 view.audioLinkLabel.color = setup.theme == null ? view.iconColor : setup.theme.mutedText;
@@ -254,7 +260,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         }
         static Image IconButton(PlaylistView view,string name,string icon,string method,float x,float y)
         {
-            var rect=Box(view.transform,name); Place(rect,x,y,52,42); Undo.RegisterCreatedObjectUndo(rect.gameObject,"Add playlist controls");
+            var rect=Box(view.transform,name); Place(rect,x,y,52,42); PlaylistUndo.RegisterCreatedObjectUndo(rect.gameObject,"Add playlist controls");
             var button=rect.gameObject.AddComponent<Button>(); button.targetGraphic=rect.GetComponent<Image>();
             var image=Box(rect,"Icon").GetComponent<Image>(); image.sprite=PlaylistIcons.Get(icon);image.preserveAspect=true;image.raycastTarget=false;Stretch(image.rectTransform);image.rectTransform.offsetMin=new Vector2(12,7);image.rectTransform.offsetMax=new Vector2(-12,-7);
             UnityEventTools.AddStringPersistentListener(button.onClick,UdonSharpEditorUtility.GetBackingUdonBehaviour(view).SendCustomEvent,method);
@@ -271,7 +277,9 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();DrawDefaultInspector();
-            if(!EditorGUI.EndChangeCheck()||EditorApplication.isPlayingOrWillChangePlaymode)return;
+            bool changed = EditorGUI.EndChangeCheck();
+            if (((PlaylistTheme)target).outlineOnly) EditorGUILayout.HelpBox("背景・パネル・ボタンの内側は透過し、各色は枠線に使います。文字・アイコン・進捗線は表示します。", MessageType.Info);
+            if(!changed||EditorApplication.isPlayingOrWillChangePlaymode)return;
             foreach(var setup in Object.FindObjectsOfType<PlaylistSetup>(true))if(setup.theme==target)PlaylistAppearance.ApplyTheme(setup);
         }
     }

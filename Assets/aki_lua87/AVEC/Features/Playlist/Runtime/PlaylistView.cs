@@ -11,6 +11,22 @@ namespace aki_lua87.CommonVideoPlaylist
     public class PlaylistView : UdonSharpBehaviour
     {
         public PlaylistAdapter adapter;
+        public bool enableQueue = true;
+        public bool enableHistory = true;
+        public bool enableUserList = true;
+        public GameObject userPanel;
+        public GameObject userAddPanel;
+        public Image userTabImage;
+        public Text userDeleteLabel;
+        public Text userPageLabel;
+        public Text[] userLabels = new Text[0];
+        public GameObject[] userRows = new GameObject[0];
+        public VRC.SDK3.Components.VRCUrlInputField userUrlInput;
+        public PlaylistTitleResolver userTitleResolver;
+        // Editor-wired queue affordances, kept serialized for runtime visibility control.
+        [HideInInspector] public GameObject[] queueAddButtons = new GameObject[0];
+        [System.NonSerialized] public PlaylistUserData localUserData;
+        private bool userDeleteMode;
         public Text heading;
         public Text status;
         public Text playbackModeLabel;
@@ -74,7 +90,97 @@ namespace aki_lua87.CommonVideoPlaylist
         [HideInInspector] public FeatureExtensionBehaviour[] extensions = new FeatureExtensionBehaviour[0];
         private int selectedTab = -1;
         private int selectedVideo = -1;
-        private void Start() { _ToggleQueue(); _RefreshVolume(); SendCustomEventDelayedSeconds(nameof(_PollVolume), .5f); }
+        private void Start() { _ApplySpecialLists(); SelectInitialList(); _RefreshVolume(); SendCustomEventDelayedSeconds(nameof(_PollVolume), .5f); }
+        public void _ApplySpecialLists()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            if (queueTabImage != null) queueTabImage.gameObject.SetActive(enableQueue);
+            if (historyTabImage != null) historyTabImage.gameObject.SetActive(enableHistory);
+            if (userTabImage != null) userTabImage.gameObject.SetActive(enableUserList);
+            for (int i = 0; i < queueAddButtons.Length; i++) if (queueAddButtons[i] != null) queueAddButtons[i].SetActive(enableQueue);
+            if (!enableQueue && queuePanel != null) queuePanel.SetActive(false);
+            if (!enableHistory && historyPanel != null) historyPanel.SetActive(false);
+            if (!enableUserList && userPanel != null) userPanel.SetActive(false);
+        }
+        private void SelectInitialList()
+        {
+            if (enableQueue && queuePanel != null) _ToggleQueue();
+            else if (enableHistory && historyPanel != null) _ToggleHistory();
+            else if (enableUserList && userPanel != null) _ToggleUserList();
+            else _SelectTab(0);
+        }
+        private void HideUserList()
+        {
+            if (userPanel != null) userPanel.SetActive(false);
+            if (userAddPanel != null) userAddPanel.SetActive(false);
+            if (userTabImage != null) userTabImage.color = normalColor;
+            userDeleteMode = false;
+        }
+        public void _ToggleUserList()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableUserList || userPanel == null) return;
+            selectedTab = -3; userDeleteMode = false;
+            userPanel.SetActive(true);
+            if (userAddPanel != null) userAddPanel.SetActive(false);
+            if (queuePanel != null) queuePanel.SetActive(false);
+            if (historyPanel != null) historyPanel.SetActive(false);
+            if (videoScroll != null) videoScroll.gameObject.SetActive(false);
+            if (queueTabImage != null) queueTabImage.color = normalColor;
+            if (historyTabImage != null) historyTabImage.color = normalColor;
+            if (userTabImage != null) userTabImage.color = selectedColor;
+            for (int i = 0; i < tabImages.Length; i++) if (tabImages[i] != null) tabImages[i].color = normalColor;
+            if (heading != null) heading.text = "ユーザーリスト";
+            _RefreshUserList();
+            SetStatus(localUserData == null || !localUserData._Ready() ? "保存データを読み込んでいます" : "自分のリストです。動画を選択すると再生します");
+        }
+        public void _OpenUserAdd()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableUserList || userAddPanel == null) return;
+            if (localUserData == null || !localUserData._Ready()) { SetStatus("保存データの読み込み完了をお待ちください"); return; }
+            userDeleteMode = false; userAddPanel.SetActive(true); _RefreshUserList();
+        }
+        public void _CloseUserAdd()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || userAddPanel == null) return;
+            userAddPanel.SetActive(false); _RefreshUserList();
+        }
+        public void _SubmitUserUrl()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableUserList || userUrlInput == null) return;
+            int result = localUserData == null ? 6 : localUserData._Add(userUrlInput.GetUrl(), userTitleResolver);
+            SetStatus(result == 1 ? "ユーザーリストに追加しました" : result == 6 ? "保存データの読み込み完了をお待ちください" : result == 8 ? "このURLは登録済みです" : result == 5 ? "ユーザーリストは最大32件です" : result == 9 ? "保存容量が不足しています。項目を削除してください" : "2048文字以内のhttp(s)の動画URLを入力してください");
+            if (result == 1) { userUrlInput.SetUrl(VRCUrl.Empty); _CloseUserAdd(); }
+            _RefreshUserList();
+        }
+        public void _ToggleUserDelete()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableUserList) return;
+            userDeleteMode = !userDeleteMode; _CloseUserAdd(); _RefreshUserList();
+            SetStatus(userDeleteMode ? "削除する動画を選択してください" : "動画を選択すると再生します");
+        }
+        public void _ClickUserSlot(int slot)
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableUserList || localUserData == null || !localUserData._Ready() || slot < 0 || slot >= userLabels.Length) return;
+            int index = slot;
+            if (index >= localUserData._Count()) return;
+            if (userDeleteMode) { localUserData._Remove(index); _RefreshUserList(); SetStatus("ユーザーリストから削除しました"); return; }
+            int result = adapter == null ? 0 : adapter._PlayUserUrl(localUserData._Url(index), localUserData._Title(index));
+            SetStatus(result == 1 ? "再生を要求しました" : result == 2 ? "操作権限がありません" : result == 7 ? "読み込み間隔を空けて再試行してください" : "動画を再生できません。接続先・URLを確認してください");
+        }
+        public void _RefreshUserList()
+        {
+            int count = localUserData == null || !localUserData._Ready() ? 0 : localUserData._Count();
+            if (userDeleteLabel != null) userDeleteLabel.text = userDeleteMode ? "削除を終了" : "削除モード";
+            if (userLabels.Length == 0) return;
+            if (userPageLabel != null) userPageLabel.text = localUserData == null || !localUserData._Ready() ? "読み込み中…" : count == 0 ? "リストは空です" : count + "件";
+            for (int i = 0; i < userLabels.Length; i++)
+            {
+                int index = i;
+                bool visible = index < count && (userAddPanel == null || !userAddPanel.activeSelf);
+                if (i < userRows.Length && userRows[i] != null) userRows[i].SetActive(visible);
+                if (userLabels[i] != null) userLabels[i].text = visible ? (userDeleteMode ? "× " : "") + localUserData._Title(index) : "";
+            }
+        }
         public void _PollVolume()
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
@@ -97,14 +203,15 @@ namespace aki_lua87.CommonVideoPlaylist
         }
         public void _EnqueueVideo(int index)
         {
-            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableQueue) return;
             int result = adapter == null ? 0 : adapter._EnqueueFrom(this, index);
             SetStatus(result == 1 ? "キューに追加しました" : result == 2 ? "操作権限がありません" : result == 5 ? "キューは最大32件です" : "キューへ追加できません。接続先・URLを確認してください。");
             _RefreshQueue();
         }
         public void _ToggleQueue()
         {
-            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || queuePanel == null) return;
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableQueue || queuePanel == null) return;
+            HideUserList();
             queuePanel.SetActive(true);
             if (historyPanel != null) historyPanel.SetActive(false);
             if (historyTabImage != null) historyTabImage.color = normalColor;
@@ -119,17 +226,19 @@ namespace aki_lua87.CommonVideoPlaylist
         }
         public void _OpenQueueAdd()
         {
-            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || queueAddPanel == null) return;
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableQueue || queueAddPanel == null) return;
             queueAddPanel.SetActive(true);
+            _RefreshQueue();
         }
         public void _CloseQueueAdd()
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || queueAddPanel == null) return;
             queueAddPanel.SetActive(false);
+            _RefreshQueue();
         }
         public void _SubmitQueueUrl()
         {
-            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || queueUrlInput == null) return;
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableQueue || queueUrlInput == null) return;
             int result = adapter == null ? 0 : adapter._EnqueueUrl(queueUrlInput.GetUrl());
             SetStatus(result == 1 ? "キューに追加しました" : result == 2 ? "操作権限がありません" : result == 5 ? "キューは最大32件です" : "http(s)の動画URLを入力してください");
             if (result == 1) { queueUrlInput.SetUrl(VRCUrl.Empty); _CloseQueueAdd(); }
@@ -139,20 +248,20 @@ namespace aki_lua87.CommonVideoPlaylist
         public void _QueuePreviousPage() { if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return; queuePage--; _RefreshQueue(); }
         public void _ClearQueue()
         {
-            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableQueue) return;
             int result = adapter == null ? 0 : adapter._ClearQueue();
             SetStatus(result == 1 ? "待機中のキューを消去しました" : result == 2 ? "操作権限がありません" : "接続先を確認してください");
             _RefreshQueue();
         }
         public void _StartQueuedPlayback()
         {
-            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableQueue) return;
             int result = adapter == null ? 0 : adapter._PlayQueueNext();
             SetStatus(result == 1 ? "キューの再生を要求しました" : result == 2 ? "操作権限がありません" : result == 7 ? "読み込み間隔を空けて再試行してください" : result == 4 ? "キューは空です" : "接続先を確認してください");
         }
         public void _RemoveQueueSlot(int slot)
         {
-            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || queueLabels.Length == 0) return;
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableQueue || queueLabels.Length == 0) return;
             int result = adapter == null ? 0 : adapter._RemoveQueued(queuePage * queueLabels.Length + slot);
             SetStatus(result == 1 ? "キューから削除しました" : result == 2 ? "操作権限がありません" : result == 4 ? "再生中の項目は終了後に削除されます" : "接続先を確認してください");
             _RefreshQueue();
@@ -168,14 +277,15 @@ namespace aki_lua87.CommonVideoPlaylist
             for (int i = 0; i < queueLabels.Length; i++)
             {
                 int index = queuePage * queueLabels.Length + i;
-                bool visible = index < count;
+                bool visible = index < count && (queueAddPanel == null || !queueAddPanel.activeSelf);
                 if (i < queueRows.Length && queueRows[i] != null) queueRows[i].SetActive(visible);
                 if (queueLabels[i] != null) queueLabels[i].text = visible ? adapter._QueueDisplayTitle(index) : "";
             }
         }
         public void _ToggleHistory()
         {
-            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || historyPanel == null) return;
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableHistory || historyPanel == null) return;
+            HideUserList();
             selectedTab = -2;
             historyPanel.SetActive(true);
             if (queuePanel != null) queuePanel.SetActive(false);
@@ -192,7 +302,7 @@ namespace aki_lua87.CommonVideoPlaylist
         public void _HistoryPreviousPage() { if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return; historyPage--; _RefreshHistory(); }
         public void _PlayHistorySlot(int slot)
         {
-            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || !enableHistory) return;
             int result = adapter == null ? 0 : adapter._PlayHistory(historyPage * historyLabels.Length + slot);
             SetStatus(result == 1 ? "履歴の再生を要求しました" : result == 2 ? "操作権限がありません" : result == 7 ? "読み込み間隔を空けて再試行してください" : "履歴を再生できません");
         }
@@ -287,6 +397,7 @@ namespace aki_lua87.CommonVideoPlaylist
         public void _SelectTab(int index)
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            HideUserList();
             if (queuePanel != null) queuePanel.SetActive(false);
             if (historyPanel != null) historyPanel.SetActive(false);
             if (historyTabImage != null) historyTabImage.color = normalColor;

@@ -98,23 +98,35 @@ namespace aki_lua87.CommonVideoPlaylist
         {
             if (NetworkCalling.InNetworkCall || requesting || !_Available()) return 0;
             if (index < 0 || index >= historyUrls.Length) return 4;
+            return _PlayUserUrl(historyUrls[index], historyTitles[index]);
+        }
+        public int _PlayUserUrl(VRCUrl url, string title)
+        {
+            if (NetworkCalling.InNetworkCall || requesting || !_Available()) return 0;
+            if (VRCUrl.IsNullOrEmpty(url)) return 3;
+            string raw = url.Get();
+            if ((!raw.StartsWith("https://") && !raw.StartsWith("http://")) || raw.Length > 2048) return 3;
             if (Time.realtimeSinceStartup - lastLoadTime < 5.1f) return 7;
             if (!_AcquireSequenceControl() || !CanWrite()) return 2;
             requesting = true;
             _SetNativeMode(modeOverride == 2 ? 2 : 0);
-            int result = _Request(historyUrls[index], historyTitles[index]);
+            if (string.IsNullOrEmpty(title)) title = raw;
+            int result = _Request(url, title);
             requesting = false;
             if (result != 1) return result;
             FinishQueued();
             cursorView = -1; cursorVideo = -1; queueOnly = true;
-            queuePlayingUrl = historyUrls[index]; revision++; armed = false; endPending = false;
-            queuePlayingTitle = historyTitles[index];
+            queuePlayingUrl = url; revision++; armed = false; endPending = false;
+            queuePlayingTitle = title;
             playingSubmitter = LocalSubmitter();
             CommitCursor(); return 1;
         }
         private void RecordHistory()
         {
             if (!CanWrite() || !_NativeReady()) return;
+            bool enabled = false;
+            for (int i = 0; i < views.Length; i++) if (views[i] != null && views[i].enableHistory) enabled = true;
+            if (!enabled) return;
             VRCUrl url = _CurrentUrl();
             if (VRCUrl.IsNullOrEmpty(url)) return;
             if (lastHistoryRevision == revision && !VRCUrl.IsNullOrEmpty(lastHistoryUrl) && lastHistoryUrl.Get() == url.Get()) return;

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DefaultPlaylist
   m_EditorClassIdentifier: 
   tabs:
-  - name: "HikakinGames (\u72EC\u81EAAPI test)"
+  - name: HikakinGames
     randomPlayback: 0
     titleSourceUrl: https://vrc.akakitune87.net/videos/yt/chlist/UCX1xppLvuj03ubLio8jslyA?version=v2
     videos:
@@ -77,7 +77,7 @@ MonoBehaviour:
     - title: 20
       url: https://vrc.akakitune87.net/videos/yt/ch/UCX1xppLvuj03ubLio8jslyA?n=19
       dynamicTitleIndex: 19
-  - name: "SUSURU TV. (\u72EC\u81EAAPI test)"
+  - name: 'SUSURU TV. '
     randomPlayback: 0
     titleSourceUrl: https://vrc.akakitune87.net/videos/yt/chlist/UCXcjvt8cOfwtcqaMeE7-hqA?version=v2
     videos:
@@ -141,7 +141,7 @@ MonoBehaviour:
     - title: 20
       url: https://vrc.akakitune87.net/videos/yt/ch/UCXcjvt8cOfwtcqaMeE7-hqA?n=19
       dynamicTitleIndex: 19
-  - name: "Music1 (\u57FA\u672C\u8A2D\u5B9A test)"
+  - name: 'Music1 '
     randomPlayback: 0
     titleSourceUrl: 
     videos:
@@ -215,7 +215,7 @@ MonoBehaviour:
         Video"
       url: https://www.youtube.com/watch?v=gU5oN0KVofU
       dynamicTitleIndex: -1
-  - name: "Music2 (\u57FA\u672C\u8A2D\u5B9A test)"
+  - name: 'Music2 '
     randomPlayback: 0
     titleSourceUrl: 
     videos:
@@ -274,7 +274,7 @@ MonoBehaviour:
     - title: "\u76F8\u5DDD\u4E03\u702C / \u604B\u5FC3"
       url: https://www.youtube.com/watch?v=kXAsPEe6Yn8
       dynamicTitleIndex: -1
-  - name: "(\u72EC\u81EAAPI2 test1)"
+  - name: test1
     randomPlayback: 0
     titleSourceUrl: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfJzSuOCazAHWsSRrEVzvyln/titles
     videos:
@@ -338,7 +338,7 @@ MonoBehaviour:
     - title: 20
       url: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfJzSuOCazAHWsSRrEVzvyln/video?n=19
       dynamicTitleIndex: 19
-  - name: "(\u72EC\u81EAAPI2 test2)"
+  - name: test2
     randomPlayback: 0
     titleSourceUrl: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfL8xCE4AyExdUVTmiJhfYO7/titles
     videos:
@@ -402,6 +402,79 @@ MonoBehaviour:
     - title: 20
       url: https://vrc.akakitune87.net/yt/pl/PL7mNrCu8rdfL8xCE4AyExdUVTmiJhfYO7/video?n=19
       dynamicTitleIndex: 19
+  - name: test3
+    randomPlayback: 0
+    titleSourceUrl: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/titles
+    videos:
+    - title: "\u3010\u672C\u7DE8\u30E9\u30A4\u30D6\u30B7\u30FC\u30F3\u3011\u661F\u964D\u308B\u6D77
+        \u2013 Aqu3ra / \u6708\u898B\u30E4\u30C1\u30E8(cv.\u65E9\u898B\u6C99\u7E54)
+        from #\u8D85\u304B\u3050\u3084\u59EB \uFF01"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=0
+      dynamicTitleIndex: 0
+    - title: "\u3010\u672C\u7DE8\u30E9\u30A4\u30D6\u30B7\u30FC\u30F3\u3011\u30EF\u30FC\u30EB\u30C9\u30A4\u30BA\u30DE\u30A4\u30F3
+        CPK! Remix (\u304B\u3050\u3084 & \u6708\u898B\u30E4\u30C1\u30E8 ver.) \u2013
+        ryo (supercell) from \u8D85\u304B\u3050\u3084\u59EB\uFF01"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=1
+      dynamicTitleIndex: 1
+    - title: "\u3010\u672C\u7DE8\u5192\u982D\u6620\u50CF5\u520642\u79D2\u516C\u958B\u3011\u5287\u4E2D\u6B4C\u300CRemember\u300Dyuigot
+        / \u6708\u898B\u30E4\u30C1\u30E8 (cv.\u65E9\u898B\u6C99\u7E54)\u3010\u6620\u753B\u300E\u8D85\u304B\u3050\u3084\u59EB\uFF01\u300F\u3011"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=2
+      dynamicTitleIndex: 2
+    - title: "\u300E\u304B\u3050\u3084\uFF1F\u304B\u3050\u3084\u304B\u3042\uFF5E\uFF5E\uFF01\u300F\uFF5Cfrom
+        #\u8D85\u304B\u3050\u3084\u59EB\uFF01#cosmicprincesskaguya\u3010\u672C\u7DE8\u6620\u50CF\u3011"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=3
+      dynamicTitleIndex: 3
+    - title: "\u300E\u3044\u3063\u3066\u3089\u3063\u3057\u3083\u3044\uFF01\u300F\uFF5Cfrom
+        #\u8D85\u304B\u3050\u3084\u59EB\uFF01#cosmicprincesskaguya\u3010\u672C\u7DE8\u6620\u50CF\u3011"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=4
+      dynamicTitleIndex: 4
+    - title: "\u3010\u672C\u7DE8\u6620\u50CF\u3011\u30CF\u30C3\u30D4\u30FC\u30B7\u30F3\u30BB\u30B5\u30A4\u30B6(COVER)
+        \u2013 \u304B\u3050\u3084 (cv.\u590F\u5409\u3086\u3046\u3053) from \u8D85\u304B\u3050\u3084\u59EB\uFF01"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=5
+      dynamicTitleIndex: 5
+    - title: "\u3010\u672C\u7DE8\u6620\u50CF\u3011\u300C\u304B\u3050\u3084\u3001\u5E30\u3063\u3061\u3083\u3046\u306E\uFF1F\u300Dfrom
+        \u8D85\u304B\u3050\u3084\u59EB\uFF01"
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=6
+      dynamicTitleIndex: 6
+    - title: 8
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=7
+      dynamicTitleIndex: 7
+    - title: 9
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=8
+      dynamicTitleIndex: 8
+    - title: 10
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=9
+      dynamicTitleIndex: 9
+    - title: 11
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=10
+      dynamicTitleIndex: 10
+    - title: 12
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=11
+      dynamicTitleIndex: 11
+    - title: 13
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=12
+      dynamicTitleIndex: 12
+    - title: 14
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=13
+      dynamicTitleIndex: 13
+    - title: 15
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=14
+      dynamicTitleIndex: 14
+    - title: 16
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=15
+      dynamicTitleIndex: 15
+    - title: 17
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=16
+      dynamicTitleIndex: 16
+    - title: 18
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=17
+      dynamicTitleIndex: 17
+    - title: 19
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=18
+      dynamicTitleIndex: 18
+    - title: 20
+      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=19
+      dynamicTitleIndex: 19
   - name: "\u624B\u52D5\u8A2D\u5B9A"
     randomPlayback: 0
     titleSourceUrl: 
@@ -413,7 +486,7 @@ MonoBehaviour:
         \u30B7\u30EB\u30AF\u30B9\uFF65\u30C4\u30A4\u30CB\u30F3\u30B0\uFF5E "
       url: https://www.youtube.com/watch?v=4W2UVwG55Fs
       dynamicTitleIndex: -1
-  - name: "test \u6016\u3044CM"
+  - name: "\u6016\u3044CM"
     randomPlayback: 0
     titleSourceUrl: 
     videos:
@@ -938,76 +1011,184 @@ MonoBehaviour:
     - title: Private video
       url: https://www.youtube.com/watch?v=6PziwBSBLqI
       dynamicTitleIndex: -1
-  - name: 'test '
+  - name: "\u2726\u307B\u306E\u307C\u306EVlog"
     randomPlayback: 0
-    titleSourceUrl: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/titles
+    titleSourceUrl: 
     videos:
-    - title: "\u3010\u672C\u7DE8\u30E9\u30A4\u30D6\u30B7\u30FC\u30F3\u3011\u661F\u964D\u308B\u6D77
-        \u2013 Aqu3ra / \u6708\u898B\u30E4\u30C1\u30E8(cv.\u65E9\u898B\u6C99\u7E54)
-        from #\u8D85\u304B\u3050\u3084\u59EB \uFF01"
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=0
+    - title: "\u3010\u6ECB\u8CC0\u2506\u8FD1\u6C5F\u516B\u5E61\u3011\u534A\u65E5\u3067\u3053\u3093\u306A\u306B\u5DE1\u308C\u308B\uFF01\u30B0\u30EB\u30E1\u30FB\u7D76\u666F\u306B\u6EBA\u308C\u308B\u8FD1\u6C5F\u516B\u5E61\u5DE1\u308A\u304C\u6700\u9AD8\u3059\u304E\u305F\u3010Vlog\u3011"
+      url: https://www.youtube.com/watch?v=eVng_Rf3U3Q
+      dynamicTitleIndex: -1
+    - title: "\u3010\u6771\u4EAC\u9AD8\u5186\u5BFA\u3011\u63A8\u3057\u306E\u9999\u6C34\u304C\u4F5C\u308C\u308B\uFF01\uFF1F\u9999\u6C34\u521D\u5FC3\u8005\u304C\u8D85\u304A\u3057\u3083\u308C\u306A\u9999\u6C34\u3092\u4F5C\u3063\u3066\u307F\u305F\u3010\u91D1\u718A\u9999\u6C34\u3011"
+      url: https://www.youtube.com/watch?v=Oh1mJRa7_f4
+      dynamicTitleIndex: -1
+    - title: "\u3010\u57FC\u7389\u79E9\u7236\u3011\u300C\u3042\u306E\u82B1\u300D\u304B\u308915\u5E74\u7D4C\u3063\u305F\u3063\u3066\u672C\u5F53\u3067\u3059\u304B\u2026\u2026\uFF1F\u8056\u5730\u5DE1\u308A\u3059\u308B\u3064\u3082\u308A\u306F\u306A\u304B\u3063\u305F\u306E\u306B\u3001\u6C17\u4ED8\u3044\u305F\u3089\u8DB3\u304C\u5DE1\u3063\u3066\u3044\u307E\u3057\u305F\u3002\u3010Vlog\u3011"
+      url: https://www.youtube.com/watch?v=UFUTq3C_gQc
+      dynamicTitleIndex: -1
+    - title: "FANBOX\u9650\u5B9A\u516C\u958B\u306B\u3059\u308B\u306F\u305A\u3060\u3063\u305FVlog\u3010\u5C71\u68A8\u770C\u5927\u6708\u99C5\uFF5E\u4E38\u5C71\u516C\u5712\u6563\u6B69\u3011"
+      url: https://www.youtube.com/watch?v=K6DeMrzCT6Y
+      dynamicTitleIndex: -1
+    - title: "\u30B3\u30DF\u30B1\u306E\u8056\u5730\u3092VR\u3067\u8CB8\u5207\uFF01\uFF1F\u30D3\u30C3\u30B0\u30B5\u30A4\u30C8\u306E\u3075\u3057\u304E\u306A\u6B69\u304D\u65B9\u3002\u3010VRChat\u3011"
+      url: https://www.youtube.com/watch?v=CsPBZkJiaic
+      dynamicTitleIndex: -1
+    - title: "\uFF62\u9053\u306A\u3093\u3066\u3044\u3089\u306A\u3044\uFF63\u7269\u7406\u6CD5\u5247\u3092\u7121\u8996\u3057\u3066\u30D0\u30FC\u30C1\u30E3\u30EB\u6A2A\u6D5C\u3092\u6563\u7B56\u3057\u3066\u307F\u305F\u3010VRChat\u3011"
+      url: https://www.youtube.com/watch?v=Cw1iFBPJDvc
+      dynamicTitleIndex: -1
+    - title: "\u3010\u6771\u4EAC\u7ACB\u5DDD\u3011\u300C\u8D85\u304B\u3050\u3084\u59EB\uFF01\u300D\u6620\u753B\u3092\u89B3\u305A\u306B\u8056\u5730\u5DE1\u793C\u3057\u3066\u307F\u305F\u3089\u5F53\u305F\u308B\u306E\u304B\uFF1F\u3010Vlog\u3011"
+      url: https://www.youtube.com/watch?v=sAqGLWXCV5g
+      dynamicTitleIndex: -1
+    - title: "\u3010 #vlog \u3011\u3067\u3063\u304B\u3044\u98A8\u8ECA\u3068\u3044\u3063\u3071\u3044\u306E\u304A\u82B1\U0001F338\u5343\u8449\u770C\u8239\u6A4B\u5E02\u306B\u3042\u308B\u30A2\u30F3\u30C7\u30EB\u30BB\u30F3\u516C\u5712\u3067\u7652\u3055\u308C\u308B
+        #shorts"
+      url: https://www.youtube.com/watch?v=Rfn40QazgcY
+      dynamicTitleIndex: -1
+    - title: "\u3010\u3061\u3087\u3053\u3063\u3068Vlog\u3011\u59C9\u306B\u4F1A\u3044\u306B\u5BCC\u5C71\u306B\u884C\u304D\u307E\u3057\u305F\U0001F685
+        #shorts"
+      url: https://www.youtube.com/watch?v=Qro11h4S7uA
+      dynamicTitleIndex: -1
+    - title: "\u3010 #\u3059\u307F\u3046\u307EPOPUP \u3011\u81EA\u5206\u306E\u30DD\u30C3\u30D7\u30A2\u30C3\u30D7\u30B9\u30C8\u30A2\u3092\u898B\u306B\u884C\u3063\u305F\uFF01
+        #shorts"
+      url: https://www.youtube.com/watch?v=h6ItBAQAmpw
+      dynamicTitleIndex: -1
+    - title: "\u3010\u8FF7\u5B50\u306B\u306A\u308A\u307E\u3057\u305F\u304C\u3011\u305A\u3063\u3068\u884C\u304D\u305F\u304B\u3063\u305F\u30C7\u30B6\u30D5\u30A7\u30B9\u306B\u884C\u3063\u3066\u304D\u305F\u8A71\u3010\u7121\u4E8B\u751F\u9084\u3011
+        #vtuber  #shorts"
+      url: https://www.youtube.com/watch?v=PCwL-lole0o
+      dynamicTitleIndex: -1
+    - title: Private video
+      url: https://www.youtube.com/watch?v=F-2GRRlw3k8
+      dynamicTitleIndex: -1
+  - name: "\u30F0\u4E16\u754C\u60C5\u7DD2 -Isekaijoucho-"
+    randomPlayback: 0
+    titleSourceUrl: https://vrc.akakitune87.net/videos/yt/chlist/UCah4_WVjmr8XA7i5aigwV-Q?version=v2
+    videos:
+    - title: 1
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=0
       dynamicTitleIndex: 0
-    - title: "\u3010\u672C\u7DE8\u30E9\u30A4\u30D6\u30B7\u30FC\u30F3\u3011\u30EF\u30FC\u30EB\u30C9\u30A4\u30BA\u30DE\u30A4\u30F3
-        CPK! Remix (\u304B\u3050\u3084 & \u6708\u898B\u30E4\u30C1\u30E8 ver.) \u2013
-        ryo (supercell) from \u8D85\u304B\u3050\u3084\u59EB\uFF01"
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=1
+    - title: 2
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=1
       dynamicTitleIndex: 1
-    - title: "\u3010\u672C\u7DE8\u5192\u982D\u6620\u50CF5\u520642\u79D2\u516C\u958B\u3011\u5287\u4E2D\u6B4C\u300CRemember\u300Dyuigot
-        / \u6708\u898B\u30E4\u30C1\u30E8 (cv.\u65E9\u898B\u6C99\u7E54)\u3010\u6620\u753B\u300E\u8D85\u304B\u3050\u3084\u59EB\uFF01\u300F\u3011"
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=2
+    - title: 3
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=2
       dynamicTitleIndex: 2
-    - title: "\u300E\u304B\u3050\u3084\uFF1F\u304B\u3050\u3084\u304B\u3042\uFF5E\uFF5E\uFF01\u300F\uFF5Cfrom
-        #\u8D85\u304B\u3050\u3084\u59EB\uFF01#cosmicprincesskaguya\u3010\u672C\u7DE8\u6620\u50CF\u3011"
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=3
+    - title: 4
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=3
       dynamicTitleIndex: 3
-    - title: "\u300E\u3044\u3063\u3066\u3089\u3063\u3057\u3083\u3044\uFF01\u300F\uFF5Cfrom
-        #\u8D85\u304B\u3050\u3084\u59EB\uFF01#cosmicprincesskaguya\u3010\u672C\u7DE8\u6620\u50CF\u3011"
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=4
+    - title: 5
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=4
       dynamicTitleIndex: 4
-    - title: "\u3010\u672C\u7DE8\u6620\u50CF\u3011\u30CF\u30C3\u30D4\u30FC\u30B7\u30F3\u30BB\u30B5\u30A4\u30B6(COVER)
-        \u2013 \u304B\u3050\u3084 (cv.\u590F\u5409\u3086\u3046\u3053) from \u8D85\u304B\u3050\u3084\u59EB\uFF01"
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=5
+    - title: 6
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=5
       dynamicTitleIndex: 5
-    - title: "\u3010\u672C\u7DE8\u6620\u50CF\u3011\u300C\u304B\u3050\u3084\u3001\u5E30\u3063\u3061\u3083\u3046\u306E\uFF1F\u300Dfrom
-        \u8D85\u304B\u3050\u3084\u59EB\uFF01"
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=6
+    - title: 7
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=6
       dynamicTitleIndex: 6
     - title: 8
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=7
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=7
       dynamicTitleIndex: 7
     - title: 9
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=8
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=8
       dynamicTitleIndex: 8
     - title: 10
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=9
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=9
       dynamicTitleIndex: 9
     - title: 11
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=10
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=10
       dynamicTitleIndex: 10
     - title: 12
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=11
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=11
       dynamicTitleIndex: 11
     - title: 13
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=12
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=12
       dynamicTitleIndex: 12
     - title: 14
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=13
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=13
       dynamicTitleIndex: 13
     - title: 15
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=14
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=14
       dynamicTitleIndex: 14
     - title: 16
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=15
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=15
       dynamicTitleIndex: 15
     - title: 17
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=16
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=16
       dynamicTitleIndex: 16
     - title: 18
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=17
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=17
       dynamicTitleIndex: 17
     - title: 19
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=18
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=18
       dynamicTitleIndex: 18
     - title: 20
-      url: https://vrc.akakitune87.net/yt/pl/PLZndt923CHaKXEhX5EscI3QIQaXACr6Wb/video?n=19
+      url: https://vrc.akakitune87.net/videos/yt/ch/UCah4_WVjmr8XA7i5aigwV-Q?n=19
       dynamicTitleIndex: 19
+  - name: "\u6559\u80B2\u306B\u3044\u3044\u30B2\u30FC\u30E0"
+    randomPlayback: 0
+    titleSourceUrl: 
+    videos:
+    - title: "\u5F7C\u6C0F\u306E\u5973\u53CB\u9054\u306B\u3044\u3066\u307B\u3057\u304F\u306A\u3044\u30B5\u30E1
+        \u3010\u3042\u3056\u3068\u3044\u3011Marvel Rivals"
+      url: https://www.youtube.com/watch?v=foWcVt9j5L0
+      dynamicTitleIndex: -1
+    - title: "\u3010\u30C7\u30AB\u3044\u3011\u30C7\u30AB\u3044\u3010\u30C7\u30AB\u3044\u3011"
+      url: https://www.youtube.com/watch?v=8cOhZJ967LM
+      dynamicTitleIndex: -1
+    - title: "\u7279\u306B\u7406\u7531\u306F\u7121\u3044\u3093\u3060\u3051\u3069\u3053\u306E\u30B2\u30FC\u30E0\u3084\u3063\u3066\u307F\u3088\u3063\u304B\u306A\u3002\u7279\u306B\u7406\u7531\u306F\u306A\u3044\u3093\u3060\u3051\u3069\u306D\u3010Marvel
+        Rivals\u3011"
+      url: https://www.youtube.com/watch?v=9nj6cW87vg0
+      dynamicTitleIndex: -1
+    - title: "\u3053\u306E\u30DE\u30C3\u30D7\u8FFD\u52A0\u3057\u305F\u8CAC\u4EFB\u8005\u51FA\u3066\u3053\u3044\u3084\uFF01\uFF01\uFF01\uFF01\uFF01\uFF01\uFF01\uFF01\u3010Chivalry2\u3011"
+      url: https://www.youtube.com/watch?v=2r7Yjvz6P58
+      dynamicTitleIndex: -1
+    - title: "\u5BB6\u3092\u713C\u3044\u3066\u8CA1\u7523\u3092\u76D7\u3080\u3068\u8912\u3081\u3089\u308C\u308B\u30B2\u30FC\u30E0\u3010Chivalry2\u3011"
+      url: https://www.youtube.com/watch?v=lfId6GWLIk0
+      dynamicTitleIndex: -1
+    - title: "\u3042\u306E\u3001\u3053\u308C\u3063\u3066\u672C\u5F53\u306B\u30B4\u30EB\u30D5\u306A\u3093\u3067\u3059\u304B\u2026\uFF1F(\u5927\u4E08\u592B\u3067\u3059\u3088\u3001\u307F\u306A\u3055\u3093\u3084\u3063\u3066\u307E\u3059\u304B\u3089\u306D)"
+      url: https://www.youtube.com/watch?v=KgjU43B3L8g
+      dynamicTitleIndex: -1
+    - title: "\u30B7\u30E7\u30C3\u30C8\u30AC\u30F3\u3067\u602A\u7570\u3068\u30DC\u30FC\u30EB\u3092\u3076\u3063\u98DB\u3070\u3059\u30B4\u30EB\u30D5\u30B2\u30FC\u30E0(???)\u3010Putt
+        Down\u3011"
+      url: https://www.youtube.com/watch?v=36r33P4yfLk
+      dynamicTitleIndex: -1
+    - title: "\u30B5\u30A4\u30B3\u30D1\u30B9\u3057\u304B\u4F7F\u3063\u3066\u306A\u3044\u5909\u614B\u6B66\u5668\u3001\u3010\u30AB\u30BF\u30FC\u30EB\u3011Chivalry2"
+      url: https://www.youtube.com/watch?v=wPst0VXdy1Q
+      dynamicTitleIndex: -1
+    - title: "\u3010HUD\u30AA\u30D5\u3011\u306B\u3057\u305FChivalry\u304C\u30B2\u30FC\u30E0\u6027\u5909\u308F\u308B\u30EC\u30D9\u30EB\u3067\u9762\u767D\u3059\u304E\u308B!!!!!!"
+      url: https://www.youtube.com/watch?v=baIUG4fGlxM
+      dynamicTitleIndex: -1
+    - title: "\u6226\u5834\u306B\u821E\u3046\u7121\u6557\u306E\u9A0E\u58EB\u3001\u69CD\u30DE\u30F3\u3010Chivalry2\u3011"
+      url: https://www.youtube.com/watch?v=f9Mim1Qpfc4
+      dynamicTitleIndex: -1
+    - title: "\u3010\u304A\u3081\u3011\u65B0\u3057\u3044\u5FEB\u697D\u7269\u8CEA\u304C\u30EA\u30EA\u30FC\u30B9\u3010Blood
+        Vial Demo\u3011"
+      url: https://www.youtube.com/watch?v=E-lTHqMrffY
+      dynamicTitleIndex: -1
+    - title: "\u3010\u306F?\u3011\u30EA\u30FC\u30DE\u30F3\u304C\u7206\u767A\u3059\u308B\u30A4\u30B9\u306B\u4E57\u3063\u3066\u30AA\u30D5\u30A3\u30B9\u3067\u30AC\u30C8\u30EA\u30F3\u30B0\u3092\u4E71\u5C04\u3059\u308B\u5BFE\u6226\u30B2\u30FC\u30E0\u3010\u306A\u3093\u3067?\u3011"
+      url: https://www.youtube.com/watch?v=0nUCkwsv-yc
+      dynamicTitleIndex: -1
+    - title: "\u3010\u885D\u6483\u3011\u6C5A\u3059\u304E\u308B8\u756A\u51FA\u53E3\u3001\u9042\u306B\u8131\u51FA\uFF01\u305D\u3053\u306B\u5F85\u3063\u3066\u3044\u305F\u3082\u306E\u306F\u2026\uFF1F\uFF01\u3010Toilet8\u3011"
+      url: https://www.youtube.com/watch?v=whOKRYxUAkk
+      dynamicTitleIndex: -1
+    - title: "8\u756A\u51FA\u53E3 \uFF0B \u30C8\u30A4\u30EC \uFF1D \u30AF\u30BD\u30E4\u30D0\u3044\u3010Toilet8\u3011"
+      url: https://www.youtube.com/watch?v=4Tf-hUOA-Ts
+      dynamicTitleIndex: -1
+    - title: "\u5358\u9A0E\u7279\u653B\u3067\u8A66\u5408\u306E\u7D04\u534A\u5206\u3092\u7D42\u308F\u3089\u3059\u5973\u3010Chivalry2\u3011"
+      url: https://www.youtube.com/watch?v=5iNyB48O8XY
+      dynamicTitleIndex: -1
+    - title: "\u7D76\u671B\uFF01\u9665\u843D\u5BF8\u524D\u306E\u57CE\u4E3B\u3068\u306A\u308A\u3001\u6C7A\u6B7B\u306E\u7A81\u7834\u4F5C\u6226\u3092\u6210\u529F\u3055\u305B\u3088\uFF01\uFF01\uFF01\u3010Chivalry2\u3011"
+      url: https://www.youtube.com/watch?v=thM0_R9vjqI
+      dynamicTitleIndex: -1
+    - title: "\u5343\u8449\u306E\u30AF\u30EA\u30B9\u30DE\u30B9\u306B\u306F\u58C1\u3092\u58CA\u3057\u3066\u5BB6\u3092\u76D7\u3080\u9006\u30B5\u30F3\u30BF\u304C\u3084\u3063\u3066\u6765\u308B\u3010Chivalry2\u3011"
+      url: https://www.youtube.com/watch?v=rAAx8kCNud0
+      dynamicTitleIndex: -1
+    - title: "\u5168\u3066\u306E\u30B2\u30FC\u30E0\u306F\u3010\u5C41\u3011\u3092\u8DB3\u3059\u30681000\u500D\u9762\u767D\u304F\u306A\u308B\u3010SUSPECTO\u3011"
+      url: https://www.youtube.com/watch?v=8vj5-dbUUno
+      dynamicTitleIndex: -1
+    - title: "BF6\u306E\u5F71\u3067\u7269\u51C4\u3044\u5BFE\u6226\u30B2\u30FC\u30E0\u304C\u30EA\u30EA\u30FC\u30B9\u3055\u308C\u3066\u3044\u305F\u3010Piss
+        Off\u3011"
+      url: https://www.youtube.com/watch?v=lmPbdV-au1Q
+      dynamicTitleIndex: -1
+    - title: "\u653B\u57CE\u5854\u304C\u3042\u308C\u3070\u6575\u56FD\u306E\u738B\u306B\u3082\u30A2\u30DD\u7121\u3057\u8B01\u898B\u3067\u304D\u308B\u307F\u305F\u3044\uFF01\u71C3\u3084\u3059\u306D\u3002\u3010Chivalry2\u3011"
+      url: https://www.youtube.com/watch?v=EMab7jD3TZE
+      dynamicTitleIndex: -1
+    - title: "\u300E\u7D33\u58EB\u300F\u304C\u30C6\u30FC\u30DE\u306E\u65B0\u4F5C\u5BFE\u6226\u30B2\u30FC\u3001\u3082\u3046\u30AC\u30C1\u306E\u30DE\u30B8\u3067\u3081\u3061\u3083\u304F\u3061\u3083\u3010A
+        Gentlemen&#39;s Dispute\u3011"
+      url: https://www.youtube.com/watch?v=l8DrtRqxRf0
+      dynamicTitleIndex: -1

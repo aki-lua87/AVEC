@@ -14,7 +14,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (view == null) return;
             if (view.queuePanel == null)
             {
-                Undo.RecordObject(view, "Add playlist queue UI");
+                PlaylistUndo.RecordObject(view, "Add playlist queue UI");
                 var toggle = Button(setup.transform, "Queue toggle", "再生キュー", view, "_ToggleQueue", 202, 18, 102, 42, view.normalColor);
                 view.queueButtonLabel = toggle.GetComponentInChildren<Text>();
                 var panel = Box(setup.transform, "Queue panel", setup.theme == null ? view.normalColor : setup.theme.surface);
@@ -63,33 +63,33 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         public static void UpdateQueueLabels(PlaylistView view)
         {
             if (view == null) return;
-            if (view.queueButtonLabel != null) { Undo.RecordObject(view.queueButtonLabel, "Rename queue tab"); view.queueButtonLabel.text = "再生キュー"; PlaylistConnections.Save(view.queueButtonLabel); }
-            if (view.historyButtonLabel != null) { Undo.RecordObject(view.historyButtonLabel, "Rename history tab"); view.historyButtonLabel.text = "再生履歴"; PlaylistConnections.Save(view.historyButtonLabel); }
-            if (view.heading != null && (view.heading.text == "キュー" || view.heading.text == "再生待ちキュー")) { Undo.RecordObject(view.heading, "Rename queue heading"); view.heading.text = "再生キュー"; PlaylistConnections.Save(view.heading); }
+            if (view.queueButtonLabel != null) { PlaylistUndo.RecordObject(view.queueButtonLabel, "Rename queue tab"); view.queueButtonLabel.text = "再生キュー"; PlaylistConnections.Save(view.queueButtonLabel); }
+            if (view.historyButtonLabel != null) { PlaylistUndo.RecordObject(view.historyButtonLabel, "Rename history tab"); view.historyButtonLabel.text = "再生履歴"; PlaylistConnections.Save(view.historyButtonLabel); }
+            if (view.heading != null && (view.heading.text == "キュー" || view.heading.text == "再生待ちキュー")) { PlaylistUndo.RecordObject(view.heading, "Rename queue heading"); view.heading.text = "再生キュー"; PlaylistConnections.Save(view.heading); }
             if (view.queuePanel == null) return;
             var panel = view.queuePanel.transform;
             var clear = panel.Find("Clear queue");
             var clearLabel = clear == null ? null : clear.GetComponentInChildren<Text>(true);
-            if (clearLabel != null) { Undo.RecordObject(clearLabel, "Rename clear button"); clearLabel.text = "クリア"; PlaylistConnections.Save(clearLabel); }
+            if (clearLabel != null) { PlaylistUndo.RecordObject(clearLabel, "Rename clear button"); clearLabel.text = "クリア"; PlaylistConnections.Save(clearLabel); }
             var heading = panel.Find("Queue heading");
             var headingLabel = heading == null ? null : heading.GetComponent<Text>();
-            if (headingLabel != null) { Undo.RecordObject(headingLabel, "Rename queue heading"); headingLabel.text = "再生キュー"; PlaylistConnections.Save(headingLabel); }
+            if (headingLabel != null) { PlaylistUndo.RecordObject(headingLabel, "Rename queue heading"); headingLabel.text = "再生キュー"; PlaylistConnections.Save(headingLabel); }
             var play = panel.Find("Start queued playback");
             if (play == null) return;
             var label = play.GetComponentInChildren<Text>(true);
-            if (label != null) { Undo.RecordObject(label, "Replace queue play text with icon"); label.enabled = false; PlaylistConnections.Save(label); }
+            if (label != null) { PlaylistUndo.RecordObject(label, "Replace queue play text with icon"); label.enabled = false; PlaylistConnections.Save(label); }
             var existing = play.Find("Icon");
             Image icon;
             if (existing == null)
             {
                 var go = new GameObject("Icon", typeof(RectTransform), typeof(Image));
-                Undo.RegisterCreatedObjectUndo(go, "Add queue play icon"); go.transform.SetParent(play, false);
+                PlaylistUndo.RegisterCreatedObjectUndo(go, "Add queue play icon"); go.transform.SetParent(play, false);
                 icon = go.GetComponent<Image>();
                 icon.rectTransform.anchorMin = icon.rectTransform.anchorMax = icon.rectTransform.pivot = new Vector2(.5f, .5f);
                 icon.rectTransform.anchoredPosition = Vector2.zero; icon.rectTransform.sizeDelta = new Vector2(24f, 24f);
                 icon.color = label == null ? view.iconColor : label.color;
             }
-            else { icon = existing.GetComponent<Image>(); if (icon == null) return; Undo.RecordObject(icon, "Update queue play icon"); }
+            else { icon = existing.GetComponent<Image>(); if (icon == null) return; PlaylistUndo.RecordObject(icon, "Update queue play icon"); }
             icon.sprite = PlaylistIcons.Get("play"); icon.preserveAspect = true; icon.raycastTarget = false;
             PlaylistConnections.Save(icon);
         }
@@ -99,19 +99,19 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             var toggle = view.queueButtonLabel == null ? null : view.queueButtonLabel.transform.parent;
             if (toggle == null) return;
             if (toggle.parent != setup.tabContent) {
-                Undo.SetTransformParent(toggle, setup.tabContent, "Move queue into playlist tabs");
+                PlaylistUndo.SetTransformParent(toggle, setup.tabContent, "Move queue into playlist tabs");
                 toggle.SetSiblingIndex(0);
                 var rect = toggle.GetComponent<RectTransform>();
-                Undo.RecordObject(rect, "Match queue tab layout");
+                PlaylistUndo.RecordObject(rect, "Match queue tab layout");
                 rect.localScale = Vector3.one; rect.localRotation = Quaternion.identity;
                 var layout = toggle.GetComponent<LayoutElement>();
-                if (layout == null) layout = Undo.AddComponent<LayoutElement>(toggle.gameObject);
+                if (layout == null) layout = PlaylistUndo.AddComponent<LayoutElement>(toggle.gameObject);
                 var templateLayout = setup.tabTemplate.GetComponent<LayoutElement>();
                 if (templateLayout != null) EditorUtility.CopySerialized(templateLayout, layout);
                 else layout.preferredHeight = setup.tabTemplate.GetComponent<RectTransform>().rect.height;
                 var text = view.queueButtonLabel;
                 var source = setup.tabTemplate.GetComponentInChildren<Text>(true);
-                Undo.RecordObject(text, "Match queue tab label");
+                PlaylistUndo.RecordObject(text, "Match queue tab label");
                 text.font = source.font; text.fontSize = source.fontSize; text.alignment = source.alignment;
                 text.rectTransform.anchorMin = source.rectTransform.anchorMin; text.rectTransform.anchorMax = source.rectTransform.anchorMax;
                 text.rectTransform.offsetMin = source.rectTransform.offsetMin; text.rectTransform.offsetMax = source.rectTransform.offsetMax;
@@ -156,7 +156,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (row.transform.Find("Add to queue") != null) return;
             var label = row.GetComponentInChildren<Text>(true);
             if (label != null) {
-                Undo.RecordObject(label.rectTransform, "Reserve queue button space");
+                PlaylistUndo.RecordObject(label.rectTransform, "Reserve queue button space");
                 var offset = label.rectTransform.offsetMax; offset.x -= 44; label.rectTransform.offsetMax = offset;
                 PlaylistConnections.Save(label.rectTransform);
             }
@@ -183,13 +183,13 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         static RectTransform Box(Transform parent, string name, Color color)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Image)); go.transform.SetParent(parent, false);
-            Undo.RegisterCreatedObjectUndo(go, "Add playlist queue UI"); go.GetComponent<Image>().color = color;
+            PlaylistUndo.RegisterCreatedObjectUndo(go, "Add playlist queue UI"); go.GetComponent<Image>().color = color;
             return go.GetComponent<RectTransform>();
         }
         static Text Label(Transform parent, string name, string value, PlaylistView view, int size)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Text)); go.transform.SetParent(parent, false);
-            Undo.RegisterCreatedObjectUndo(go, "Add playlist queue label");
+            PlaylistUndo.RegisterCreatedObjectUndo(go, "Add playlist queue label");
             var text = go.GetComponent<Text>(); text.text = value; text.fontSize = size;
             text.font = view.heading != null ? view.heading.font : AssetDatabase.LoadAssetAtPath<Font>(aki_lua87.AVEC.Editor.PackageLayout.Core + "/Fonts/ZenMaruGothic-Regular.ttf");
             text.color = view.iconColor; text.alignment = TextAnchor.MiddleLeft; text.raycastTarget = false;
