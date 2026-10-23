@@ -92,6 +92,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             setup.videoContent = Scroll(root.transform,"Videos",344,242,824,398,out var scroll);
             view.videoScroll = scroll;
             view.status = Label("Status",root.transform,"Not connected / 接続先を設定してください",22); Place(view.status.rectTransform,32,668,1136,45);
+            view.status.gameObject.SetActive(false);
             var hint = Label("Hint",root.transform,"Selection highlight = request only  /  選択表示は再生状態ではありません",18); Place(hint.rectTransform,32,716,1136,30); hint.color = new Color(.57f,.66f,.76f);
             var templates = new GameObject("Templates",typeof(RectTransform)); templates.transform.SetParent(root.transform,false);
             setup.tabTemplate = Template(templates.transform,"Tab template",62,24);

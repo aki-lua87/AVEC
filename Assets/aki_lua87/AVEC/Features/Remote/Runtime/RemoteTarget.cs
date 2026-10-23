@@ -11,6 +11,8 @@ namespace aki_lua87.CommonGestureRemote
         // Retained serialized output references for existing connectors.
         public Renderer[] screens = new Renderer[0];
         public Graphic[] screenGraphics = new Graphic[0];
+        public virtual bool _CanStep() { return false; }
+        public virtual int _StepNative(int direction) { return 4; }
         public virtual bool _Ready() { return false; }
         public virtual float _GetVolume() { return -1f; }
         public virtual void _SetVolume(float value) { }

@@ -89,7 +89,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             panelRect.pivot = sourceRect.pivot; panelRect.anchoredPosition = sourceRect.anchoredPosition; panelRect.sizeDelta = sourceRect.sizeDelta;
             panel.GetComponent<Image>().color = view.queuePanel.GetComponent<Image>().color;
             view.historyPanel = panel;
-            foreach (string name in new[] { "Add video", "Add video form", "Start queued playback", "Clear queue", "Queue heading" }) {
+            foreach (string name in new[] { "Add video", "Add video form", "Start queued playback", "Skip queued playback", "Clear queue", "Queue heading" }) {
                 var child = panel.transform.Find(name); if (child != null) Object.DestroyImmediate(child.gameObject);
             }
             view.historyLabels = new Text[view.queueLabels.Length]; view.historyRows = new GameObject[view.queueRows.Length];
@@ -97,7 +97,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 var row = panel.transform.Find("History row " + i); if (row == null) row = panel.transform.Find("Queue row " + i); if (row == null) continue;
                 row.name = "History row " + i; view.historyRows[i] = row.gameObject;
                 row.GetComponent<Image>().color = view.queueRows[i].GetComponent<Image>().color;
-                view.historyLabels[i] = row.Find("Queue title").GetComponent<Text>();
+                view.historyLabels[i] = row.GetComponentsInChildren<Text>(true).First(t => t.name == "Queue title");
                 view.historyLabels[i].font = view.queueLabels[i].font;
                 view.historyLabels[i].fontSize = view.queueLabels[i].fontSize;
                 view.historyLabels[i].color = view.queueLabels[i].color;

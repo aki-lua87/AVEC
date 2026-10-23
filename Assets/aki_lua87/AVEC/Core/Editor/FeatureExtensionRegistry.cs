@@ -11,6 +11,8 @@ namespace aki_lua87.AVEC.Editor
         public string Id, Feature, Label;
         public Action<UnityEngine.Object> Open;
         public Action<Component> Bake;
+        public Action<Component> Configure;
+        public Action<Component> DrawInspector;
     }
     public static class FeatureExtensionRegistry
     {
@@ -29,6 +31,14 @@ namespace aki_lua87.AVEC.Editor
         public static void Bake(string feature, Component setup)
         {
             foreach (var extension in entries.Values.Where(e => e.Feature == feature).OrderBy(e => e.Id)) extension.Bake?.Invoke(setup);
+        }
+        public static void Configure(string feature, Component setup)
+        {
+            foreach (var extension in entries.Values.Where(e => e.Feature == feature).OrderBy(e => e.Id)) extension.Configure?.Invoke(setup);
+        }
+        public static void DrawInspector(string feature, Component setup)
+        {
+            foreach (var extension in entries.Values.Where(e => e.Feature == feature).OrderBy(e => e.Id)) extension.DrawInspector?.Invoke(setup);
         }
     }
 }

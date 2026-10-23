@@ -9,6 +9,14 @@ namespace aki_lua87.CommonGestureRemote
     public class ProTVRemoteTarget : RemoteTarget
     {
         public TVManager player;
+        public ArchiTech.ProTV.Playlist nativePlaylist;
+        public override bool _CanStep() { return nativePlaylist != null && nativePlaylist.mainUrls != null && nativePlaylist.mainUrls.Length > 0; }
+        public override int _StepNative(int direction)
+        {
+            if (NetworkCalling.InNetworkCall || !_Ready() || !_CanStep()) return 4;
+            if (!player.CanPlayMedia) return 2;
+            if (direction < 0) nativePlaylist.Previous(); else nativePlaylist.Next(); return 1;
+        }
         public override bool _Ready() { return player != null && player.gameObject.activeInHierarchy && player.isReady; }
         public override float _GetVolume() { return _Ready() ? player.volume : -1f; }
         public override bool _GetMute() { return _Ready() && player.mute; }

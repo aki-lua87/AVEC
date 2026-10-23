@@ -15,6 +15,8 @@ namespace aki_lua87.CommonGestureRemote
         public Text label;
         public RemoteTarget playerTarget;
         public RemoteTarget playlistTarget;
+        [Tooltip("呼び出すオブジェクトのTransform。未設定なら連携中のPlaylistタブレットを呼び出します。") ]
+        public Transform tabletToSummon;
         public UdonBehaviour customEventTarget;
         [Min(.01f)] public float minimumStroke = .055f;
         [Range(1.05f, 3f)] public float directionBias = 1.35f;
@@ -36,7 +38,7 @@ namespace aki_lua87.CommonGestureRemote
         public bool summonEnabled = true;
         [Tooltip("呼び出しを許可するBoxCollider。未設定ならどこからでも呼び出せます。リモコンの子ではなく、部屋などの固定オブジェクトに配置してください。")]
         public BoxCollider summonArea;
-        [Min(1f)] public float summonHoldSeconds = 3f;
+        [Min(1f)] public float summonHoldSeconds = 1.5f;
         public Vector3 helpOffset = new Vector3(.18f, .16f, .08f);
         [Min(.0001f)] public float helpUIScale = .00065f;
         // Editor-baked, persisted arrays; shared authoring data never enters Udon.
@@ -97,6 +99,7 @@ namespace aki_lua87.CommonGestureRemote
             held = true; helpSeen = false; helpAxis = 0f;
             lastActivity = Time.time;
             HideHelp();
+            helpConsumed = true; // A stick held during pickup must return to neutral first.
         }
         public override void OnDrop() { held = false; Cancel(); HideHelp(); }
         public override void InputLookVertical(float value, VRC.Udon.Common.UdonInputEventArgs args)
@@ -143,6 +146,8 @@ namespace aki_lua87.CommonGestureRemote
                 result == 4 ? "対象の動画がありません" : result == 5 ? "接続・画面設定を確認してください" :
                 result == 6 ? "自分のプレイヤーがOFFです" : result == 7 ? "読み込み待機中です" : "接続先が無効です";
             if (result == 1 && actions[selected] == 22) message = summonEnabled ? "呼び出し：ON" : "呼び出し：OFF";
+            if (actions[selected] == 23 && result == 4) message = "タブレットが設置されていません";
+            if (actions[selected] == 23 && result == 2) message = "タブレットは使用中です";
             Show(message, result == 1 ? matchedColor : new Color(1f, .55f, .3f));
             hideAt = Time.time + 1.8f;
         }
@@ -216,15 +221,16 @@ namespace aki_lua87.CommonGestureRemote
             if (!held || !Utilities.IsValid(Networking.LocalPlayer)) return;
             bool vr = Networking.LocalPlayer.IsUserInVR();
             bool down = vr ? rightStickAxis <= -.65f : Input.GetKey(KeyCode.H);
-            if (!down) helpConsumed = false;
+            if (vr ? rightStickAxis > -.35f : !down) helpConsumed = false;
             if (drawing || !down) helpDownSince = -1f;
             else if (!helpConsumed)
             {
                 if (helpDownSince < 0f) helpDownSince = Time.time;
                 lastActivity = Time.time;
-                if (Time.time - helpDownSince >= helpHoldSeconds && helpPanel != null)
+                if (helpPanel != null)
                 {
                     helpConsumed = true; helpDownSince = -1f;
+                    _RefreshCommandGuide();
                     helpShown = !helpShown; helpSeen = true;
                     helpPanel.gameObject.SetActive(helpShown);
                 }
@@ -322,7 +328,7 @@ namespace aki_lua87.CommonGestureRemote
         private void UpdateMatch()
         {
             match = -1;
-            for (int i = 0; i < gestures.Length; i++) if (gestures[i] == path) { match = i; break; }
+            for (int i = 0; i < gestures.Length; i++) if (gestures[i] == path && i < actions.Length && _ActionAvailable(actions[i])) { match = i; break; }
             string arrows = path.Replace("R", "→").Replace("L", "←").Replace("U", "↑").Replace("D", "↓");
             Show(match >= 0 && match < labels.Length ? arrows + "  " + labels[match] : arrows + "  …", match >= 0 ? matchedColor : drawingColor);
         }
@@ -330,6 +336,9 @@ namespace aki_lua87.CommonGestureRemote
         {
             if (index < 0 || index >= actions.Length || index >= labels.Length) return 3;
             int action = actions[index];
+            if (!_ActionAvailable(action)) return 0;
+            if (action == 23 && tabletToSummon != null) return SummonTablet();
+            if ((action == 1 || action == 2) && (playlistTarget == null || !playlistTarget._CanStep())) return playerTarget == null ? 0 : playerTarget._StepNative(action == 1 ? 1 : -1);
             // This is a local preference for this remote; no player connection or ownership is needed.
             if (action == 22)
             {
@@ -344,10 +353,48 @@ namespace aki_lua87.CommonGestureRemote
                 customEventTarget.SendCustomEvent(customEvents[index]);
                 return 1;
             }
-            bool sequence = action == 1 || action == 2 || action == 9 || action == 10 || action == 11 || action == 18 || action == 20;
+            bool sequence = action == 1 || action == 2 || action == 9 || action == 10 || action == 11 || action == 18 || action == 20 || action == 23;
             bool repeat = action == 16 || action == 19;
             RemoteTarget target = sequence || (repeat && playlistTarget != null && playlistTarget._Ready()) ? playlistTarget : playerTarget;
             return target == null ? 0 : target._Execute(action, volumeStep);
+        }
+        public bool _ActionAvailable(int action)
+        {
+            if (action == 1 || action == 2) return (playlistTarget != null && playlistTarget._CanStep()) || (playerTarget != null && playerTarget._CanStep());
+            if (action == 9 || action == 10 || action == 11 || action == 18 || action == 20) return playlistTarget != null && playlistTarget._Ready();
+            return true;
+        }
+        public void _RefreshCommandGuide()
+        {
+            if (NetworkCalling.InNetworkCall || helpCommands == null) return;
+            string text = "";
+            for (int i = 0; i < gestures.Length; i++)
+            {
+                if (i >= actions.Length || i >= labels.Length || !_ActionAvailable(actions[i])) continue;
+                if (text.Length > 0) text += "\n";
+                text += gestures[i].Replace("R", "→").Replace("L", "←").Replace("U", "↑").Replace("D", "↓") + "   " + labels[i];
+            }
+            helpCommands.text = text;
+        }
+        private int SummonTablet()
+        {
+            var player = Networking.LocalPlayer;
+            if (!Utilities.IsValid(player) || !tabletToSummon.gameObject.activeInHierarchy) return 4;
+            var pickup = (VRC.SDK3.Components.VRCPickup)tabletToSummon.GetComponent(typeof(VRC.SDK3.Components.VRCPickup));
+            if (pickup != null && pickup.IsHeld) return 2;
+            var sync = tabletToSummon.GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+            if (sync != null)
+            {
+                Networking.SetOwner(player, tabletToSummon.gameObject);
+                if (!Networking.IsOwner(tabletToSummon.gameObject)) return 2;
+                sync.FlagDiscontinuity();
+            }
+            var body = tabletToSummon.GetComponent<Rigidbody>();
+            if (body != null) { body.velocity = Vector3.zero; body.angularVelocity = Vector3.zero; }
+            var head = player.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
+            float scale = Mathf.Clamp(player.GetAvatarEyeHeightAsMeters() / 1.6f, .25f, 3f);
+            tabletToSummon.SetPositionAndRotation(head.position + head.rotation * new Vector3(0, -.15f * scale, .65f * scale), head.rotation);
+            return 1;
         }
         private void AddTrail(Vector3 point)
         {

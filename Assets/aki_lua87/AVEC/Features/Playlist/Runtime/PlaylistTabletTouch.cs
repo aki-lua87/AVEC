@@ -32,6 +32,27 @@ namespace aki_lua87.CommonVideoPlaylist
         private ScrollRect[] scrolls = new ScrollRect[2];
         private VRCPlayerApi localPlayer;
 
+        public int _Summon()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return 0;
+            var player = Networking.LocalPlayer;
+            if (!Utilities.IsValid(player) || !gameObject.activeInHierarchy) return 4;
+            if (pickup != null && pickup.IsHeld) return 2;
+            var sync = GetComponent<VRC.SDK3.Components.VRCObjectSync>();
+            if (sync != null)
+            {
+                Networking.SetOwner(player, gameObject);
+                if (!Networking.IsOwner(gameObject)) return 2;
+                sync.FlagDiscontinuity();
+            }
+            var head = player.GetTrackingData(VRCPlayerApi.TrackingDataType.Head);
+            float scale = Mathf.Clamp(player.GetAvatarEyeHeightAsMeters() / 1.6f, .25f, 3f);
+            var body = GetComponent<Rigidbody>();
+            if (body != null) { body.velocity = Vector3.zero; body.angularVelocity = Vector3.zero; }
+            transform.SetPositionAndRotation(head.position + head.rotation * new Vector3(0f, -.15f * scale, .65f * scale), head.rotation);
+            return 1;
+        }
+
         void Start()
         {
             localPlayer = Networking.LocalPlayer;

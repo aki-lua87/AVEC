@@ -11,6 +11,21 @@ namespace aki_lua87.CommonGestureRemote
     {
         public UIController player;
         public Controller controller;
+        public override bool _CanStep() { return controller != null && controller.PlaylistCount > 0; }
+        public override int _StepNative(int direction)
+        {
+            if (NetworkCalling.InNetworkCall || !_Ready() || !_CanStep() || player == null || !Utilities.IsValid(Networking.LocalPlayer)) return 4;
+            if (!player.InvokeBeforeEvent(direction < 0 ? "BeforeUserBackward" : "BeforeUserForward")) return 2;
+            controller.TakeOwnership();
+            if (!controller.IsLocal && !Networking.IsOwner(controller.gameObject)) return 2;
+            if (controller.ActivePlaylist == null)
+            {
+                for (int i = 0; i < controller.Playlists.Length; i++) if (controller.Playlists[i] != null && controller.Playlists[i].TrackCount > 0)
+                { controller.PlayTrack(controller.Playlists[i], direction < 0 ? controller.Playlists[i].TrackCount - 1 : 0); return 1; }
+                return 4;
+            }
+            if (direction < 0) controller.Backward(); else controller.Forward(); return 1;
+        }
         // Local audio does not depend on an open native UI or a loaded video handler.
         public override bool _Ready() { return controller != null && controller.gameObject.activeInHierarchy; }
         public override float _GetVolume() { return controller == null ? 0f : controller.Volume; }

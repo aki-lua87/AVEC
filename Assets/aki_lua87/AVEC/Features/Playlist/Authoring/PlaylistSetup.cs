@@ -21,8 +21,9 @@ namespace aki_lua87.CommonVideoPlaylist
         public bool enableQueue = true;
         public bool enableHistory = true;
         public bool enableUserList = true;
-        [Tooltip("任意。VizVid同梱のYttlManagerを指定すると、動画追加時にタイトルを取得します。")]
-        public Component yttlManager;
+        // Optional extensions own the provider's type, settings UI and connection logic.
+        [UnityEngine.Serialization.FormerlySerializedAs("yttlManager"), HideInInspector]
+        public Component titleMetadataSource;
         // Editor-only sprite backups allow a wireframe theme to return to authored graphics.
         [HideInInspector] public PlaylistThemeImageState[] themeImageStates = new PlaylistThemeImageState[0];
         [HideInInspector] public PlaylistThemeLayoutState[] themeLayoutStates = new PlaylistThemeLayoutState[0];

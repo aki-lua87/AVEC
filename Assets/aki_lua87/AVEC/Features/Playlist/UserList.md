@@ -28,8 +28,11 @@ PlayerObject保存枠は他アセットと共有の100KBです。このリスト
 
 ## 任意のYTTL連携
 
-VizVid用Playlist Connectorを導入した状態で、PlaylistSetupの「YTTL Manager（任意）」に
-VizVid同梱の`YttlManager`を指定してください。同じシーンに1個だけあれば「シーン内のYTTLを接続」でも設定できます。
+YTTLは基本機能に不要です。タイトル取得だけを追加したい場合は、VizVid同梱YTTLを導入済みのプロジェクトに
+別パッケージ`AVEC-Extension-YttlTitles`を導入してください。VizVid用Playlist Connectorは不要です。
+拡張導入後、PlaylistSetupの「YTTLタイトル取得（拡張）」でVizVid同梱の`YttlManager`を指定します。
+同じシーンに1個だけあれば「シーン内のYTTLを接続」でも設定できます。
+旧版からの更新・連携解除は[拡張のREADME](../../Extensions/YttlTitles/README.md)を参照してください。
 VizVidのプレイヤーが既にあるだけでは、編集時にYTTL Managerが実体化していない場合があります。
 その場合はVizVid付属の`YTTL Manager.prefab`をシーンへ配置して指定します。
 

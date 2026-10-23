@@ -33,6 +33,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (view.historyButtonLabel != null) { view.historyButtonLabel.text = "再生履歴"; PlaylistConnections.Save(view.historyButtonLabel); }
             ScrollList(view, false);
             ScrollList(view, true);
+            RefreshHistoryTopSpacing(view);
             var solid = SolidProgress();
             foreach (var image in setup.GetComponentsInChildren<Image>(true)) {
                 if (image.name != "Playback progress") continue;
@@ -71,6 +72,16 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
 
         public static void ScrollUserList(PlaylistView view) => ScrollList(view, false, true);
 
+        public static void RefreshHistoryTopSpacing(PlaylistView view)
+        {
+            if (view.historyPanel == null) return;
+            var viewport = view.historyPanel.transform.Find("List viewport") as RectTransform;
+            if (viewport == null || Mathf.Abs(viewport.offsetMax.y + 6f) < .01f) return;
+            Undo.RecordObject(viewport, "Remove unused history header space");
+            var offset = viewport.offsetMax; offset.y = -6f; viewport.offsetMax = offset;
+            PlaylistConnections.Save(viewport);
+        }
+
         static void ScrollList(PlaylistView view, bool history, bool user = false)
         {
             var panel = user ? view.userPanel : history ? view.historyPanel : view.queuePanel;
@@ -88,7 +99,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 viewport = new GameObject("List viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D), typeof(ScrollRect)).GetComponent<RectTransform>();
                 Undo.RegisterCreatedObjectUndo(viewport.gameObject, "Scrollable playlist list"); viewport.SetParent(panel.transform, false);
                 var first = rows[0].GetComponent<RectTransform>();
-                float top = Mathf.Max(0, -first.anchoredPosition.y);
+                float top = history ? 6f : Mathf.Max(0, -first.anchoredPosition.y);
                 viewport.anchorMin = Vector2.zero; viewport.anchorMax = Vector2.one;
                 viewport.offsetMin = new Vector2(8, 6); viewport.offsetMax = new Vector2(-8, -top);
                 viewport.GetComponent<Image>().color = new Color(0, 0, 0, 0);

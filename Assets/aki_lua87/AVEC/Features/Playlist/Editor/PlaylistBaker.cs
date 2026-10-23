@@ -17,7 +17,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         // Saving playlist data must not rebuild the hierarchy (including thousands of Udon objects).
         sealed class Data
         {
-            public readonly List<string> names = new List<string>(), titles = new List<string>();
+            public readonly List<string> names = new List<string>(), descriptions = new List<string>(), titles = new List<string>();
             public readonly List<int> tabs = new List<int>(), indices = new List<int>();
             public readonly List<bool> random = new List<bool>();
             public readonly List<VRCUrl> urls = new List<VRCUrl>(), sources = new List<VRCUrl>();
@@ -28,6 +28,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 {
                     var tab = data.tabs[i];
                     names.Add(tab == null ? "Untitled" : tab.name);
+                    descriptions.Add(tab?.description ?? "");
                     random.Add(tab != null && tab.randomPlayback);
                     sources.Add(new VRCUrl(tab?.titleSourceUrl?.Trim() ?? ""));
                     if (tab?.videos == null) continue;
@@ -41,7 +42,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             }
             public bool Matches(PlaylistView view)
             {
-                return Equal(names, view.tabNames) && Equal(random, view.randomTabs) &&
+                return Equal(descriptions, view.tabDescriptions) && Equal(names, view.tabNames) && Equal(random, view.randomTabs) &&
                     Equal(tabs, view.videoTabs) && Equal(titles, view.titles) && Equal(indices, view.dynamicTitleIndices) &&
                     EqualUrls(urls, view.urls) && EqualUrls(sources, view.titleSourceUrls) &&
                     view.tabImages != null && view.tabImages.Length == names.Count &&
@@ -160,6 +161,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 }
                 progress.Add(PlaylistEnhancements.Progress(row.transform, view));
             }
+            view.tabDescriptions = data.descriptions.ToArray();
             view.tabNames = data.names.ToArray(); view.randomTabs = data.random.ToArray();
             view.titles = data.titles.ToArray(); view.urls = data.urls.ToArray(); view.videoTabs = data.tabs.ToArray();
             view.titleSourceUrls = data.sources.ToArray(); view.dynamicTitleIndices = data.indices.ToArray();
@@ -194,7 +196,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             PlaylistThemeGraphics.Restore(setup);
             PlaylistFactory.EnsurePlaybackModeButton(setup);
             Clear(setup.tabContent); Clear(setup.videoContent);
-            var names = new List<string>(); var tabs = new List<int>(); var titles = new List<string>(); var urls = new List<VRCUrl>();
+            var names = new List<string>(); var descriptions = new List<string>(); var tabs = new List<int>(); var titles = new List<string>(); var urls = new List<VRCUrl>();
             var tabImages = new List<Image>(); var videoImages = new List<Image>();
             var titleSources = new List<VRCUrl>(); var titleIndices = new List<int>(); var labels = new List<Text>();
             var randomTabs = new List<bool>();
@@ -203,6 +205,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 {
                     var tab = setup.data.tabs[i];
                     names.Add(tab == null ? "Untitled" : tab.name);
+                    descriptions.Add(tab?.description ?? "");
                     randomTabs.Add(tab != null && tab.randomPlayback);
                     titleSources.Add(new VRCUrl(tab?.titleSourceUrl?.Trim() ?? ""));
                     tabImages.Add(Row(setup, setup.tabTemplate, setup.tabContent, names[i], i, true));
@@ -225,12 +228,15 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             var view = setup.view;
             PlaylistQueueUI.Ensure(setup);
             PlaylistConnections.RefreshAudioLinkStatus(setup);
+            view.tabDescriptions = descriptions.ToArray();
             view.tabNames = names.ToArray(); view.videoTabs = tabs.ToArray(); view.titles = titles.ToArray(); view.urls = urls.ToArray();
             view.randomTabs = randomTabs.ToArray();
             view.tabImages = tabImages.ToArray(); view.videoImages = videoImages.ToArray();
             view.titleSourceUrls = titleSources.ToArray(); view.dynamicTitleIndices = titleIndices.ToArray(); view.videoLabels = labels.ToArray();
             PlaylistEnhancements.Apply(setup);
             PlaylistPresentation.Apply(setup);
+            PlaylistQueueUI.RefreshLongTitleClipping(view);
+            PlaylistQueueUI.EnsureRequestedPresentation(view);
             aki_lua87.AVEC.Editor.FeatureExtensionRegistry.Bake("Playlist", setup);
             // Data updates preserve manually tuned UI colors and layout.
             if (view.heading != null) view.heading.text = "再生キュー";
@@ -240,11 +246,12 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (view.videoScroll != null) view.videoScroll.gameObject.SetActive(false);
             PlaylistSpecialLists.Apply(setup);
             PlaylistThemeGraphics.ApplyNew(setup);
+            PlaylistQueueUI.RefreshQueueControlLayout(view);
             PlaylistConnections.Save(view);
             PlaylistConnections.Save(setup);
             // Also migrate existing connections to the shared, owner-aligned sequence adapter.
             if (setup.player != null && PlaylistConnections.Validate(setup) != null) PlaylistConnections.Connect(setup, setup.player);
-            if(view.status!=null)view.status.text=view.adapter==null?"接続先を設定してください":"動画を追加してください";
+            if(view.status!=null)view.status.gameObject.SetActive(false);
             Canvas.ForceUpdateCanvases();
             setup.tabContent.anchoredPosition=Vector2.zero;setup.videoContent.anchoredPosition=Vector2.zero;
             foreach(var scroll in setup.GetComponentsInChildren<ScrollRect>(true))

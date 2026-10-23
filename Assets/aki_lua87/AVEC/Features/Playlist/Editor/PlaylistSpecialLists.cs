@@ -28,11 +28,12 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             view.enableQueue = setup.enableQueue; view.enableHistory = setup.enableHistory; view.enableUserList = setup.enableUserList;
             if (setup.enableUserList && view.userPanel == null) { CreateUserUI(setup); PlaylistThemeGraphics.ApplyNew(setup); }
             PlaylistPresentation.ScrollUserList(view);
+            PlaceUserAddButton(view);
             view.queueAddButtons = setup.GetComponentsInChildren<PlaylistButton>(true).Where(b => b.enqueue).Select(b => b.gameObject).ToArray();
             if (setup.enableUserList && setup.gameObject.scene.IsValid() && !EditorUtility.IsPersistent(setup) &&
                 !EditorSceneManager.IsPreviewScene(setup.gameObject.scene) && PrefabStageUtility.GetPrefabStage(setup.gameObject) == null)
                 EnsureStorage(setup);
-            ConfigureTitles(setup);
+            aki_lua87.AVEC.Editor.FeatureExtensionRegistry.Configure("Playlist", setup);
             // Record visibility directly so checkbox changes also survive Undo and prefab overrides.
             SetVisible(view.queueTabImage == null ? null : view.queueTabImage.gameObject, setup.enableQueue);
             SetVisible(view.historyTabImage == null ? null : view.historyTabImage.gameObject, setup.enableHistory);
@@ -95,29 +96,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             var backing = UdonSharpEditorUtility.GetBackingUdonBehaviour(store);
             if (backing == null || backing.programSource == null) throw new InvalidOperationException("ユーザーリストのUdonプログラムが未設定です。");
         }
-        static void ConfigureTitles(PlaylistSetup setup)
-        {
-            var view = setup.view;
-            if (!setup.enableUserList || setup.yttlManager == null) { view.userTitleResolver = null; return; }
-            var managerType = PlaylistConnections.Resolve("VVMW.ThirdParties.Yttl.YttlManager");
-            var bridgeType = PlaylistConnections.Resolve("aki_lua87.CommonVideoPlaylist.VizVidPlaylistTitles");
-            Component manager = setup.yttlManager;
-            if (manager is VRC.Udon.UdonBehaviour backing) manager = UdonSharpEditorUtility.GetProxyBehaviour(backing);
-            if (managerType == null || bridgeType == null || manager == null || manager.GetType() != managerType)
-                throw new InvalidOperationException("YTTL参照にはVizVid同梱のYttlManagerを指定してください。");
-            if (manager.gameObject.scene != setup.gameObject.scene) throw new InvalidOperationException("YTTLは同じシーンから指定してください。");
-            var bridge = setup.GetComponent(bridgeType) as PlaylistTitleResolver;
-            if (bridge == null) bridge = (PlaylistTitleResolver)UdonSharpUndo.AddComponent(setup.gameObject, bridgeType);
-            Undo.RecordObject(bridge, "Connect optional YTTL");
-            bridgeType.GetField("manager").SetValue(bridge, manager);
-            PlaylistConnections.Save(bridge); view.userTitleResolver = bridge;
-        }
-        public static Component[] FindYttl(PlaylistSetup setup)
-        {
-            var type = PlaylistConnections.Resolve("VVMW.ThirdParties.Yttl.YttlManager");
-            return type == null ? new Component[0] : UnityEngine.Object.FindObjectsOfType(type, true).OfType<Component>()
-                .Where(c => c.gameObject.scene == setup.gameObject.scene).ToArray();
-        }
         static void CreateUserUI(PlaylistSetup setup)
         {
             var view = setup.view;
@@ -137,7 +115,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             panel.localScale = source.localScale; panel.localRotation = source.localRotation;
             float width = source.rect.width; float height = source.rect.height;
             AddButton(panel, "Add user video", "＋ 動画を追加", view, "_OpenUserAdd", 8, 3, width - 148, 30);
-            view.userDeleteLabel = AddButton(panel, "Delete mode", "削除モード", view, "_ToggleUserDelete", width - 132, 3, 124, 30).GetComponentInChildren<Text>();
             view.userRows = new GameObject[6]; view.userLabels = new Text[6];
             float rowHeight = Mathf.Max(24, (height - 78) / 6f - 4);
             for (int i = 0; i < 6; i++)
@@ -167,8 +144,37 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             AddButton(form, "Cancel user URL", "閉じる", view, "_CloseUserAdd", width - 110, 90, 76, 30);
             view.userUrlInput = input; view.userAddPanel = form.gameObject; view.userPanel = panel.gameObject;
             form.gameObject.SetActive(false); panel.gameObject.SetActive(false);
+            PlaceUserAddButton(view);
             foreach (var c in panel.GetComponentsInChildren<Component>(true)) if (c != null) PlaylistConnections.Save(c);
             foreach (var c in tab.GetComponentsInChildren<Component>(true)) if (c != null) PlaylistConnections.Save(c);
+        }
+        public static void PlaceUserAddButton(PlaylistView view)
+        {
+            if (view == null || view.userPanel == null) return;
+            var panel = (RectTransform)view.userPanel.transform;
+            var button = panel.Find("Add user video") as RectTransform;
+            if (button == null) return;
+            Undo.RecordObject(button, "Fix user add button in footer");
+            button.anchorMin = new Vector2(.75f, 0); button.anchorMax = new Vector2(1, 0);
+            button.pivot = new Vector2(1, 0); button.sizeDelta = new Vector2(-16, 30);
+            button.anchoredPosition = new Vector2(-8, 8);
+            PlaylistConnections.Save(button);
+            var viewport = panel.Find("List viewport") as RectTransform;
+            if (viewport != null)
+            {
+                Undo.RecordObject(viewport, "Reserve fixed user list footer");
+                viewport.offsetMin = new Vector2(viewport.offsetMin.x, 46);
+                viewport.offsetMax = new Vector2(viewport.offsetMax.x, -8);
+                PlaylistConnections.Save(viewport);
+            }
+            if (view.userPageLabel != null)
+            {
+                var count = view.userPageLabel.rectTransform;
+                Undo.RecordObject(count, "Keep user count beside add button");
+                count.anchorMin = Vector2.zero; count.anchorMax = new Vector2(.75f, 0);
+                count.pivot = Vector2.zero; count.sizeDelta = new Vector2(-24, 28);
+                count.anchoredPosition = new Vector2(8, 8); PlaylistConnections.Save(count);
+            }
         }
         static RectTransform Box(Transform parent, string name, Color color)
         {

@@ -82,6 +82,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 var tab = l.serializedProperty.GetArrayElementAtIndex(i);
                 tab.FindPropertyRelative("name").stringValue = "新しいタブ";
                 tab.FindPropertyRelative("titleSourceUrl").stringValue = "";
+                tab.FindPropertyRelative("description").stringValue = "";
                 tab.FindPropertyRelative("randomPlayback").boolValue = false;
                 tab.FindPropertyRelative("videos").arraySize = 0;
                 selectedTab = l.index = i; BuildVideos();
@@ -160,6 +161,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                         {
                             var tab = tabs.serializedProperty.GetArrayElementAtIndex(selectedTab);
                             EditorGUILayout.PropertyField(tab.FindPropertyRelative("name"), new GUIContent("タブ名"));
+                            EditorGUILayout.PropertyField(tab.FindPropertyRelative("description"), new GUIContent("説明"));
                             EditorGUILayout.PropertyField(tab.FindPropertyRelative("randomPlayback"), new GUIContent("ランダム再生", "ワールド内の「再生順」ボタンで切り替えられます。ランダム再生はタブ内を一巡して停止します。"));
                             videos.DoLayoutList();
                         }

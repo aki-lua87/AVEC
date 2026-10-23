@@ -9,6 +9,21 @@ namespace aki_lua87.CommonGestureRemote
     public class VizVidRemoteTarget : RemoteTarget
     {
         public FrontendHandler player;
+        public override bool _CanStep() { return player != null && player.PlayListUrls != null && player.PlayListUrls.Length > 0; }
+        public override int _StepNative(int direction)
+        {
+            if (NetworkCalling.InNetworkCall || !_Ready() || !_CanStep()) return 4;
+            if (player.Locked) return 2;
+            int list = player.PlayListIndex; if (list <= 0) list = 1;
+            int[] offsets = player.PlayListUrlOffsets;
+            if (offsets == null || list > offsets.Length) return 4;
+            int start = offsets[list - 1];
+            int end = list < offsets.Length ? offsets[list] : player.PlayListUrls.Length;
+            int count = end - start; if (count <= 0) return 4;
+            int current = player.CurrentPlayingIndex;
+            int next = current < 0 ? (direction < 0 ? count - 1 : 0) : (current + (direction < 0 ? -1 : 1) + count) % count;
+            player.PlayAt(list, next, false); return 1;
+        }
         public override bool _Ready() { return player != null && player.gameObject.activeInHierarchy && player.core != null; }
         public override float _GetVolume() { return player == null || player.core == null ? 0f : player.core.Volume; }
         public override void _SetVolume(float value) { if (!NetworkCalling.InNetworkCall && player != null && player.core != null) player.core.Volume = value; }

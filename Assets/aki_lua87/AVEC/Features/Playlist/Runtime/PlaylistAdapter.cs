@@ -55,11 +55,17 @@ namespace aki_lua87.CommonVideoPlaylist
         private float endedAt;
         [UdonSynced] private bool syncedQueueActive;
         private bool queueActive;
+        [UdonSynced] private bool syncedQueueAdvanceRequested;
+        private bool queueAdvanceRequested;
+        private bool queueAdvanceScheduled;
+        public bool _QueueAdvancePending() { return queueAdvanceRequested; }
         // Bounded shared history, newest first; playback position stays native/local.
         [UdonSynced] private VRCUrl[] syncedHistoryUrls = new VRCUrl[0];
         [UdonSynced] private string[] syncedHistoryTitles = new string[0];
         private VRCUrl[] historyUrls = new VRCUrl[0];
         private string[] historyTitles = new string[0];
+        [UdonSynced] private string[] syncedHistoryCopyUrls = new string[0];
+        private string[] historyCopyUrls = new string[0];
         [UdonSynced] private string[] syncedHistorySubmitters = new string[0];
         private string[] historySubmitters = new string[0];
         private VRCUrl lastHistoryUrl = new VRCUrl("");
@@ -79,6 +85,23 @@ namespace aki_lua87.CommonVideoPlaylist
             return ValidEntry(view, index) && !VRCUrl.IsNullOrEmpty(current) && current.Get() == view.urls[index].Get();
         }
         public int _HistoryCount() { return historyUrls.Length; }
+        public VRCUrl _HistoryUrl(int index) { return index >= 0 && index < historyUrls.Length ? historyUrls[index] : VRCUrl.Empty; }
+        public string _HistoryCopyUrl(int index)
+        {
+            if (index >= 0 && index < historyCopyUrls.Length && !string.IsNullOrEmpty(historyCopyUrls[index])) return historyCopyUrls[index];
+            VRCUrl url = _HistoryUrl(index); return VRCUrl.IsNullOrEmpty(url) ? "" : url.Get();
+        }
+        private string CopyUrl(VRCUrl url)
+        {
+            if (VRCUrl.IsNullOrEmpty(url)) return "";
+            for (int v = 0; v < views.Length; v++)
+            {
+                PlaylistView view = views[v]; if (view == null || view.resolvedUrls == null) continue;
+                for (int i = 0; i < view.urls.Length && i < view.resolvedUrls.Length; i++)
+                    if (!VRCUrl.IsNullOrEmpty(view.urls[i]) && view.urls[i].Get() == url.Get() && !string.IsNullOrEmpty(view.resolvedUrls[i])) return view.resolvedUrls[i];
+            }
+            return url.Get();
+        }
         public string _HistoryTitle(int index) { return index >= 0 && index < historyTitles.Length ? historyTitles[index] : ""; }
         public string _HistoryDisplayTitle(int index)
         {
@@ -114,6 +137,7 @@ namespace aki_lua87.CommonVideoPlaylist
             int result = _Request(url, title);
             requesting = false;
             if (result != 1) return result;
+            queueAdvanceRequested = false;
             FinishQueued();
             cursorView = -1; cursorVideo = -1; queueOnly = true;
             queuePlayingUrl = url; revision++; armed = false; endPending = false;
@@ -132,13 +156,13 @@ namespace aki_lua87.CommonVideoPlaylist
             if (lastHistoryRevision == revision && !VRCUrl.IsNullOrEmpty(lastHistoryUrl) && lastHistoryUrl.Get() == url.Get()) return;
             lastHistoryRevision = revision; lastHistoryUrl = url;
             int length = Mathf.Min(32, historyUrls.Length + 1);
-            var newUrls = new VRCUrl[length]; var newTitles = new string[length]; var newSubmitters = new string[length];
-            for (int i = 1; i < length; i++) { newUrls[i] = historyUrls[i - 1]; newTitles[i] = historyTitles[i - 1]; newSubmitters[i] = historySubmitters[i - 1]; }
-            newUrls[0] = url;
+            var newUrls = new VRCUrl[length]; var newTitles = new string[length]; var newSubmitters = new string[length]; var newCopies = new string[length];
+            for (int i = 1; i < length; i++) { newUrls[i] = historyUrls[i - 1]; newTitles[i] = historyTitles[i - 1]; newSubmitters[i] = historySubmitters[i - 1]; newCopies[i] = i - 1 < historyCopyUrls.Length ? historyCopyUrls[i - 1] : ""; }
+            newUrls[0] = url; newCopies[0] = CopyUrl(url);
             newTitles[0] = MatchesCurrent() && !string.IsNullOrEmpty(queuePlayingTitle) ? queuePlayingTitle : url.Get();
             if (string.IsNullOrEmpty(newTitles[0])) newTitles[0] = url.Get();
             newSubmitters[0] = MatchesCurrent() ? playingSubmitter : "";
-            historyUrls = newUrls; historyTitles = newTitles; historySubmitters = newSubmitters;
+            historyUrls = newUrls; historyTitles = newTitles; historySubmitters = newSubmitters; historyCopyUrls = newCopies;
             CommitCursor();
         }
         private void FinishQueued()
@@ -231,8 +255,36 @@ namespace aki_lua87.CommonVideoPlaylist
         {
             if (NetworkCalling.InNetworkCall || requesting || !_Available()) return 0;
             if (index < 0 || index >= queueViews.Length) return 3;
-            if (index == 0 && queueActive) return 4;
             if (!_AcquireSequenceControl() || !CanWrite()) return 2;
+            if (index == 0 && queueActive)
+            {
+                if (queueViews.Length > 1 && Time.realtimeSinceStartup - lastLoadTime < 5.1f)
+                {
+                    int paused = _ControlPlayback(true);
+                    if (paused != 1) return paused;
+                    queueActive = false; RemoveQueued(0);
+                    armed = false; endPending = false; cursorView = -1; cursorVideo = -1;
+                    queuePlayingUrl = VRCUrl.Empty; queuePlayingTitle = ""; queueOnly = true; revision++;
+                    queueAdvanceRequested = true;
+                    CommitCursor(); ScheduleRemovedQueue(); return 1;
+                }
+                int[] oldViews = queueViews; int[] oldVideos = queueVideos;
+                VRCUrl[] oldUrls = queueUrls; string[] oldTitles = queueTitles; string[] oldNames = queueSubmitters;
+                queueActive = false; RemoveQueued(0);
+                int result = queueViews.Length > 0 ? PlayQueued() : _ControlPlayback(true);
+                if (result != 1)
+                {
+                    queueViews = oldViews; queueVideos = oldVideos; queueUrls = oldUrls;
+                    queueTitles = oldTitles; queueSubmitters = oldNames; queueActive = true;
+                    return result;
+                }
+                if (queueViews.Length == 0)
+                {
+                    armed = false; endPending = false; cursorView = -1; cursorVideo = -1;
+                    queuePlayingUrl = VRCUrl.Empty; queuePlayingTitle = ""; queueOnly = true; revision++;
+                }
+                CommitCursor(); return 1;
+            }
             RemoveQueued(index); CommitCursor(); return 1;
         }
         public int _ClearQueue()
@@ -240,7 +292,25 @@ namespace aki_lua87.CommonVideoPlaylist
             if (NetworkCalling.InNetworkCall || requesting || !_Available()) return 0;
             if (!_AcquireSequenceControl() || !CanWrite()) return 2;
             while (queueViews.Length > (queueActive ? 1 : 0)) RemoveQueued(queueViews.Length - 1);
+            if (queueViews.Length == 0) queueAdvanceRequested = false;
             CommitCursor(); return 1;
+        }
+        private void ScheduleRemovedQueue()
+        {
+            if (!queueAdvanceRequested || queueAdvanceScheduled || !CanWrite()) return;
+            queueAdvanceScheduled = true;
+            SendCustomEventDelayedSeconds(nameof(_ContinueRemovedQueue), Mathf.Max(.1f, 5.1f - (Time.realtimeSinceStartup - lastLoadTime)));
+        }
+        public void _ContinueRemovedQueue()
+        {
+            if (NetworkCalling.InNetworkCall) return;
+            queueAdvanceScheduled = false;
+            if (!queueAdvanceRequested || requesting || !_Available() || !CanWrite()) return;
+            if (Time.realtimeSinceStartup - lastLoadTime < 5.1f) { ScheduleRemovedQueue(); return; }
+            int result = queueViews.Length > 0 ? PlayQueued() : 4;
+            queueAdvanceRequested = false; CommitCursor();
+            if (result != 1 && result != 4)
+                for (int i = 0; i < views.Length; i++) if (views[i] != null) views[i]._SequenceStatus("次のキューを再生できません。接続先・権限を確認してください。");
         }
         private void RemoveQueued(int index)
         {
@@ -268,6 +338,7 @@ namespace aki_lua87.CommonVideoPlaylist
                 int submitted = _Request(url, url.Get());
                 requesting = false;
                 if (submitted != 1) return submitted;
+                queueAdvanceRequested = false;
                 queuePlayingUrl = url; queueOnly = true;
                 queuePlayingTitle = url.Get();
                 playingSubmitter = queueSubmitters[0];
@@ -291,6 +362,26 @@ namespace aki_lua87.CommonVideoPlaylist
             if (NetworkCalling.InNetworkCall || requesting || !_Available()) return 0;
             if (Time.realtimeSinceStartup - lastLoadTime < 5.1f) return 7;
             if (!_AcquireSequenceControl() || !CanWrite()) return 2;
+            return PlayQueued();
+        }
+
+        public int _SkipToNextQueued()
+        {
+            if (NetworkCalling.InNetworkCall || requesting || !_Available()) return 0;
+            if (queueAdvanceRequested) return 1;
+            if (queueActive) return _RemoveQueued(0);
+            if (queueViews.Length == 0) return 4;
+            if (!_AcquireSequenceControl() || !CanWrite()) return 2;
+            if (Time.realtimeSinceStartup - lastLoadTime < 5.1f)
+            {
+                if (!_NativeReady()) return 7;
+                int paused = _ControlPlayback(true);
+                if (paused != 1) return paused;
+                armed = false; endPending = false; cursorView = -1; cursorVideo = -1;
+                queuePlayingUrl = VRCUrl.Empty; queuePlayingTitle = ""; queueOnly = true; revision++;
+                queueAdvanceRequested = true;
+                CommitCursor(); ScheduleRemovedQueue(); return 1;
+            }
             return PlayQueued();
         }
 
@@ -412,6 +503,7 @@ namespace aki_lua87.CommonVideoPlaylist
             requesting = false;
             if (result != 1) return result;
             // Queue APIs can transfer a frontend without transferring its playback core.
+            queueAdvanceRequested = false;
             if (!_IsLocalPlayback() && !Networking.IsOwner(gameObject))
                 Networking.SetOwner(Networking.LocalPlayer, gameObject);
             if (!CanWrite()) return 2;
@@ -470,8 +562,10 @@ namespace aki_lua87.CommonVideoPlaylist
                 syncedQueueSubmitters = (string[])queueSubmitters.Clone(); syncedPlayingSubmitter = playingSubmitter;
                 syncedQueuePlayingTitle = queuePlayingTitle;
                 syncedQueueActive = queueActive;
+                syncedQueueAdvanceRequested = queueAdvanceRequested;
                 syncedHistoryUrls = (VRCUrl[])historyUrls.Clone(); syncedHistoryTitles = (string[])historyTitles.Clone();
                 syncedHistorySubmitters = (string[])historySubmitters.Clone();
+                syncedHistoryCopyUrls = (string[])historyCopyUrls.Clone();
                 RequestSerialization();
             }
             ShowCursor();
@@ -480,7 +574,7 @@ namespace aki_lua87.CommonVideoPlaylist
         {
             var view = ActiveView();
             for (int i = 0; i < views.Length; i++) if (views[i] != null) views[i]._ShowSequenceSelection(views[i] == view ? cursorVideo : -1);
-            for (int i = 0; i < views.Length; i++) if (views[i] != null) { views[i]._RefreshPlaybackMode(); views[i]._RefreshQueue(); }
+            for (int i = 0; i < views.Length; i++) if (views[i] != null) { views[i]._RefreshPlaybackMode(); views[i]._RefreshQueue(); views[i]._RefreshHistory(); }
         }
         public override void OnDeserialization()
         {
@@ -501,11 +595,14 @@ namespace aki_lua87.CommonVideoPlaylist
             queuePlayingUrl = syncedQueuePlayingUrl;
             queuePlayingTitle = syncedQueuePlayingTitle;
             queueActive = syncedQueueActive;
+            queueAdvanceRequested = syncedQueueAdvanceRequested;
+            historyCopyUrls = syncedHistoryCopyUrls == null ? new string[0] : (string[])syncedHistoryCopyUrls.Clone();
             historyUrls = syncedHistoryUrls == null ? new VRCUrl[0] : (VRCUrl[])syncedHistoryUrls.Clone();
             historyTitles = syncedHistoryTitles == null ? new string[0] : (string[])syncedHistoryTitles.Clone();
             historySubmitters = syncedHistorySubmitters == null ? new string[0] : (string[])syncedHistorySubmitters.Clone();
             if (historyUrls.Length != historyTitles.Length) { historyUrls = new VRCUrl[0]; historyTitles = new string[0]; }
             // Missing attribution must not discard otherwise valid queue/history entries.
+            if (historyCopyUrls.Length != historyUrls.Length) historyCopyUrls = new string[historyUrls.Length];
             if (historySubmitters.Length != historyUrls.Length) historySubmitters = new string[historyUrls.Length];
             // Baseline received history so taking ownership doesn't add the current track twice.
             if (historyUrls.Length > 0) { lastHistoryUrl = historyUrls[0]; lastHistoryRevision = revision; }
@@ -517,35 +614,54 @@ namespace aki_lua87.CommonVideoPlaylist
             // Cursor and native URL can arrive in either order, including for late joiners.
             if (_Available() && _NativeReady() && MatchesCurrent()) armed = true;
             ShowCursor();
+            ScheduleRemovedQueue();
+        }
+
+        public override void OnOwnershipTransferred(VRCPlayerApi player)
+        {
+            if (!Utilities.IsValid(player) || !player.isLocal || !_Available()) return;
+            if (queueAdvanceRequested) { ScheduleRemovedQueue(); return; }
+            if (endPending) SendCustomEventDelayedFrames(nameof(_AdvanceSequence), 1);
+            else if (_NativeReady() && MatchesCurrent()) armed = true;
         }
 
         public void _NativeLoading()
         {
             if (NetworkCalling.InNetworkCall) return;
             lastLoadTime = Time.realtimeSinceStartup;
+            if (queueAdvanceRequested && !requesting && CanWrite()) { queueAdvanceRequested = false; CommitCursor(); }
         }
         public void _NativeStarted()
         {
             if (NetworkCalling.InNetworkCall || requesting || !_Available() || endPending) return;
-            if (MatchesCurrent()) { if (_NativeReady()) armed = true; }
+            if (queueAdvanceRequested && CanWrite()) { queueAdvanceRequested = false; CommitCursor(); }
+            if (MatchesCurrent())
+            {
+                if (_NativeReady())
+                {
+                    armed = true;
+                    // ProTV parses URL loop / implicit replay after the initial request.
+                    if (CanWrite()) _SetNativeMode(modeOverride == 2 ? 2 : queueOnly ? 0 : _IsRandomMode(ActiveView(), 0) ? 1 : 0);
+                }
+            }
             else if (armed) _CancelSequence();
             RecordHistory();
         }
         public void _NativeEnded()
         {
-            if (NetworkCalling.InNetworkCall || requesting || (!armed && queueViews.Length == 0)) return;
+            if (NetworkCalling.InNetworkCall || requesting || endPending || (!armed && queueViews.Length == 0)) return;
             if (_IsRepeatMode() && MatchesCurrent()) return;
             if (CanWrite()) { FinishQueued(); CommitCursor(); }
-            bool alreadyPending = endPending;
             endedUrl = _CurrentUrl(); endedAt = Time.realtimeSinceStartup;
             armed = false; endPending = true; pendingRevision = revision;
             // Let the player's own end/queue handlers finish before requesting another URL.
-            if (!alreadyPending) SendCustomEventDelayedSeconds(nameof(_AdvanceSequence), Mathf.Max(.2f, 5.1f - (Time.realtimeSinceStartup - lastLoadTime)));
+            SendCustomEventDelayedSeconds(nameof(_AdvanceSequence), Mathf.Max(.2f, 5.1f - (Time.realtimeSinceStartup - lastLoadTime)));
         }
         public void _AdvanceSequence()
         {
             if (NetworkCalling.InNetworkCall || !endPending || pendingRevision != revision) return;
-            if (!_Available() || !CanWrite()) { endPending = false; return; }
+            if (!_Available()) { endPending = false; return; }
+            if (!CanWrite()) return;
             float remaining = 5.1f - (Time.realtimeSinceStartup - lastLoadTime);
             if (remaining > 0) { SendCustomEventDelayedSeconds(nameof(_AdvanceSequence), remaining); return; }
             endPending = false;
@@ -553,6 +669,9 @@ namespace aki_lua87.CommonVideoPlaylist
             // Let it finish instead of submitting a competing request.
             var current = _CurrentUrl();
             if (lastLoadTime > endedAt || (!VRCUrl.IsNullOrEmpty(current) && !VRCUrl.IsNullOrEmpty(endedUrl) && current.Get() != endedUrl.Get())) return;
+            // An End received before gaining ownership could not consume the playing head.
+            // Consume it now instead of resuming that same queue entry.
+            if (queueActive) { FinishQueued(); CommitCursor(); }
             if (queueViews.Length > 0)
             {
                 int queuedResult = PlayQueued();
@@ -624,6 +743,7 @@ namespace aki_lua87.CommonVideoPlaylist
             if (NetworkCalling.InNetworkCall || requesting) return;
             armed = false; endPending = false;
             if (!CanWrite()) return;
+            queueAdvanceRequested = false;
             FinishQueued();
             cursorView = -1; cursorVideo = -1; revision++;
             queueOnly = false;

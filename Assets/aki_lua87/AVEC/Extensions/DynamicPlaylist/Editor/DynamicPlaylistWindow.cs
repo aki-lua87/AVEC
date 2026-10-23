@@ -64,6 +64,7 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist.Editor
         [SerializeField] string input = "";
         [SerializeField] int sourceKind;
         [SerializeField] bool dynamicUrls = true;
+        [SerializeField] int limitIndex;
         [SerializeField] PlaylistTab preview;
         string message;
         MessageType messageType;
@@ -97,9 +98,11 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist.Editor
                     using (new EditorGUI.DisabledScope(true)) EditorGUILayout.Toggle("動的URLを使用", true);
                 }
                 else dynamicUrls = EditorGUILayout.Toggle("動的URLを使用", dynamicUrls);
+                if (sourceKind != 2 && !dynamicUrls) limitIndex = EditorGUILayout.Popup("取得件数", limitIndex, Enumerable.Range(1, 10).Select(n => (n * 50) + "件").ToArray());
+                else EditorGUILayout.LabelField("動画数", "50枠（n=0～49）");
                 if (EditorGUI.EndChangeCheck()) { preview = null; revision++; }
                 EditorGUILayout.HelpBox(sourceKind == 2
-                    ? "固定キーワードの検索結果を新着順で表示する動的タブを作成します（最大20枠）。結果はサーバーの時刻単位キャッシュに従って更新されます。タブ名はプレビューで変更できます。"
+                    ? "固定キーワードの検索結果を新着順で表示する動的タブを作成します（最大50枠）。結果はサーバーの時刻単位キャッシュに従って更新されます。タブ名はプレビューで変更できます。"
                     : "動的URLは外部サービスの最新一覧に追従します。OFFでは取得時の固定URLを挿入します。", MessageType.Info);
                 if (sourceKind == 2 || dynamicUrls) EditorGUILayout.LabelField("動的URLにはAllow Untrusted URLsが必要です。", EditorStyles.wordWrappedMiniLabel);
                 if (GUILayout.Button(loading ? "取得中…" : "取得してプレビュー")) FetchPreview();
@@ -107,6 +110,7 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist.Editor
                 if (preview != null)
                 {
                     preview.name = EditorGUILayout.TextField("挿入するタブ名", preview.name);
+                    EditorGUILayout.LabelField("説明"); preview.description = EditorGUILayout.TextArea(preview.description ?? "", GUILayout.MinHeight(42));
                     EditorGUILayout.LabelField("動画数", preview.videos.Length.ToString());
                     scroll = EditorGUILayout.BeginScrollView(scroll);
                     foreach (var video in preview.videos) EditorGUILayout.LabelField(video.title, video.url, EditorStyles.wordWrappedMiniLabel);
@@ -123,8 +127,8 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist.Editor
             try
             {
                 var tab = sourceKind == 2 ? await YoutubeSearchImport.Fetch(input)
-                    : sourceKind == 1 ? await YoutubePlaylistImport.Fetch(input, dynamicUrls)
-                    : await YoutubeChannelImport.Fetch(input, dynamicUrls);
+                    : sourceKind == 1 ? await YoutubePlaylistImport.Fetch(input, dynamicUrls, (limitIndex + 1) * 50)
+                    : await YoutubeChannelImport.Fetch(input, dynamicUrls, (limitIndex + 1) * 50);
                 if (this == null || request != revision) return;
                 preview = tab; message = "取得しました。内容を確認して挿入してください。";
             }

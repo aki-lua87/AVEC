@@ -12,6 +12,18 @@ namespace aki_lua87.CommonGestureRemote
     public class KinelRemoteTarget : RemoteTarget
     {
         public KinelVideoPlayer player;
+        public Kinel.VideoPlayer.Udon.Playlist.KinelPlaylist nativePlaylist;
+        [HideInInspector] public int nativeVideoCount; // Editor-read native playlist size.
+        public override bool _CanStep() { return nativePlaylist != null && nativeVideoCount > 0; }
+        public override int _StepNative(int direction)
+        {
+            if (NetworkCalling.InNetworkCall || !_Ready() || !_CanStep()) return 4;
+            if (player.IsLock && !Networking.IsMaster) return 2;
+            if (!Utilities.IsValid(Networking.LocalPlayer)) return 0;
+            int index = nativePlaylist.NowPlayingFlag ? nativePlaylist.NowPlaylingItemIndex : -1;
+            int next = index < 0 ? (direction < 0 ? nativeVideoCount - 1 : 0) : (index + (direction < 0 ? -1 : 1) + nativeVideoCount) % nativeVideoCount;
+            nativePlaylist.PlayVideo(next); return 1;
+        }
         // KineL's own volume UI writes AudioSource.volume with UnityEvents.
         public AudioSource[] audioSources = new AudioSource[0];
         public Slider[] volumeSliders = new Slider[0];

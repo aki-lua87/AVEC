@@ -57,3 +57,7 @@ MonoBehaviour:
     label: "\u547C\u3073\u51FA\u3057 ON/OFF"
     action: 22
     customEvent: 
+  - gesture: "\u2193\u2190\u2191"
+    label: "\u30BF\u30D6\u30EC\u30C3\u30C8\u3092\u547C\u3073\u51FA\u3059"
+    action: 23
+    customEvent: 

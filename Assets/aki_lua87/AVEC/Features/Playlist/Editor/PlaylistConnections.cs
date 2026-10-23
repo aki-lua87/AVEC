@@ -191,23 +191,93 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
     {
         bool advanced;
         string editError;
+        bool editorActive;
+        bool readOnlyCacheDirty = true;
+        PlaylistData cacheData;
+        Component cachePlayer, cacheTitleSource;
+        PlaylistView cacheView;
+        bool cacheUserList;
+        int loadedUsers;
+        List<Component> playerCandidates = new List<Component>();
+        string[] playerLabels = new string[0], connectorWarnings = new string[0];
+        bool[] connectorAvailable = new bool[0];
+        string connectionProblem, audioLinkStatus, connectedPlayerLabel;
         void OnEnable()
         {
-            EditorApplication.delayCall += () => { if (target != null && !EditorApplication.isPlayingOrWillChangePlaymode) PlaylistConnections.AutoConnect((PlaylistSetup)target); };
+            editorActive = true;
+            EditorApplication.hierarchyChanged += InvalidateReadOnlyCache;
+            EditorApplication.projectChanged += InvalidateReadOnlyCache;
+            Undo.undoRedoPerformed += InvalidateReadOnlyCache;
+            Undo.postprocessModifications += OnPropertiesModified;
+            EditorApplication.delayCall += () =>
+            {
+                if (!editorActive || target == null || EditorApplication.isPlayingOrWillChangePlaymode) return;
+                PlaylistConnections.AutoConnect((PlaylistSetup)target);
+                InvalidateReadOnlyCache();
+            };
+        }
+        void OnDisable()
+        {
+            editorActive = false;
+            EditorApplication.hierarchyChanged -= InvalidateReadOnlyCache;
+            EditorApplication.projectChanged -= InvalidateReadOnlyCache;
+            Undo.undoRedoPerformed -= InvalidateReadOnlyCache;
+            Undo.postprocessModifications -= OnPropertiesModified;
+        }
+        void InvalidateReadOnlyCache() { readOnlyCacheDirty = true; Repaint(); }
+        UndoPropertyModification[] OnPropertiesModified(UndoPropertyModification[] changes)
+        {
+            foreach (var change in changes)
+            {
+                var value = change.currentValue;
+                if (value == null) continue;
+                string field = value.propertyPath.Split('.')[0];
+                var obj = value.target;
+                bool setupChanged = obj is PlaylistSetup && (field == "data" || field == "player" || field == "view" || field == "playerKind" || field == "enableUserList" || field == "titleMetadataSource");
+                bool viewChanged = obj is PlaylistView && (field == "adapter" || field == "audioLinks" || field == "audioLinkInstalled" || field == "connectedAudioSources");
+                bool authorityChanged = obj == cachePlayer && (field == "core" || field == "_controller");
+                bool audioChanged = field == "audioSource" || field == "optionalRightAudioSource" || field == "m_Enabled" || field == "m_IsActive";
+                if (setupChanged || viewChanged || obj is PlaylistAdapter || authorityChanged || audioChanged)
+                { InvalidateReadOnlyCache(); break; }
+            }
+            return changes;
+        }
+        void EnsureReadOnlyCache(PlaylistSetup setup)
+        {
+            if (cacheData != setup.data || cachePlayer != setup.player || cacheView != setup.view || cacheTitleSource != setup.titleMetadataSource || cacheUserList != setup.enableUserList)
+                readOnlyCacheDirty = true;
+            if (!readOnlyCacheDirty || (Event.current != null && Event.current.type != EventType.Layout)) return;
+            loadedUsers = PlaylistAssets.LoadedUsers(setup.data);
+            playerCandidates = PlaylistConnections.Find(setup);
+            playerLabels = playerCandidates.Select(PlaylistConnections.Label).ToArray();
+            connectorAvailable = new bool[playerCandidates.Count]; connectorWarnings = new string[playerCandidates.Count];
+            for (int i = 0; i < playerCandidates.Count; i++)
+            {
+                int kind = PlaylistConnections.Kind(playerCandidates[i]);
+                connectorAvailable[i] = kind >= 0 && PlaylistConnections.Resolve(PlaylistConnections.AdapterTypes[kind]) != null;
+                connectorWarnings[i] = kind < 0 ? "対応するConnectorを導入してください。" : PlaylistConnections.Kinds[kind] + " Connectorを導入してください。";
+            }
+            connectionProblem = PlaylistConnections.Validate(setup);
+            audioLinkStatus = PlaylistConnections.AudioLinkStatus(setup);
+            connectedPlayerLabel = PlaylistConnections.Label(setup.player);
+            cacheData = setup.data; cachePlayer = setup.player; cacheView = setup.view; cacheTitleSource = setup.titleMetadataSource; cacheUserList = setup.enableUserList;
+            readOnlyCacheDirty = false;
         }
         public override void OnInspectorGUI()
         {
             var setup = (PlaylistSetup)target;
+            EnsureReadOnlyCache(setup);
+            EditorGUI.BeginChangeCheck();
             using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
             {
-                serializedObject.Update();
+                serializedObject.UpdateIfRequiredOrScript();
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("data"), new GUIContent("プレイリスト"));
                 bool dataChanged = EditorGUI.EndChangeCheck();
                 serializedObject.ApplyModifiedProperties();
                 if (dataChanged && setup.view != null) TryBake(setup);
                 if (GUILayout.Button("新規プレイリストを作成")) CreatePlaylist(setup);
-                int users = PlaylistAssets.LoadedUsers(setup.data);
+                int users = loadedUsers;
                 if (PlaylistAssets.IsDefault(setup.data))
                     EditorGUILayout.HelpBox("DefaultPlaylistは空の配布用テンプレートです。「新規プレイリストを作成」で別データを用意できます。", MessageType.Info);
                 else if (users > 1)
@@ -224,14 +294,14 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 if (setup.GetComponentInParent<PlaylistTabletTouch>() == null && PlaylistConnections.CanConnect(setup)
                     && GUILayout.Button("現在のUIから手持ちタブレット版を作成"))
                     Selection.activeGameObject = PlaylistTabletBuilder.Create(setup);
-                serializedObject.Update();
+                serializedObject.UpdateIfRequiredOrScript();
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("theme"),new GUIContent("テーマ"));
                 bool themeChanged=EditorGUI.EndChangeCheck();
                 serializedObject.ApplyModifiedProperties();
                 if(themeChanged)PlaylistAppearance.ApplyTheme(setup);
                 if(setup.theme!=null&&GUILayout.Button("テーマを編集"))Selection.activeObject=setup.theme;
-                serializedObject.Update();
+                serializedObject.UpdateIfRequiredOrScript();
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("showTabIcons"), new GUIContent("タブのアイコンを表示"));
                 bool iconsChanged = EditorGUI.EndChangeCheck();
@@ -240,7 +310,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 EditorGUILayout.HelpBox("Theme Assetで色と表示方式を選べます。Wireframeは背景透過・枠線のみのテーマです。サイズはルートのScaleで調整してください。",MessageType.Info);
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("動画プレイヤーへの接続", EditorStyles.boldLabel);
-                serializedObject.Update();
+                serializedObject.UpdateIfRequiredOrScript();
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("player"), new GUIContent("接続先"));
                 bool playerChanged = EditorGUI.EndChangeCheck();
@@ -261,61 +331,51 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                     EditorGUILayout.HelpBox("Prefabをシーンに配置して接続してください。", MessageType.Info);
                 else
                 {
-                    var candidates = PlaylistConnections.Find(setup);
+                    var candidates = playerCandidates;
                     if (setup.player == null && candidates.Count == 1)
-                        if (GUILayout.Button("見つかったプレイヤーに自動接続")) PlaylistConnections.AutoConnect(setup);
+                        if (GUILayout.Button("見つかったプレイヤーに自動接続")) { PlaylistConnections.AutoConnect(setup); InvalidateReadOnlyCache(); }
                     EditorGUILayout.LabelField("シーン内の接続候補", candidates.Count + " 件");
-                    foreach (var candidate in candidates)
+                    for (int i = 0; i < candidates.Count; i++)
                     {
-                        int kind = PlaylistConnections.Kind(candidate);
-                        bool available = PlaylistConnections.Resolve(PlaylistConnections.AdapterTypes[kind]) != null;
-                        using (new EditorGUI.DisabledScope(!available))
-                            if (GUILayout.Button(PlaylistConnections.Label(candidate))) PlaylistConnections.Connect(setup, candidate);
-                        if (!available) EditorGUILayout.HelpBox(PlaylistConnections.Kinds[kind] + " Connectorを導入してください。", MessageType.Warning);
+                        var candidate = candidates[i]; if (candidate == null) continue;
+                        using (new EditorGUI.DisabledScope(!connectorAvailable[i]))
+                            if (GUILayout.Button(playerLabels[i])) { PlaylistConnections.Connect(setup, candidate); InvalidateReadOnlyCache(); }
+                        if (!connectorAvailable[i]) EditorGUILayout.HelpBox(connectorWarnings[i], MessageType.Warning);
                     }
                     EditorGUILayout.LabelField("接続先を選択すると、自動で接続設定を更新します。", EditorStyles.wordWrappedMiniLabel);
                 }
-                string problem = PlaylistConnections.Validate(setup);
+                string problem = connectionProblem;
                 if (problem != null)
                 {
                     EditorGUILayout.HelpBox(problem, MessageType.Warning);
                     if (setup.player != null && PlaylistConnections.CanConnect(setup))
                         if (GUILayout.Button(new GUIContent("接続設定を修復", "選択中のプレイヤーとの接続設定を作り直します。")))
-                            PlaylistConnections.Connect(setup, setup.player);
+                        { PlaylistConnections.Connect(setup, setup.player); InvalidateReadOnlyCache(); }
                 }
-                else EditorGUILayout.HelpBox("接続済み: " + PlaylistConnections.Label(setup.player), MessageType.Info);
-                EditorGUILayout.LabelField("AudioLink", PlaylistConnections.AudioLinkStatus(setup));
+                else EditorGUILayout.HelpBox("接続済み: " + connectedPlayerLabel, MessageType.Info);
+                EditorGUILayout.LabelField("AudioLink", audioLinkStatus);
                 if (GUILayout.Button("AudioLinkの接続状況を更新")) {
                     PlaylistAppearance.EnsureConnectionLabel(setup);
-                    PlaylistConnections.RefreshAudioLinkStatus(setup);
+                    PlaylistConnections.RefreshAudioLinkStatus(setup); InvalidateReadOnlyCache();
                 }
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("特殊リスト", EditorStyles.boldLabel);
-                serializedObject.Update();
+                serializedObject.UpdateIfRequiredOrScript();
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("enableQueue"), new GUIContent("再生キューを使用"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("enableHistory"), new GUIContent("再生履歴を使用"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("enableUserList"), new GUIContent("ユーザーリストを使用"));
-                if (serializedObject.FindProperty("enableUserList").boolValue)
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("yttlManager"), new GUIContent("YTTL Manager（任意）"));
                 bool specialChanged = EditorGUI.EndChangeCheck();
                 serializedObject.ApplyModifiedProperties();
                 if (specialChanged) TrySpecialLists(setup);
-                if (setup.enableUserList && setup.yttlManager == null)
-                {
-                    var managers = PlaylistSpecialLists.FindYttl(setup);
-                    if (managers.Length == 1 && GUILayout.Button("シーン内のYTTLを接続"))
-                    {
-                        Undo.RecordObject(setup, "Select YTTL Manager"); setup.yttlManager = managers[0]; TrySpecialLists(setup);
-                    }
-                }
+                FeatureExtensionRegistry.DrawInspector("Playlist", setup);
                 EditorGUILayout.LabelField("チェックを変更すると、その場で反映します。", EditorStyles.wordWrappedMiniLabel);
-                EditorGUILayout.HelpBox("ユーザーリストは自分用・同じワールド内で共通です（最大32件）。YTTL未設定でもURLで利用できます。保存用PlayerObjectは公開後に削除・再作成しないでください。", MessageType.Info);
+                EditorGUILayout.HelpBox("ユーザーリストは自分用・同じワールド内で共通です（最大32件）。タイトル取得拡張なしでもURLで利用できます。保存用PlayerObjectは公開後に削除・再作成しないでください。", MessageType.Info);
                 EditorGUILayout.Space();
                 advanced = EditorGUILayout.Foldout(advanced, "詳細設定（UIデザイン・参照）", true);
                 if (advanced)
                 {
-                    serializedObject.Update();
+                    serializedObject.UpdateIfRequiredOrScript();
                     foreach (var name in new[] { "view", "tabContent", "videoContent", "tabTemplate", "videoTemplate" })
                         EditorGUILayout.PropertyField(serializedObject.FindProperty(name));
                     serializedObject.ApplyModifiedProperties();
@@ -323,6 +383,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                     EditorGUILayout.HelpBox("行デザインはTemplates内で調整し、再生成してください。Play/Build時にも自動反映します。", MessageType.Info);
                 }
             }
+            if (EditorGUI.EndChangeCheck()) InvalidateReadOnlyCache();
         }
         void CreatePlaylist(PlaylistSetup setup)
         {
@@ -337,11 +398,13 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         {
             try { PlaylistBaker.Bake(setup); editError = null; }
             catch (Exception e) { editError = e.Message; }
+            finally { InvalidateReadOnlyCache(); }
         }
         void TrySpecialLists(PlaylistSetup setup)
         {
             try { PlaylistSpecialLists.Apply(setup); editError = null; }
             catch (Exception e) { editError = e.Message; Debug.LogException(e, setup); }
+            finally { InvalidateReadOnlyCache(); }
         }
     }
 }

@@ -64,7 +64,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         }
 
         // Only new/un-styled Images are changed, so adding a special list preserves existing overrides.
-        public static void ApplyNew(PlaylistSetup setup)
+        public static void ApplyNew(PlaylistSetup setup, Image only = null)
         {
             var theme = setup.theme;
             if (theme == null || !theme.outlineOnly) return;
@@ -78,8 +78,9 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             PlaylistUndo.RecordObject(setup, "Keep original playlist sprites");
             foreach (var image in setup.GetComponentsInChildren<Image>(true))
             {
-                if (known.Contains(image) || IsForeground(setup.view, image) || IsViewport(image)) continue;
-                states.Add(new PlaylistThemeImageState { image = image, sprite = image.sprite, overrideSprite = image.overrideSprite == image.sprite ? null : image.overrideSprite,
+                if (only != null && image != only) continue;
+                if ((only == null && known.Contains(image)) || IsForeground(setup.view, image) || IsViewport(image)) continue;
+                if (!known.Contains(image)) states.Add(new PlaylistThemeImageState { image = image, sprite = image.sprite, overrideSprite = image.overrideSprite == image.sprite ? null : image.overrideSprite,
                     type = image.type, fillCenter = image.fillCenter, preserveAspect = image.preserveAspect,
                     pixelsPerUnitMultiplier = image.pixelsPerUnitMultiplier, alphaHitTestMinimumThreshold = image.alphaHitTestMinimumThreshold });
                 PlaylistUndo.RecordObject(image, "Apply transparent outline graphics");
@@ -91,7 +92,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 PlaylistConnections.Save(image);
             }
             setup.themeImageStates = states.ToArray(); PlaylistConnections.Save(setup);
-            RefreshFrameSpacing(setup);
+            if (only == null) RefreshFrameSpacing(setup);
         }
 
         // Narrow migration for existing wireframe instances: preserve their palette and controls.
@@ -179,7 +180,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             theme.mutedText = new Color(1, 1, 1, .7f);
             AssetDatabase.CreateAsset(theme, PresetPath); AssetDatabase.SaveAssetIfDirty(theme);
         }
-        static Sprite EnsureSprite()
+        internal static Sprite EnsureSprite()
         {
             var existing = AssetDatabase.LoadAssetAtPath<Sprite>(SpritePath); if (existing != null) return existing;
             // Rounded rectangle signed-distance ring, supersampled by analytic edge coverage.

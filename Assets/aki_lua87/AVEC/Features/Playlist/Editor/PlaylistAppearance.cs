@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
@@ -48,7 +48,111 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 PlaylistConnections.Save(text);
             }
             PlaylistConnections.Save(root.GetComponent<RectTransform>());if(collider!=null)PlaylistConnections.Save(collider);
-            ApplyTheme(setup); PlaylistConnections.Save(setup.view); PlaylistConnections.Save(setup);
+            ApplyTheme(setup); ReclaimStatusSpace(setup.view); UpdateHeaderPresentation(setup.view); PlaylistConnections.Save(setup.view); PlaylistConnections.Save(setup);
+        }
+        public static void UpdateHeaderPresentation(PlaylistView view)
+        {
+            if (view == null) return;
+            var root = view.transform as RectTransform;
+            if (root == null) return;
+            var title = root.Find("Library title")?.GetComponent<Text>();
+            if (title != null)
+            {
+                Undo.RecordObject(title, "Update playlist header caption");
+                Undo.RecordObject(title.rectTransform, "Fit playlist header caption");
+                title.text = "AVEC-PLAYLIST"; title.alignment = TextAnchor.LowerLeft;
+                title.resizeTextForBestFit = false;
+                title.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Ceil(title.preferredWidth) + 2);
+                PlaylistConnections.Save(title); PlaylistConnections.Save(title.rectTransform);
+            }
+            if (view.heading != null)
+            {
+                Undo.RecordObject(view.heading.gameObject, "Hide redundant playlist heading");
+                view.heading.gameObject.SetActive(false); PlaylistConnections.Save(view.heading.gameObject);
+            }
+            if (view.descriptionLabel != null && view.heading != null)
+            {
+                var description = view.descriptionLabel;
+                var heading = view.heading.rectTransform;
+                Undo.RecordObject(description, "Show three-line playlist description");
+                Undo.RecordObject(description.rectTransform, "Align playlist description at left");
+                float x = heading.anchoredPosition.x;
+                Place(description.rectTransform, x, -heading.anchoredPosition.y - 2, root.rect.width - x - 24, 38);
+                description.fontSize = 10; description.lineSpacing = .8f;
+                description.resizeTextForBestFit = false; description.alignment = TextAnchor.LowerLeft;
+                description.horizontalOverflow = HorizontalWrapMode.Wrap; description.verticalOverflow = VerticalWrapMode.Truncate;
+                description.supportRichText = false; PlaylistConnections.Save(description);
+            }
+            if (view.connectionLabel != null && title != null)
+            {
+                var label = view.connectionLabel;
+                Undo.RecordObject(label, "Prefix connected player label");
+                Undo.RecordObject(label.rectTransform, "Align connection beside playlist caption");
+                var rect = title.rectTransform;
+                float x = rect.anchoredPosition.x + rect.rect.width + 16;
+                var mode = root.Find("Playback mode") as RectTransform;
+                float right = mode == null ? root.rect.width - 24 : mode.anchoredPosition.x - 12;
+                Place(label.rectTransform, x, -rect.anchoredPosition.y, Mathf.Max(100, right - x), rect.rect.height);
+                label.alignment = TextAnchor.LowerLeft;
+                label.text = "connnect: " + (view.adapter == null || string.IsNullOrEmpty(view.connectionName) ? "未接続" : view.connectionName);
+                float bottomOffset = TextBottomIn(root, title) - TextBottomIn(root, label);
+                label.rectTransform.position += root.TransformVector(Vector3.up * bottomOffset);
+                PlaylistConnections.Save(label.rectTransform);
+                PlaylistConnections.Save(label);
+            }
+        }
+        static float TextBottomIn(RectTransform root, Text label)
+        {
+            var generator = new TextGenerator();
+            generator.Populate(label.text, label.GetGenerationSettings(label.rectTransform.rect.size));
+            float bottom = float.PositiveInfinity;
+            foreach (var vertex in generator.verts) bottom = Mathf.Min(bottom, vertex.position.y);
+            if (float.IsPositiveInfinity(bottom)) bottom = label.rectTransform.rect.yMin * label.pixelsPerUnit;
+            return root.InverseTransformPoint(label.rectTransform.TransformPoint(new Vector3(0, bottom / label.pixelsPerUnit, 0))).y;
+        }
+        // Reclaim the hidden message row without reapplying the theme or rebuilding UI.
+        public static void ReclaimStatusSpace(PlaylistView view)
+        {
+            if (view == null || (view.status != null && view.status.gameObject.activeSelf)) return;
+            var root = view.transform as RectTransform;
+            if (root == null) return;
+            var controls = new System.Collections.Generic.List<RectTransform>();
+            float bottom = float.PositiveInfinity;
+            var corners = new Vector3[4];
+            foreach (string name in new[] { "Play", "Stop", "Volume caption", "Volume rail", "Volume value" })
+            {
+                var rect = root.Find(name) as RectTransform;
+                if (rect == null) continue;
+                controls.Add(rect); rect.GetWorldCorners(corners);
+                foreach (var corner in corners) bottom = Mathf.Min(bottom, root.InverseTransformPoint(corner).y);
+            }
+            if (controls.Count == 0) return;
+            float extra = bottom - root.rect.yMin - 20f;
+            if (extra < .1f) return;
+            Vector3 oldCenter = view.videoScroll == null ? Vector3.zero : ((RectTransform)view.videoScroll.transform).TransformPoint(((RectTransform)view.videoScroll.transform).rect.center);
+            foreach (string name in new[] { "Tabs", "Videos", "Queue panel", "History panel", "History URL", "Video details", "User list panel" })
+            {
+                var rect = root.Find(name) as RectTransform;
+                if (rect == null) continue;
+                Undo.RecordObject(rect, "Expand playlist into unused footer space");
+                Vector3 topLeft = rect.TransformPoint(new Vector3(rect.rect.xMin, rect.rect.yMax, 0));
+                rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rect.rect.height + extra);
+                rect.position += topLeft - rect.TransformPoint(new Vector3(rect.rect.xMin, rect.rect.yMax, 0));
+                PlaylistConnections.Save(rect);
+            }
+            foreach (var rect in controls)
+            {
+                Undo.RecordObject(rect, "Move playlist controls into unused footer space");
+                rect.position += root.TransformVector(Vector3.down * extra);
+                PlaylistConnections.Save(rect);
+            }
+            if (view.loadingIcon != null && view.videoScroll != null)
+            {
+                var area = (RectTransform)view.videoScroll.transform;
+                Undo.RecordObject(view.loadingIcon.transform, "Keep loading indicator centered");
+                view.loadingIcon.transform.position += area.TransformPoint(area.rect.center) - oldCenter;
+                PlaylistConnections.Save(view.loadingIcon.transform);
+            }
         }
         static void Row(GameObject go,float height,int size)
         {
@@ -130,6 +234,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             var colors=ColorBlock.defaultColorBlock; colors.normalColor=Color.white; colors.highlightedColor=new Color(.85f,.95f,1f); colors.pressedColor=new Color(.65f,.75f,.8f); colors.selectedColor=Color.white;
             foreach(var button in setup.GetComponentsInChildren<Button>(true)) { PlaylistUndo.RecordObject(button,"Apply playlist theme"); button.colors=colors;PlaylistConnections.Save(button); }
             PlaylistThemeGraphics.ApplyNew(setup);
+            PlaylistQueueUI.RefreshQueueControlLayout(setup.view);
             PlaylistConnections.Save(setup.view);
         }
         public static void EnsureControls(PlaylistSetup setup)
@@ -247,7 +352,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             PlaylistUndo.RecordObject(view, "Update connected player label");
             PlaylistUndo.RecordObject(view.connectionLabel, "Update connected player label");
             view.connectionName = destination;
-            view.connectionLabel.text = setup.player == null || view.adapter == null ? "未接続" : destination;
+            view.connectionLabel.text = "connnect: " + (setup.player == null || view.adapter == null ? "未接続" : destination);
             PlaylistConnections.Save(view.connectionLabel); PlaylistConnections.Save(view);
             if (view.audioLinkLabel == null) {
                 view.audioLinkLabel = Text(setup.transform, "AudioLink status", "AudioLink: 未導入", 14);
@@ -257,6 +362,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 view.audioLinkLabel.color = setup.theme == null ? view.iconColor : setup.theme.mutedText;
             }
             PlaylistConnections.RefreshAudioLinkStatus(setup);
+            UpdateHeaderPresentation(view);
         }
         static Image IconButton(PlaylistView view,string name,string icon,string method,float x,float y)
         {

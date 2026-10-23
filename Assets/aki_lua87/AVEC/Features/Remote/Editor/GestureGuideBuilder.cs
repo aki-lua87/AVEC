@@ -35,12 +35,13 @@ namespace aki_lua87.CommonGestureRemote.Editor
                 default: return "未設定";
             }
         }
-        public static string BuildText(GestureData data)
+        public static string BuildText(GestureData data, GestureRemote remote = null)
         {
             string error = RemoteBaker.ValidateData(data);
             var text = new StringBuilder();
             if (error != null) text.Append(error);
             else foreach (var binding in data.bindings) {
+                if (remote != null && !remote._ActionAvailable((int)binding.action)) continue;
                 string arrows = RemoteBaker.Normalize(binding.gesture).Replace("R", "→").Replace("L", "←").Replace("U", "↑").Replace("D", "↓");
                 if (text.Length > 0) text.Append("\n");
                 text.Append(arrows).Append("   ").Append(binding.label);
@@ -51,7 +52,9 @@ namespace aki_lua87.CommonGestureRemote.Editor
         {
             if (setup == null || setup.contents == null || setup.data == null) return;
             EnsureScrollbar(setup);
-            string value = BuildText(setup.data);
+            var remote = setup.remote;
+            if (remote == null) { var candidates = UnityEngine.Object.FindObjectsOfType<RemoteSetup>(true); foreach (var candidate in candidates) if (candidate.data == setup.data && candidate.gameObject.scene == setup.gameObject.scene) { if (remote != null) { remote = null; break; } remote = candidate.remote; } }
+            string value = BuildText(setup.data, remote);
             if (setup.contents.text != value) {
                 Undo.RecordObject(setup.contents, "Update gesture guide"); setup.contents.text = value;
                 RemoteConnections.Save(setup.contents);

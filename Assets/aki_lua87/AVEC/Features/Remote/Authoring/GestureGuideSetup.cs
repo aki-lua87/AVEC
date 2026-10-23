@@ -9,6 +9,7 @@ namespace aki_lua87.CommonGestureRemote
     public class GestureGuideSetup : MonoBehaviour, IEditorOnly
     {
         public GestureData data;
+        public GestureRemote remote;
         public Text contents;
     }
 }

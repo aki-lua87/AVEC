@@ -54,7 +54,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
                 cap.color = new Color(.3f, 1f, .65f);
                 Text("Right hand", hint, font, 18, "R", new Vector2(-65, -43), new Vector2(40, 25));
                 Text("Down", hint, font, 40, "↓", new Vector2(-5, 10), new Vector2(48, 56));
-                Text("Hold", hint, font, 18, "長押し", new Vector2(-5, -39), new Vector2(65, 28));
+                Text("Hold", hint, font, 18, "下に倒す", new Vector2(-5, -39), new Vector2(65, 28));
                 for (int i = 0; i < 3; i++)
                 {
                     var line = new GameObject("Command line " + i, typeof(RectTransform), typeof(Image));
@@ -176,11 +176,26 @@ namespace aki_lua87.CommonGestureRemote.Editor
         public static void UpdateCommands(GestureRemote remote, GestureData data)
         {
             if (remote == null || remote.helpCommands == null || data == null) return;
-            string text = GestureGuideBuilder.BuildText(data);
-            if (remote.helpCommands.text == text) return;
-            Undo.RecordObject(remote.helpCommands, "Update hand commands");
-            remote.helpCommands.text = text;
-            RemoteConnections.Save(remote.helpCommands);
+            string text = GestureGuideBuilder.BuildText(data, remote);
+            if (remote.helpCommands.text != text)
+            {
+                Undo.RecordObject(remote.helpCommands, "Update hand commands");
+                remote.helpCommands.text = text;
+                RemoteConnections.Save(remote.helpCommands);
+            }
+            var rect = remote.helpCommands.rectTransform;
+            float extra = Mathf.Max(0f, Mathf.Ceil(remote.helpCommands.preferredHeight) - rect.rect.height);
+            if (extra <= 0f) return;
+            Undo.RecordObject(rect, "Fit added remote command");
+            rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rect.rect.height + extra);
+            RemoteConnections.Save(rect);
+            var panel = remote.helpPanel as RectTransform;
+            if (panel != null)
+            {
+                Undo.RecordObject(panel, "Fit added remote command panel");
+                panel.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, panel.rect.height + extra);
+                RemoteConnections.Save(panel);
+            }
         }
 
         private static RectTransform Canvas(string name, Transform parent, Vector2 size)

@@ -17,7 +17,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
     {
         const string Server = "https://vrc.akakitune87.net";
         [Serializable] class Registration { public string channel_id; }
-        [Serializable] internal class Response { public string result; public string auther; public string channel_id; public PlaylistEntry[] videos; }
+        [Serializable] internal class Response { public string result; public string auther; public string channel_id; public PlaylistEntry[] videos; public string[] titles; public string[] urls; }
 
         internal static string NormalizeChannelInput(string input)
         {
@@ -33,6 +33,11 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             // canonical ID before any playback or title URL is constructed.
             if (value.Length <= 256 && !value.Any(char.IsControl) && Regex.IsMatch(value, @"\A@[^\s/\\?#]+\z")) return value;
             return NormalizeChannelId(value);
+        }
+
+        public static void ValidateLimit(int limit)
+        {
+            if (limit < 50 || limit > 500 || limit % 50 != 0) throw new ArgumentOutOfRangeException(nameof(limit));
         }
 
         public static string NormalizeChannelId(string input)
@@ -63,7 +68,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         {
             if (string.IsNullOrEmpty(id) || !Regex.IsMatch(id, @"\AUC[A-Za-z0-9_-]{22}\z"))
                 throw new ArgumentException("動的URLにはUC形式のチャンネルIDが必要です。");
-            var videos = new PlaylistEntry[20];
+            var videos = new PlaylistEntry[50];
             for (int i = 0; i < videos.Length; i++) videos[i] = new PlaylistEntry {
                 title = (i + 1).ToString(), url = Server + "/videos/yt/ch/" + id + "?n=" + i, dynamicTitleIndex = i
             };
@@ -71,8 +76,9 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 titleSourceUrl = Server + "/videos/yt/chlist/" + id + "?version=v2", videos = videos };
         }
 
-        public static async Task<PlaylistTab> Fetch(string input, bool dynamic)
+        public static async Task<PlaylistTab> Fetch(string input, bool dynamic, int limit = 50)
         {
+            ValidateLimit(limit);
             string channelInput = NormalizeChannelInput(input);
             using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(60) })
             {
@@ -86,11 +92,13 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 string id = registration.channel_id;
                 if (dynamic) return CreateDynamicTab(id, registration.auther);
                 Response data;
-                using (var response = await client.GetAsync(Server + "/api/yt/ch/" + id + "/video/all"))
+                using (var response = await client.GetAsync(Server + "/videos/yt/chlist/" + id + "?version=v2&limit=" + limit))
                 {
                     response.EnsureSuccessStatusCode();
                     data = JsonUtility.FromJson<Response>(await response.Content.ReadAsStringAsync());
                 }
+                if (data != null && data.titles != null && data.urls != null && data.titles.Length == data.urls.Length)
+                    data.videos = data.urls.Select((url, i) => new PlaylistEntry { title = data.titles[i], url = url, dynamicTitleIndex = -1 }).ToArray();
                 if (data == null || data.videos == null || data.videos.Length == 0) throw new InvalidOperationException("動画一覧を取得できませんでした。");
                 foreach (var entry in data.videos)
                 {
@@ -99,7 +107,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                     entry.dynamicTitleIndex = -1;
                 }
                 return new PlaylistTab { name = string.IsNullOrWhiteSpace(data.auther)
-                    ? (string.IsNullOrWhiteSpace(registration.auther) ? id : registration.auther) : data.auther, videos = data.videos };
+                    ? (string.IsNullOrWhiteSpace(registration.auther) ? id : registration.auther) : data.auther, videos = data.videos.Take(limit).ToArray() };
             }
         }
     }
@@ -107,7 +115,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
     public static class YoutubeSearchImport
     {
         const string Server = "https://vrc.akakitune87.net";
-        const int Slots = 20;
+        const int Slots = 50;
         [Serializable] class Response { public string[] titles; public string[] urls; }
 
         internal static string NormalizeQuery(string input)
@@ -189,10 +197,11 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             return id;
         }
 
-        public static async Task<PlaylistTab> Fetch(string input, bool dynamic)
+        public static async Task<PlaylistTab> Fetch(string input, bool dynamic, int limit = 50)
         {
+            YoutubeChannelImport.ValidateLimit(limit);
             string id = NormalizePlaylistId(input);
-            string source = Server + "/yt/pl/" + id + "/titles";
+            string source = Server + "/yt/pl/" + id + "/titles?limit=" + (dynamic ? 50 : limit);
             using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(60) })
             using (var response = await client.GetAsync(source))
             {
@@ -201,7 +210,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 var data = JsonUtility.FromJson<Response>(await response.Content.ReadAsStringAsync());
                 if (data?.titles == null || data.urls == null || data.urls.Length == 0 || data.titles.Length != data.urls.Length)
                     throw new InvalidOperationException("プレイリストの動画一覧を取得できませんでした。空のリストや非公開リストは取り込めません。");
-                var videos = new PlaylistEntry[dynamic ? 20 : data.urls.Length];
+                var videos = new PlaylistEntry[dynamic ? 50 : Math.Min(limit, data.urls.Length)];
                 for (int i = 0; i < videos.Length; i++)
                 {
                     if (i < data.urls.Length && (!Uri.TryCreate(data.urls[i], UriKind.Absolute, out var url) || (url.Scheme != "https" && url.Scheme != "http")))

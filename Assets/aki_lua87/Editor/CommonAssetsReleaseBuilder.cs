@@ -37,6 +37,7 @@ namespace aki_lua87.CommonAssets.Editor
                 Folders=new[]{Root+"/Connectors/Shared", Root+"/Connectors/ProTV/Editor", Root+"/Connectors/ProTV/"+feature},
                 Requires=new[]{"AVEC-Core", "AVEC-"+feature, "ProTV 3 (external)"}
             });
+            packages.Add(new PackageSpec { Name="AVEC-Extension-YttlTitles", Folders=new[]{Root+"/Extensions/YttlTitles"}, Requires=new[]{"AVEC-Core", "AVEC-Playlist", "VizVid bundled YTTL (external)"} });
             return packages.ToArray();
         }
         static string[] Names => Packages.Select(p=>p.Name).ToArray();

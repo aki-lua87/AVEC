@@ -94,6 +94,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
             if (setup.playlist != null && Ref(Ref(setup.playlist, "adapter") as Component, "player") != player) setup.playlist = null;
             var playlists = FindPlaylists(setup);
             if (setup.playlist == null && playlists.Count == 1 && Resolve("aki_lua87.CommonGestureRemote.PlaylistRemoteTarget") != null) setup.playlist = playlists[0];
+            ConfigureNativePlaylist(setup);
             ConnectPlaylist(setup);
             Save(setup.remote); Save(setup);
         }
@@ -119,10 +120,74 @@ namespace aki_lua87.CommonGestureRemote.Editor
                 }
                 Undo.RecordObject(target, "Wire playlist bridge");
                 type.GetField("view").SetValue(target, setup.playlist);
+                var tabletType = Resolve("aki_lua87.CommonVideoPlaylist.PlaylistTabletTouch");
+                var tabletField = type.GetField("tablet");
+                if (tabletType != null && tabletField != null)
+                {
+                    var tablet = UnityEngine.Object.FindObjectsOfType(tabletType, true).Cast<Component>().FirstOrDefault(t =>
+                        t.gameObject.scene == setup.gameObject.scene && t.GetComponentsInChildren<Component>(true).Any(c =>
+                            c != null && c.GetType().FullName == ViewType && Ref(c, "adapter") == Ref(setup.playlist, "adapter")));
+                    tabletField.SetValue(target, tablet);
+                }
                 Save(target); CheckProgram(target);
                 setup.remote.playlistTarget = target;
             }
+            AssignDefaultSummonObject(setup);
             Save(setup.remote); Save(setup);
+        }
+        public static bool AssignDefaultSummonObject(RemoteSetup setup)
+        {
+            if (!InScene(setup) || setup.remote == null) return false;
+            var remote = setup.remote;
+            // Keep the user's explicit choice, including objects outside the playlist system.
+            if (remote.tabletToSummon != null && remote.tabletToSummon != setup.autoSummonObject) return false;
+            var view = setup.playlist != null ? setup.playlist : Ref(remote.playlistTarget, "view") as Component;
+            var adapter = Ref(view, "adapter");
+            var player = setup.player != null ? setup.player : Ref(adapter as Component, "player") as Component;
+            var tabletType = Resolve("aki_lua87.CommonVideoPlaylist.PlaylistTabletTouch");
+            Component tablet = null;
+            if (tabletType != null && (adapter != null || player != null))
+            {
+                var candidates = UnityEngine.Object.FindObjectsOfType(tabletType, true).OfType<Component>()
+                    .Where(t => t.gameObject.scene == setup.gameObject.scene && t.GetComponentsInChildren<Component>(true).Any(c =>
+                        c != null && c.GetType().FullName == ViewType &&
+                        (adapter != null ? Ref(c, "adapter") == adapter : Ref(Ref(c, "adapter") as Component, "player") == player))).ToArray();
+                // Use the selected tablet's ancestor or existing bridge before choosing a sole match.
+                if (view != null) tablet = candidates.FirstOrDefault(t => view.transform.IsChildOf(t.transform));
+                var linked = Ref(remote.playlistTarget, "tablet") as Component;
+                if (tablet == null && linked != null && candidates.Contains(linked)) tablet = linked;
+                if (tablet == null && candidates.Length == 1) tablet = candidates[0];
+            }
+            var selected = tablet == null ? null : tablet.transform;
+            if (remote.tabletToSummon == selected && setup.autoSummonObject == selected) return false;
+            Undo.RecordObjects(new UnityEngine.Object[] { setup, remote }, "Set default summoned object");
+            remote.tabletToSummon = selected;
+            setup.autoSummonObject = selected;
+            Save(remote); Save(setup);
+            return true;
+        }
+        public static void ConfigureNativePlaylist(RemoteSetup setup)
+        {
+            var target = setup.remote == null ? null : setup.remote.playerTarget;
+            if (target == null) return;
+            var field = target.GetType().GetField("nativePlaylist"); if (field == null) return;
+            string owner = target.GetType().Name == "IwaSyncRemoteTarget" ? "core" : target.GetType().Name == "KinelRemoteTarget" ? "videoPlayer" : "tv";
+            var candidates = UnityEngine.Object.FindObjectsOfType(field.FieldType, true).OfType<Component>().Where(c => c.gameObject.scene == setup.gameObject.scene && Ref(c, owner) == setup.player).ToArray();
+            var selected = setup.nativePlaylist;
+            if (selected != null && !candidates.Contains(selected)) selected = null;
+            if (selected == null && candidates.Length == 1) selected = candidates[0];
+            Undo.RecordObjects(new UnityEngine.Object[] { setup, target }, "Connect native playlist");
+            setup.nativePlaylist = selected; field.SetValue(target, selected == null ? null : selected);
+            if (target.GetType().Name == "KinelRemoteTarget")
+                target.GetType().GetField("nativeVideoCount").SetValue(target, selected == null ? 0 : new SerializedObject(selected).FindProperty("urls").arraySize);
+            if (target.GetType().Name == "IwaSyncRemoteTarget")
+            {
+                var so = selected == null ? null : new SerializedObject(selected);
+                var buttons = so?.FindProperty("_content_buttons"); var urls = so?.FindProperty("_content_urls");
+                target.GetType().GetField("nativeButtons").SetValue(target, buttons == null ? new Button[0] : Enumerable.Range(0, buttons.arraySize).Select(i => buttons.GetArrayElementAtIndex(i).objectReferenceValue as Button).ToArray());
+                target.GetType().GetField("nativeUrls").SetValue(target, urls == null ? new VRC.SDKBase.VRCUrl[0] : Enumerable.Range(0, urls.arraySize).Select(i => new VRC.SDKBase.VRCUrl(urls.GetArrayElementAtIndex(i).FindPropertyRelative("url").stringValue)).ToArray());
+            }
+            Save(target); Save(setup);
         }
         public static void DetectOutputs(RemoteTarget target, Component player, int kind)
         {

@@ -14,6 +14,28 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
     {
         public const string PrefabPath = "Assets/aki_lua87/AVEC/Prefabs/CommonVideoPlaylistTablet.prefab";
 
+        // Narrow migration: retain the screen, its layout and every data/connection override.
+        public static void RefreshShape(PlaylistTabletTouch tablet)
+        {
+            if (tablet == null) return;
+            if (tablet.surface != null)
+                foreach (var collider in tablet.surface.GetComponents<Collider>())
+                {
+                    Undo.RecordObject(collider.gameObject, "Nonblocking tablet screen");
+                    collider.gameObject.layer = 13;
+                    PlaylistConnections.Save(collider.gameObject);
+                }
+            foreach (string name in new[] { "Left grip", "Right grip", "Top grip", "Bottom grip" })
+            {
+                var grip = tablet.transform.Find(name);
+                if (grip == null) continue;
+                var renderer = grip.GetComponent<Renderer>();
+                if (renderer != null) { Undo.RecordObject(renderer, "Rectangular tablet frame"); renderer.enabled = false; PlaylistConnections.Save(renderer); }
+                var collider = grip.GetComponent<Collider>();
+                if (collider != null) { Undo.RecordObject(collider, "Nonblocking tablet frame"); collider.enabled = false; PlaylistConnections.Save(collider); }
+            }
+        }
+
         [MenuItem("Tools/AVEC/Playlist/Create Handheld Copy of Selected Playlist")]
         public static void CreateSelected()
         {
@@ -63,10 +85,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             backCollider.center = new Vector3(0, 0, .0035f);
             backCollider.size = new Vector3(.342f, height + .022f, .005f);
             AddFrame(root.transform, "Back", new Vector3(0, 0, .0035f), new Vector3(.342f, height + .022f, .005f));
-            AddFrame(root.transform, "Left grip", new Vector3(-.168f, 0, .003f), new Vector3(.016f, height + .022f, .006f));
-            AddFrame(root.transform, "Right grip", new Vector3(.168f, 0, .003f), new Vector3(.016f, height + .022f, .006f));
-            AddFrame(root.transform, "Top grip", new Vector3(0, height * .5f + .007f, .003f), new Vector3(.32f, .014f, .006f));
-            AddFrame(root.transform, "Bottom grip", new Vector3(0, -height * .5f - .007f, .003f), new Vector3(.32f, .014f, .006f));
+            // UIShape's collider must share the Pickup layer; Default blocks locomotion.
+            foreach (var collider in clone.GetComponentsInChildren<Collider>(true)) collider.gameObject.layer = 13;
             foreach (var proxy in clone.GetComponentsInChildren<UdonSharp.UdonSharpBehaviour>(true))
                 UdonSharpEditorUtility.CopyProxyToUdon(proxy);
             RefreshBindings(setup);

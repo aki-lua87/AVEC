@@ -19,8 +19,10 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || view == null || view.titleSourceUrls == null || tab < 0 || tab >= view.titleSourceUrls.Length || VRCUrl.IsNullOrEmpty(view.titleSourceUrls[tab])) return;
             if (titleRequests == null) { titleRequests = new bool[view.titleSourceUrls.Length]; nextTitleRequests = new float[view.titleSourceUrls.Length]; originalTitles = (string[])view.titles.Clone(); }
             if (titleRequests[tab] || Time.realtimeSinceStartup < nextTitleRequests[tab]) return;
+            if (view.loadingTabs == null) view.loadingTabs = new bool[view.titleSourceUrls.Length];
+            view.loadingTabs[tab] = true; view._RefreshTabInfo();
             titleRequests[tab] = true; nextTitleRequests[tab] = Time.realtimeSinceStartup + 5f;
-            VRCStringDownloader.LoadUrl(view.titleSourceUrls[tab], this);
+            VRCStringDownloader.LoadUrl(view.titleSourceUrls[tab], (VRC.Udon.Common.Interfaces.IUdonEventReceiver)this);
         }
         public override void OnStringLoadSuccess(IVRCStringDownload result)
         {
@@ -37,14 +39,16 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist
             if (titleRequests == null || VRCUrl.IsNullOrEmpty(source)) return;
             DataToken root = new DataToken();
             DataToken list = new DataToken();
+            DataToken urls = new DataToken();
             bool valid = string.IsNullOrEmpty(error) && VRCJson.TryDeserializeFromJson(json, out root);
-            if (valid) valid = root.TokenType == TokenType.DataDictionary && root.DataDictionary.TryGetValue("titles", TokenType.DataList, out list);
+            if (valid) valid = root.TokenType == TokenType.DataDictionary && root.DataDictionary.TryGetValue("titles", TokenType.DataList, out list) && root.DataDictionary.TryGetValue("urls", TokenType.DataList, out urls) && list.DataList.Count == urls.DataList.Count;
             if (valid)
             {
                 for (int i = 0; i < list.DataList.Count; i++)
                 {
                     DataToken item;
-                    if (!list.DataList.TryGetValue(i, TokenType.String, out item)) { valid = false; break; }
+                    DataToken url;
+                    if (!urls.DataList.TryGetValue(i, TokenType.String, out url) || (!url.String.StartsWith("https://") && !url.String.StartsWith("http://")) || !list.DataList.TryGetValue(i, TokenType.String, out item)) { valid = false; break; }
                 }
             }
             for (int tab = 0; tab < titleRequests.Length; tab++)
@@ -53,6 +57,8 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist
                 titleRequests[tab] = false;
                 if (!valid)
                 {
+                    if (view.loadingTabs != null) view.loadingTabs[tab] = false;
+                    view._RefreshTabInfo();
                     Debug.LogWarning("[CVP] Title download failed: " + source.Get() + " " + error);
                     if (view._SelectedTab() == tab) view._SequenceStatus("タイトルを取得できませんでした。タブを再選択して再試行してください（Allow Untrusted URLsを確認）。");
                     continue;
@@ -67,10 +73,13 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist
                     if (view.hiddenEntries == null || view.hiddenEntries.Length != view.titles.Length) view.hiddenEntries = new bool[view.titles.Length];
                     view.hiddenEntries[i] = position >= list.DataList.Count || string.IsNullOrEmpty(list.DataList[position].String);
                     if (position < list.DataList.Count && !string.IsNullOrEmpty(list.DataList[position].String)) title = list.DataList[position].String;
+                    if (view.resolvedUrls == null || view.resolvedUrls.Length != view.titles.Length) view.resolvedUrls = new string[view.titles.Length];
+                    view.resolvedUrls[i] = position < urls.DataList.Count ? urls.DataList[position].String : "";
                     view.titles[i] = title;
                     if (i < view.videoLabels.Length && view.videoLabels[i] != null) view.videoLabels[i].text = title;
                 }
-                view._RefreshVisibleEntries();
+                if (view.loadingTabs != null) view.loadingTabs[tab] = false;
+                view._RefreshTabInfo(); view._RefreshVisibleEntries();
             }
         }
 

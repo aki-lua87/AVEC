@@ -24,7 +24,7 @@ namespace aki_lua87.CommonVideoPlaylist
             label.rectTransform.anchorMax = Vector2.one;
             label.rectTransform.offsetMin = label.rectTransform.offsetMax = Vector2.zero;
             label.resizeTextForBestFit = true;
-            label.resizeTextMinSize = Mathf.Min(14, Mathf.Max(1, label.fontSize));
+            label.resizeTextMinSize = Mathf.Min(9, Mathf.Max(1, label.fontSize));
             label.resizeTextMaxSize = Mathf.Max(1, label.fontSize);
             label.horizontalOverflow = HorizontalWrapMode.Wrap;
             label.verticalOverflow = VerticalWrapMode.Truncate;

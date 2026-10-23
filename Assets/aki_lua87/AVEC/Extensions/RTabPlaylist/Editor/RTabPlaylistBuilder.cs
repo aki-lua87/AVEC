@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -59,14 +59,14 @@ namespace aki_lua87.AVEC.Extensions.RTabPlaylist.Editor
                 UnityEngine.Object.DestroyImmediate(resolver);
                 if (backing != null) UnityEngine.Object.DestroyImmediate(backing);
             }
-            setup.yttlManager = null;
+            setup.titleMetadataSource = null;
             setup.player = null; setup.playerKind = "";
             setup.view.adapter = null; setup.view.userTitleResolver = null;
             setup.view.audioLinks = new VRC.Udon.UdonBehaviour[0];
             setup.view.connectedAudioSources = new AudioSource[0];
             setup.view.audioLinkInstalled = false;
             setup.view.connectionName = "";
-            if (setup.view.connectionLabel != null) setup.view.connectionLabel.text = "YamaPlayer: 未接続";
+            if (setup.view.connectionLabel != null) setup.view.connectionLabel.text = "connnect: 未接続";
             if (setup.view.audioLinkLabel != null) setup.view.audioLinkLabel.text = "AudioLink: 未接続";
             FitScreen(screen.GetComponent<RectTransform>());
             app.view = setup.view;

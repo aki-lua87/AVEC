@@ -11,6 +11,7 @@ namespace aki_lua87.CommonVideoPlaylist
     [Serializable] public class PlaylistTab
     {
         public string name = "New tab";
+        [TextArea(2, 4)] public string description = "";
         public bool randomPlayback;
         [Tooltip("タイトル取得用の目次URL。空欄なら取得しません。")]
         public string titleSourceUrl = "";

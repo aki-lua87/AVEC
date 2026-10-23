@@ -8,10 +8,14 @@ namespace aki_lua87.CommonGestureRemote
     public class PlaylistRemoteTarget : RemoteTarget
     {
         public PlaylistView view;
+        public PlaylistTabletTouch tablet;
+        public override bool _CanStep() { return _Ready() && view.urls != null && view.urls.Length > 0; }
         public override bool _Ready() { return view != null && view.adapter != null && view.adapter._Available(); }
         public override int _Execute(int action, float amount)
         {
-            if (NetworkCalling.InNetworkCall || !_Ready()) return 0;
+            if (NetworkCalling.InNetworkCall) return 0;
+            if (action == 23) return tablet == null ? 4 : tablet._Summon();
+            if (!_Ready()) return 0;
             if (action == 1 || action == 2) return view.adapter._StepVideo(view, action == 1 ? 1 : -1);
             if (action == 9) return view.adapter._TogglePlaybackMode(view, view._SelectedTab());
             if (action == 16) return view.adapter._ToggleRepeat();
