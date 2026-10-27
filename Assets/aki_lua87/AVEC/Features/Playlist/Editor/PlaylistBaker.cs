@@ -125,6 +125,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         static void ApplyDataCore(PlaylistSetup setup)
         {
             ValidateDataRows(setup);
+            PlaylistVirtualization.Ensure(setup.view);
             var data = new Data(setup.data); var view = setup.view;
             if (data.Matches(view)) return;
             RecordUdon(view);
@@ -167,6 +168,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             view.titleSourceUrls = data.sources.ToArray(); view.dynamicTitleIndices = data.indices.ToArray();
             view.tabImages = tabRows.ToArray(); view.videoImages = videoRows.ToArray(); view.videoLabels = labels.ToArray();
             view.videoProgress = progress.ToArray();
+            PlaylistVirtualization.Ensure(view);
             if (structureChanged)
             {
                 view.queueAddButtons = setup.GetComponentsInChildren<PlaylistButton>(true).Where(b => b.enqueue).Select(b => b.gameObject).ToArray();
@@ -227,12 +229,12 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 }
             var view = setup.view;
             PlaylistQueueUI.Ensure(setup);
-            PlaylistConnections.RefreshAudioLinkStatus(setup);
             view.tabDescriptions = descriptions.ToArray();
             view.tabNames = names.ToArray(); view.videoTabs = tabs.ToArray(); view.titles = titles.ToArray(); view.urls = urls.ToArray();
             view.randomTabs = randomTabs.ToArray();
             view.tabImages = tabImages.ToArray(); view.videoImages = videoImages.ToArray();
             view.titleSourceUrls = titleSources.ToArray(); view.dynamicTitleIndices = titleIndices.ToArray(); view.videoLabels = labels.ToArray();
+            PlaylistVirtualization.Ensure(view);
             PlaylistEnhancements.Apply(setup);
             PlaylistPresentation.Apply(setup);
             PlaylistQueueUI.RefreshLongTitleClipping(view);
@@ -297,13 +299,14 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         }
         public static void BakeLoaded()
         {
+            PlaylistRemoteToggle.EnsureLoaded();
             foreach (var setup in UnityEngine.Object.FindObjectsOfType<PlaylistSetup>(true))
                 if (setup.gameObject.scene.IsValid() && PrefabStageUtility.GetPrefabStage(setup.gameObject) == null)
                 {
                     PlaylistConnections.AutoConnect(setup);
+                    PlaylistControlTips.Ensure(setup);
                     if (setup.player != null && PlaylistConnections.Validate(setup) != null) PlaylistConnections.Connect(setup, setup.player);
                     if (setup.view != null) RecordUdon(setup.view);
-                    PlaylistConnections.RefreshAudioLinkStatus(setup);
                     ApplyData(setup, false);
                 }
         }

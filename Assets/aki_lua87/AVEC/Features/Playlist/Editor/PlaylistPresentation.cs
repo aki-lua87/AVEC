@@ -20,7 +20,9 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 var scaler = canvas.GetComponent<CanvasScaler>();
                 if (scaler == null) scaler = Undo.AddComponent<CanvasScaler>(canvas.gameObject);
                 Undo.RecordObject(scaler, "Sharper playlist text");
-                scaler.dynamicPixelsPerUnit = Mathf.Max(4f, scaler.dynamicPixelsPerUnit);
+                // 4x plus Best Fit exhausts the shared legacy-font atlas on long Japanese lists.
+                // Keep 2x sampling without changing authored text sizes or row geometry.
+                scaler.dynamicPixelsPerUnit = 2f;
                 PlaylistConnections.Save(scaler);
             }
             foreach (var text in setup.GetComponentsInChildren<Text>(true)) {
@@ -99,7 +101,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 viewport = new GameObject("List viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D), typeof(ScrollRect)).GetComponent<RectTransform>();
                 Undo.RegisterCreatedObjectUndo(viewport.gameObject, "Scrollable playlist list"); viewport.SetParent(panel.transform, false);
                 var first = rows[0].GetComponent<RectTransform>();
-                float top = history ? 6f : Mathf.Max(0, -first.anchoredPosition.y);
+                float top = history || user ? 6f : Mathf.Max(0, -first.anchoredPosition.y);
                 viewport.anchorMin = Vector2.zero; viewport.anchorMax = Vector2.one;
                 viewport.offsetMin = new Vector2(8, 6); viewport.offsetMax = new Vector2(-8, -top);
                 viewport.GetComponent<Image>().color = new Color(0, 0, 0, 0);

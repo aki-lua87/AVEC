@@ -9,12 +9,13 @@ namespace aki_lua87.AVEC.Editor
     public sealed class ConnectorDefinition
     {
         public string Id, DisplayName, PlayerType, PlaylistAdapterType, RemoteTargetType;
+        // Compatibility is tied to the native API major, not the installed package's latest version.
+        public string SupportedMajorVersion;
         public int Order;
         public string AuthorityField;
         public Func<Component, Component> ResolveAuthority;
         public Action<Component, Component> ConfigurePlaylist, ConfigureRemote;
         public Action<Component, Component> DiscoverRemoteOutputs;
-        public Func<Component, AudioSource[]> AudioSources;
         public Func<Component, Component, string> ValidatePlaylist;
         public Component Authority(Component player)
         {

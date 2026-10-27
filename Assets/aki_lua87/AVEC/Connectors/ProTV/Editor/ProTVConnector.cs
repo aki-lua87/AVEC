@@ -11,7 +11,7 @@ namespace aki_lua87.AVEC.Connectors.Editor
     public static class ProTVConnector
     {
         static ProTVConnector() => ConnectorRegistry.Register(new ConnectorDefinition {
-            Id = "ProTV", DisplayName = "ProTV", Order = 4,
+            Id = "ProTV", DisplayName = "ProTV V3", SupportedMajorVersion = "3", Order = 4,
             PlayerType = "ArchiTech.ProTV.TVManager",
             PlaylistAdapterType = "aki_lua87.CommonVideoPlaylist.ProTVAdapter",
             RemoteTargetType = "aki_lua87.CommonGestureRemote.ProTVRemoteTarget",
@@ -24,7 +24,6 @@ namespace aki_lua87.AVEC.Connectors.Editor
                 return null;
             },
             DiscoverRemoteOutputs = DiscoverOutputs,
-            AudioSources = AudioSources
         });
 
         static void ConfigurePlaylist(Component adapter, Component player)
@@ -64,11 +63,6 @@ namespace aki_lua87.AVEC.Connectors.Editor
             var property = new SerializedObject(component).FindProperty(field);
             if (property == null || !property.isArray) yield break;
             for (int i = 0; i < property.arraySize; i++) yield return property.GetArrayElementAtIndex(i).objectReferenceValue;
-        }
-        public static AudioSource[] AudioSources(Component player)
-        {
-            return Managers(player).SelectMany(m => References(m, "spatialSpeakers").Concat(References(m, "stereoSpeakers")))
-                .OfType<AudioSource>().Distinct().ToArray();
         }
         static void DiscoverOutputs(Component target, Component player)
         {

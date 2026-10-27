@@ -6,13 +6,13 @@ YTTL本体は同梱しません。現在の実装はVizVid同梱の`VVMW.ThirdPa
 
 ## 導入と接続
 
-1. AVEC-Core / AVEC-Playlistと、利用するプレイヤー用Playlist Connectorを導入します。
+1. AVEC-Core（Playlist・リモコンを含む）と、利用するプレイヤー用Connectorを導入します。
 2. VizVid同梱のYTTLが利用できるプロジェクトに限り、`AVEC-Extension-YttlTitles`を追加します。
 3. 同じシーンへVizVid付属の`YTTL Manager.prefab`を配置します。
 4. PlaylistSetupの「YTTLタイトル取得（拡張）」でManagerを指定します。1件だけなら「シーン内のYTTLを接続」も利用できます。
 5. 既存設定の確認・更新には「YTTL接続を適用」を使います。UI全体の再生成は不要です。
 
-再生するプレイヤーはVizVidに限定しません。YTTL用にAVEC-Connector-VizVid-Playlistを導入する必要もありません。
+再生するプレイヤーはVizVidに限定しません。YTTL用にAVEC-Connector-VizVidを導入する必要もありません。
 拡張を入れない場合、基本プレイリストにYTTL設定は表示されず、URL追加・保存・選択再生・削除は引き続き利用できます。
 取得失敗・未対応URL・未接続の場合はURLを表示します。取得済みのタイトルは通常のユーザーリストデータとして保存されます。
 DynamicPlaylistのサーバーからのタイトル取得は別機能で、この拡張を必要としません。
@@ -30,7 +30,7 @@ UnityPackageの更新だけでは旧版に含まれたアセットは削除さ�
 
 ## 配布と手動確認
 
-`Tools > Common Assets > Release Builder`の`AVEC-Extension-YttlTitles`で個別出力できます。
+`Tools > AVEC > Release Builder`の`AVEC-Extension-YttlTitles`で個別出力できます。
 基本のPlaylistやVizVid Connectorには、この拡張の実装・Programを収録しません。
 
 - 拡張なし: YTTLなしのプロジェクトでコンパイルし、URL追加・保存・選択再生・削除を確認。
@@ -39,3 +39,5 @@ UnityPackageの更新だけでは旧版に含まれたアセットは削除さ�
 
 YTTL本体・ネイティブプレイヤーのソースやPrefabは変更・再配布しません。
 配布元の現状や将来の可用性に依存しない基本機能を維持し、この拡張は既に必要な依存関係を導入済みの環境向けに提供します。
+
+`VizVidPlaylistTitles`の名前は旧VizVid Connectorからの移動と、VizVid同梱のYTTL API（`VVMW.ThirdParties.Yttl`）を使用することに由来します。接続する動画プレイヤーはVizVidに限定されません。既存シーンとの参照互換性のためスクリプト名を維持しています。

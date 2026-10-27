@@ -1,0 +1,5 @@
+{
+  "name": "CommonGestureRemote.KineLV3",
+  "references": ["CommonGestureRemote.Runtime", "Kinel.VideoPlayer.V3.Udon", "UdonSharp.Runtime", "VRC.Udon"],
+  "autoReferenced": true
+}

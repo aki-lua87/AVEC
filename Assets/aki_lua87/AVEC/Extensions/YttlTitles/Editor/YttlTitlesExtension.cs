@@ -78,7 +78,6 @@ namespace aki_lua87.AVEC.Extensions.YttlTitles.Editor
                 }
             }
             if (setup.titleMetadataSource != null && GUILayout.Button("YTTL接続を適用")) TryConfigure(setup);
-            EditorGUILayout.HelpBox("ユーザーリストへURLを追加した時にタイトルを取得します。未接続・取得失敗時はURLで利用できます。", MessageType.Info);
         }
 
         static void TryConfigure(PlaylistSetup setup)

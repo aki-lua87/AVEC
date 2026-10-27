@@ -19,6 +19,9 @@ namespace aki_lua87.CommonVideoPlaylist
         public Color accent = new Color(.216f, .765f, .906f);
         public Color text = new Color(.941f, .965f, .980f);
         public Color mutedText = new Color(.639f, .714f, .769f);
+        // Multipliers for UI Button transitions; defaults preserve existing themes.
+        public Color buttonHighlightTint = new Color(.85f, .95f, 1f);
+        public Color buttonPressedTint = new Color(.65f, .75f, .8f);
     }
 
     [System.Serializable]

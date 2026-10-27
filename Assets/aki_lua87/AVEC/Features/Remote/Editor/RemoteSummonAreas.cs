@@ -7,7 +7,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
 {
     public static class RemoteSummonAreas
     {
-        // Included automatically in AVEC-Remote through its Features/Remote folder.
+        // Included automatically in AVEC-Core through its Features/Remote folder.
         public const string PrefabPath = RemoteFactory.Root + "/Samples/RemoteSummonArea.prefab";
 
         public static string Validate(GestureRemote remote)

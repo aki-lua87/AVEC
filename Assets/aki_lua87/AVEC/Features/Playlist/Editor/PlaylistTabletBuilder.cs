@@ -12,7 +12,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
 {
     public static class PlaylistTabletBuilder
     {
-        public const string PrefabPath = "Assets/aki_lua87/AVEC/Prefabs/CommonVideoPlaylistTablet.prefab";
+
 
         // Narrow migration: retain the screen, its layout and every data/connection override.
         public static void RefreshShape(PlaylistTabletTouch tablet)
@@ -34,117 +34,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 var collider = grip.GetComponent<Collider>();
                 if (collider != null) { Undo.RecordObject(collider, "Nonblocking tablet frame"); collider.enabled = false; PlaylistConnections.Save(collider); }
             }
-        }
-
-        [MenuItem("Tools/AVEC/Playlist/Create Handheld Copy of Selected Playlist")]
-        public static void CreateSelected()
-        {
-            var source = Selection.activeGameObject == null ? null : Selection.activeGameObject.GetComponentInParent<PlaylistSetup>();
-            if (source == null || !PlaylistConnections.CanConnect(source))
-            {
-                Debug.LogWarning("[CVP] シーン内のPlaylistSetupを選択してください。");
-                return;
-            }
-            Selection.activeGameObject = Create(source);
-        }
-
-        // Copies the current in-memory UI, including authored layouts, data and connections.
-        // Never bakes, rethemes or applies overrides to the wall-mounted source.
-        public static GameObject Create(PlaylistSetup source, bool connect = true)
-        {
-            Undo.IncrementCurrentGroup();
-            int group = Undo.GetCurrentGroup();
-            Undo.SetCurrentGroupName("Create handheld playlist");
-            var root = new GameObject("CommonVideoPlaylist Tablet");
-            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(root, source.gameObject.scene);
-            Undo.RegisterCreatedObjectUndo(root, "Create handheld playlist");
-            root.transform.SetParent(source.transform.parent, true);
-            root.transform.SetPositionAndRotation(source.transform.position + source.transform.right * .85f - source.transform.up * .1f, source.transform.rotation);
-            root.layer = 13; // Pickup; Canvas keeps its authored UI layer.
-            var body = Undo.AddComponent<Rigidbody>(root);
-            body.useGravity = false; body.isKinematic = true; body.mass = .5f;
-            var backCollider = Undo.AddComponent<BoxCollider>(root);
-            var pickup = Undo.AddComponent<VRC.SDK3.Components.VRCPickup>(root);
-            pickup.AutoHold = VRC.SDKBase.VRC_Pickup.AutoHoldMode.No;
-            pickup.orientation = VRC.SDKBase.VRC_Pickup.PickupOrientation.Any;
-            pickup.proximity = .6f;
-            pickup.InteractionText = "タブレットを持つ";
-            pickup.DisallowTheft = true;
-            var clone = UnityEngine.Object.Instantiate(source.gameObject, root.transform, false);
-            clone.name = "Playlist Screen";
-            clone.transform.localPosition = Vector3.zero;
-            clone.transform.localRotation = Quaternion.identity;
-            var rect = clone.GetComponent<RectTransform>();
-            float scale = .32f / rect.rect.width;
-            clone.transform.localScale = Vector3.one * scale;
-            var setup = clone.GetComponent<PlaylistSetup>();
-            // RectTransform scale changes only; all child layout, fonts and colors survive.
-            var touch = root.AddUdonSharpComponent<PlaylistTabletTouch>();
-            touch.surface = rect; touch.pickup = pickup;
-            float height = rect.rect.height * scale;
-            backCollider.center = new Vector3(0, 0, .0035f);
-            backCollider.size = new Vector3(.342f, height + .022f, .005f);
-            AddFrame(root.transform, "Back", new Vector3(0, 0, .0035f), new Vector3(.342f, height + .022f, .005f));
-            // UIShape's collider must share the Pickup layer; Default blocks locomotion.
-            foreach (var collider in clone.GetComponentsInChildren<Collider>(true)) collider.gameObject.layer = 13;
-            foreach (var proxy in clone.GetComponentsInChildren<UdonSharp.UdonSharpBehaviour>(true))
-                UdonSharpEditorUtility.CopyProxyToUdon(proxy);
-            RefreshBindings(setup);
-            if (connect && setup.player != null) PlaylistConnections.Connect(setup, setup.player);
-            EditorSceneManager.MarkSceneDirty(root.scene);
-            Undo.CollapseUndoOperations(group);
-            return root;
-        }
-
-        static void AddFrame(Transform parent, string name, Vector3 position, Vector3 size)
-        {
-            var frame = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            frame.name = name; frame.layer = 13;
-            frame.transform.SetParent(parent, false);
-            frame.transform.localPosition = position; frame.transform.localScale = size;
-            frame.GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            frame.GetComponent<Renderer>().receiveShadows = false;
-            frame.GetComponent<Renderer>().sharedMaterial = FrameMaterial();
-            if (name == "Back") frame.GetComponent<Collider>().enabled = false;
-        }
-
-        static Material FrameMaterial()
-        {
-            const string folder = "Assets/aki_lua87/AVEC/Features/Playlist/Materials";
-            const string path = folder + "/TabletFrame.mat";
-            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
-            if (material != null) return material;
-            if (!AssetDatabase.IsValidFolder(folder)) AssetDatabase.CreateFolder(PlaylistFactory.Root, "Materials");
-            material = new Material(Shader.Find("Unlit/Color"));
-            material.color = new Color(.035f, .04f, .05f);
-            AssetDatabase.CreateAsset(material, path);
-            return material;
-        }
-
-        [MenuItem("Tools/AVEC/Playlist/Create Handheld Prefab")]
-        public static void CreatePrefab()
-        {
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath) != null)
-            {
-                Debug.Log("[CVP] Existing handheld prefab preserved."); return;
-            }
-            var preview = EditorSceneManager.NewPreviewScene();
-            try
-            {
-                var source = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(PlaylistFactory.PrefabPath), preview);
-                var tablet = Create(source.GetComponent<PlaylistSetup>(), false);
-                tablet.transform.SetParent(null, false);
-                tablet.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
-                PrefabUtility.SaveAsPrefabAsset(tablet, PrefabPath);
-            }
-            finally { EditorApplication.delayCall += () => EditorSceneManager.ClosePreviewScene(preview); }
-        }
-
-        [MenuItem("CONTEXT/PlaylistTabletTouch/Refresh Touch Bindings")]
-        static void RefreshSelectedBindings(MenuCommand command)
-        {
-            var touch = (PlaylistTabletTouch)command.context;
-            if (touch.surface != null) RefreshBindings(touch.surface.GetComponent<PlaylistSetup>());
         }
 
         public static void RefreshBindings(PlaylistSetup setup)

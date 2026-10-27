@@ -94,7 +94,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 float right = mode == null ? root.rect.width - 24 : mode.anchoredPosition.x - 12;
                 Place(label.rectTransform, x, -rect.anchoredPosition.y, Mathf.Max(100, right - x), rect.rect.height);
                 label.alignment = TextAnchor.LowerLeft;
-                label.text = "connnect: " + (view.adapter == null || string.IsNullOrEmpty(view.connectionName) ? "未接続" : view.connectionName);
+                label.text = "接続先: " + (view.adapter == null || string.IsNullOrEmpty(view.connectionName) ? "未接続" : view.connectionName);
                 float bottomOffset = TextBottomIn(root, title) - TextBottomIn(root, label);
                 label.rectTransform.position += root.TransformVector(Vector3.up * bottomOffset);
                 PlaylistConnections.Save(label.rectTransform);
@@ -217,6 +217,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             setup.view.normalColor=theme.button; setup.view.selectedColor=theme.selected; setup.view.accentColor=theme.accent;setup.view.iconColor=theme.text;
             foreach (var image in setup.GetComponentsInChildren<Image>(true))
             {
+                if (view.controlTip != null && image.transform.IsChildOf(view.controlTip)) continue;
                 PlaylistUndo.RecordObject(image,"Apply playlist theme");
                 string name=image.name;
                 bool selected = image.color == oldSelected && (System.Array.IndexOf(view.tabImages, image) >= 0 ||
@@ -230,8 +231,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 else image.color=selected?theme.selected:theme.button;
                 PlaylistConnections.Save(image);
             }
-            foreach(var text in setup.GetComponentsInChildren<Text>(true)) { PlaylistUndo.RecordObject(text,"Apply playlist theme"); text.color=text==setup.view.status||text==setup.view.volumeLabel?theme.mutedText:theme.text;PlaylistConnections.Save(text); }
-            var colors=ColorBlock.defaultColorBlock; colors.normalColor=Color.white; colors.highlightedColor=new Color(.85f,.95f,1f); colors.pressedColor=new Color(.65f,.75f,.8f); colors.selectedColor=Color.white;
+            foreach(var text in setup.GetComponentsInChildren<Text>(true)) { if(view.controlTip != null && text.transform.IsChildOf(view.controlTip)) continue; PlaylistUndo.RecordObject(text,"Apply playlist theme"); text.color=text==setup.view.status||text==setup.view.volumeLabel?theme.mutedText:theme.text;PlaylistConnections.Save(text); }
+            var colors=ColorBlock.defaultColorBlock; colors.normalColor=Color.white; colors.highlightedColor=theme.buttonHighlightTint; colors.pressedColor=theme.buttonPressedTint; colors.selectedColor=Color.white;
             foreach(var button in setup.GetComponentsInChildren<Button>(true)) { PlaylistUndo.RecordObject(button,"Apply playlist theme"); button.colors=colors;PlaylistConnections.Save(button); }
             PlaylistThemeGraphics.ApplyNew(setup);
             PlaylistQueueUI.RefreshQueueControlLayout(setup.view);
@@ -352,16 +353,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             PlaylistUndo.RecordObject(view, "Update connected player label");
             PlaylistUndo.RecordObject(view.connectionLabel, "Update connected player label");
             view.connectionName = destination;
-            view.connectionLabel.text = "connnect: " + (setup.player == null || view.adapter == null ? "未接続" : destination);
+            view.connectionLabel.text = "接続先: " + (setup.player == null || view.adapter == null ? "未接続" : destination);
             PlaylistConnections.Save(view.connectionLabel); PlaylistConnections.Save(view);
-            if (view.audioLinkLabel == null) {
-                view.audioLinkLabel = Text(setup.transform, "AudioLink status", "AudioLink: 未導入", 14);
-                PlaylistUndo.RegisterCreatedObjectUndo(view.audioLinkLabel.gameObject, "Add AudioLink status label");
-                Place(view.audioLinkLabel.rectTransform, 310, 40, 500, 20);
-                view.audioLinkLabel.alignment = TextAnchor.MiddleRight;
-                view.audioLinkLabel.color = setup.theme == null ? view.iconColor : setup.theme.mutedText;
-            }
-            PlaylistConnections.RefreshAudioLinkStatus(setup);
             UpdateHeaderPresentation(view);
         }
         static Image IconButton(PlaylistView view,string name,string icon,string method,float x,float y)
@@ -384,7 +377,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         {
             EditorGUI.BeginChangeCheck();DrawDefaultInspector();
             bool changed = EditorGUI.EndChangeCheck();
-            if (((PlaylistTheme)target).outlineOnly) EditorGUILayout.HelpBox("背景・パネル・ボタンの内側は透過し、各色は枠線に使います。文字・アイコン・進捗線は表示します。", MessageType.Info);
             if(!changed||EditorApplication.isPlayingOrWillChangePlaymode)return;
             foreach(var setup in Object.FindObjectsOfType<PlaylistSetup>(true))if(setup.theme==target)PlaylistAppearance.ApplyTheme(setup);
         }

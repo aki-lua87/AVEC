@@ -206,9 +206,6 @@ VRChat Worlds SDK / UdonSharp:
 https://creators.vrchat.com/sdk/
 SDK license: https://hello.vrchat.com/legal/sdk
 
-AudioLink (optional): https://github.com/llealloo/audiolink
-AVEC detects and connects to an existing installation; AudioLink is not bundled.
-
 YTTL (optional AVEC-Extension-YttlTitles, using VizVid-bundled YTTL): https://65536.booth.pm/items/4588619
 The installed YTTL source identifies its license as CC0. AVEC calls its
 LoadData API and receives metadata callbacks; YTTL itself is not bundled.

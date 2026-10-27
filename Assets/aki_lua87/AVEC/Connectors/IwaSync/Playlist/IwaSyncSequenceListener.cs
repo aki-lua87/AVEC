@@ -8,6 +8,8 @@ namespace aki_lua87.CommonVideoPlaylist
     public class IwaSyncSequenceListener : VideoCoreEventListener
     {
         public IwaSyncAdapter adapter;
+        public override void OnPlayerPause() { if (adapter != null) adapter._NotifyLocalStateChanged(); }
+        public override void OnPlayerPlay() { if (adapter != null) adapter._NotifyLocalStateChanged(); }
         public override void OnVideoStart() { if (adapter != null) adapter._NativeStarted(); }
         public override void OnVideoReady() { if (adapter != null) adapter._NativeStarted(); }
         public override void OnVideoEnd() { if (adapter != null) adapter._NativeEnded(); }

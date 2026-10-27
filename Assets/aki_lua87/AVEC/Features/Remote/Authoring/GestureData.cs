@@ -34,7 +34,7 @@ namespace aki_lua87.CommonGestureRemote
             new GestureBinding { gesture = "←↓←", label = "シャッフル再生に設定", action = RemoteAction.ShufflePlayback },
             new GestureBinding { gesture = "↑←↓", label = "現在の動画を初めから再生", action = RemoteAction.Restart },
             new GestureBinding { gesture = "↑→↓", label = "呼び出し ON/OFF", action = RemoteAction.SummonToggle },
-            new GestureBinding { gesture = "↓←↑", label = "タブレットを呼び出す", action = RemoteAction.SummonTablet }
+            new GestureBinding { gesture = "↓←↑", label = "登録オブジェクトを呼び出す", action = RemoteAction.SummonTablet }
         };
     }
 }

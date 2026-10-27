@@ -94,44 +94,6 @@ namespace aki_lua87.CommonGestureRemote.Editor
             foreach (var setup in Object.FindObjectsOfType<GestureGuideSetup>(true))
                 if (data == null || setup.data == data) Refresh(setup);
         }
-        [MenuItem("Tools/AVEC/Remote/Create Gesture Guide Prefab")]
-        public static void CreatePrefab()
-        {
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath) != null) return;
-            if (!AssetDatabase.IsValidFolder(aki_lua87.AVEC.Editor.PackageLayout.Prefabs))
-                AssetDatabase.CreateFolder(aki_lua87.AVEC.Editor.PackageLayout.Root, "Prefabs");
-            var scene = UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
-            try {
-                var go = new GameObject("Common Gesture Guide", typeof(BoxCollider), typeof(Rigidbody), typeof(VRCPickup));
-                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go, scene);
-                go.GetComponent<BoxCollider>().size = new Vector3(.68f, .86f, .025f);
-                var rb = go.GetComponent<Rigidbody>(); rb.useGravity = false; rb.mass = .3f; rb.drag = 8; rb.angularDrag = 8;
-                var pickup = go.GetComponent<VRCPickup>(); pickup.DisallowTheft = true; pickup.AutoHold = VRC_Pickup.AutoHoldMode.Yes;
-                pickup.InteractionText = "Gesture Guide / 操作一覧を持つ";
-                var setup = go.AddComponent<GestureGuideSetup>(); setup.data = AssetDatabase.LoadAssetAtPath<GestureData>(RemoteFactory.DataPath);
-                var canvas = new GameObject("Guide canvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster), typeof(VRCUiShape), typeof(Image));
-                canvas.transform.SetParent(go.transform, false); canvas.transform.localPosition = new Vector3(0, 0, -.016f);
-                canvas.transform.localScale = Vector3.one * .0008f;
-                canvas.GetComponent<RectTransform>().sizeDelta = new Vector2(850, 1075);
-                canvas.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
-                canvas.GetComponent<CanvasScaler>().dynamicPixelsPerUnit = 4;
-                canvas.GetComponent<Image>().color = new Color(.035f, .055f, .08f, 1);
-                var viewport = new GameObject("Viewport", typeof(RectTransform), typeof(Image), typeof(RectMask2D), typeof(ScrollRect)).GetComponent<RectTransform>();
-                viewport.SetParent(canvas.transform, false); viewport.anchorMin = Vector2.zero; viewport.anchorMax = Vector2.one;
-                viewport.offsetMin = new Vector2(26, 26); viewport.offsetMax = new Vector2(-26, -26);
-                viewport.GetComponent<Image>().color = new Color(0, 0, 0, 0);
-                var contents = new GameObject("Configured gestures", typeof(RectTransform), typeof(Text)).GetComponent<Text>();
-                contents.transform.SetParent(viewport, false); var rect = contents.rectTransform;
-                rect.anchorMin = new Vector2(0, 1); rect.anchorMax = Vector2.one; rect.pivot = new Vector2(.5f, 1); rect.sizeDelta = new Vector2(0, 1040);
-                contents.font = AssetDatabase.LoadAssetAtPath<Font>(aki_lua87.AVEC.Editor.PackageLayout.Core + "/Fonts/ZenMaruGothic-Regular.ttf");
-                contents.fontSize = 24; contents.color = new Color(.93f, .96f, 1); contents.supportRichText = false;
-                contents.alignment = TextAnchor.UpperLeft; contents.verticalOverflow = VerticalWrapMode.Overflow; contents.raycastTarget = false;
-                var scroll = viewport.GetComponent<ScrollRect>(); scroll.viewport = viewport; scroll.content = rect;
-                scroll.horizontal = false; scroll.vertical = true; scroll.scrollSensitivity = 0; scroll.movementType = ScrollRect.MovementType.Clamped;
-                setup.contents = contents; Refresh(setup);
-                UnityEditor.PrefabUtility.SaveAsPrefabAsset(go, PrefabPath);
-            } finally { UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(scene); }
-        }
     }
     [CustomEditor(typeof(GestureGuideSetup))]
     public class GestureGuideSetupEditor : UnityEditor.Editor

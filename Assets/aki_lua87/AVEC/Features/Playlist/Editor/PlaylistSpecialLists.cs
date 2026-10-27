@@ -14,12 +14,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
     // Additive configuration only. Existing rows, transforms, themes and player wiring survive.
     public static class PlaylistSpecialLists
     {
-        [MenuItem("Tools/AVEC/Playlist/Update Special Lists")]
-        public static void ApplyLoaded()
-        {
-            foreach (var setup in UnityEngine.Object.FindObjectsOfType<PlaylistSetup>(true))
-                if (setup.gameObject.scene.IsValid() && PrefabStageUtility.GetPrefabStage(setup.gameObject) == null) Apply(setup);
-        }
         public static void Apply(PlaylistSetup setup)
         {
             if (setup == null || setup.view == null) return;
@@ -120,7 +114,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             for (int i = 0; i < 6; i++)
             {
                 var row = Box(panel, "User row " + i, view.normalColor);
-                PlaylistAppearance.Place(row, 8, 38 + i * (rowHeight + 4), width - 16, rowHeight);
+                PlaylistAppearance.Place(row, 8, 6 + i * (rowHeight + 4), width - 16, rowHeight);
                 var label = Label(row, "Title", "", view); Stretch(label.rectTransform, 10, 4);
                 label.supportRichText = false; label.resizeTextForBestFit = true; label.resizeTextMinSize = 14; label.resizeTextMaxSize = label.fontSize;
                 var button = row.gameObject.AddComponent<Button>(); button.targetGraphic = row.GetComponent<Image>();
@@ -164,7 +158,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             {
                 Undo.RecordObject(viewport, "Reserve fixed user list footer");
                 viewport.offsetMin = new Vector2(viewport.offsetMin.x, 46);
-                viewport.offsetMax = new Vector2(viewport.offsetMax.x, -8);
+                viewport.offsetMax = new Vector2(viewport.offsetMax.x, -6);
                 PlaylistConnections.Save(viewport);
             }
             if (view.userPageLabel != null)

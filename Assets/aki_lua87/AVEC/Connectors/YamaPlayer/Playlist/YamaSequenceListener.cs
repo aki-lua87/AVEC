@@ -8,6 +8,8 @@ namespace aki_lua87.CommonVideoPlaylist
     public class YamaSequenceListener : YamaPlayerListener
     {
         public YamaPlayerAdapter adapter;
+        public override void AfterVideoPaused() { if (adapter != null) adapter._NotifyLocalStateChanged(); }
+        public override void AfterTimeChanged(float time) { if (adapter != null && !adapter.localPlaying) adapter._NotifyLocalStateChanged(); }
         public override void AfterVideoStarted() { if (adapter != null) adapter._NativeStarted(); }
         public override void AfterVideoReady() { if (adapter != null) adapter._NativeStarted(); }
         public override void AfterVideoPlayed() { if (adapter != null) adapter._NativeStarted(); }

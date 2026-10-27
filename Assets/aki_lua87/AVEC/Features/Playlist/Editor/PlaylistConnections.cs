@@ -20,7 +20,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             using (new EditorGUI.DisabledScope(EditorApplication.isPlayingOrWillChangePlaymode))
                 if (GUILayout.Button("プレイリストを編集する")) PlaylistEditWindow.Open(data);
             FeatureExtensionRegistry.DrawButtons("Playlist", data);
-            EditorGUILayout.HelpBox("専用ウィンドウでタブと動画を編集し、「保存」でUIへ反映します。", MessageType.Info);
         }
     }
 
@@ -140,43 +139,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             var candidates = Find(setup);
             return candidates.Count == 1 && Connect(setup, candidates[0]);
         }
-        public static void RefreshAudioLinkStatus(PlaylistSetup setup)
-        {
-            if (setup == null || setup.view == null) return;
-            var view = setup.view;
-            var type = Resolve("AudioLink.AudioLink");
-            Undo.RecordObject(view, "Refresh AudioLink status references");
-            view.audioLinkInstalled = type != null;
-            view.audioLinks = type == null ? new VRC.Udon.UdonBehaviour[0] : Resources.FindObjectsOfTypeAll(type).OfType<UdonSharpBehaviour>()
-                .Where(b => !EditorUtility.IsPersistent(b) && b.gameObject.scene == setup.gameObject.scene)
-                .Select(UdonSharpEditorUtility.GetBackingUdonBehaviour).Where(b => b != null).ToArray();
-            int kind = Kind(setup.player);
-            var sources = kind < 0 ? new AudioSource[0] : ConnectorRegistry.All[kind].AudioSources?.Invoke(setup.player) ?? new AudioSource[0];
-            view.connectedAudioSources = sources.Where(s => s != null).Distinct().ToArray();
-            Save(view);
-            if (view.audioLinkLabel != null) {
-                Undo.RecordObject(view.audioLinkLabel, "Refresh AudioLink status label");
-                view.audioLinkLabel.text = AudioLinkStatus(setup); Save(view.audioLinkLabel);
-            }
-        }
-        public static string AudioLinkStatus(PlaylistSetup setup)
-        {
-            var view = setup.view;
-            if (view == null) return "UI未設定";
-            var type = Resolve("AudioLink.AudioLink");
-            if (type == null) return "AudioLink: 未導入";
-            var links = Resources.FindObjectsOfTypeAll(type).OfType<Component>().Where(c => !EditorUtility.IsPersistent(c) && c.gameObject.scene == setup.gameObject.scene).ToArray();
-            if (links.Length == 0) return "AudioLink: 未配置";
-            if (setup.player == null || view.adapter == null) return "AudioLink: プレイヤー未接続";
-            if (view.connectedAudioSources.Length == 0) return "AudioLink: 音源未設定";
-            foreach (var link in links) {
-                if (!link.gameObject.activeInHierarchy || (link is Behaviour behaviour && !behaviour.enabled)) continue;
-                var left = type.GetField("audioSource")?.GetValue(link) as AudioSource;
-                var right = type.GetField("optionalRightAudioSource")?.GetValue(link) as AudioSource;
-                if (view.connectedAudioSources.Any(s => s != null && (s == left || s == right))) return "AudioLink: 接続中";
-            }
-            return "AudioLink: 未接続";
-        }
         public static void Save(UnityEngine.Object obj)
         {
             if (obj is UdonSharpBehaviour udon) UdonSharpEditorUtility.CopyProxyToUdon(udon);
@@ -197,11 +159,10 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         Component cachePlayer, cacheTitleSource;
         PlaylistView cacheView;
         bool cacheUserList;
-        int loadedUsers;
         List<Component> playerCandidates = new List<Component>();
         string[] playerLabels = new string[0], connectorWarnings = new string[0];
         bool[] connectorAvailable = new bool[0];
-        string connectionProblem, audioLinkStatus, connectedPlayerLabel;
+        string connectionProblem;
         void OnEnable()
         {
             editorActive = true;
@@ -234,10 +195,10 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 string field = value.propertyPath.Split('.')[0];
                 var obj = value.target;
                 bool setupChanged = obj is PlaylistSetup && (field == "data" || field == "player" || field == "view" || field == "playerKind" || field == "enableUserList" || field == "titleMetadataSource");
-                bool viewChanged = obj is PlaylistView && (field == "adapter" || field == "audioLinks" || field == "audioLinkInstalled" || field == "connectedAudioSources");
+                bool viewChanged = obj is PlaylistView && field == "adapter";
                 bool authorityChanged = obj == cachePlayer && (field == "core" || field == "_controller");
-                bool audioChanged = field == "audioSource" || field == "optionalRightAudioSource" || field == "m_Enabled" || field == "m_IsActive";
-                if (setupChanged || viewChanged || obj is PlaylistAdapter || authorityChanged || audioChanged)
+                bool stateChanged = field == "m_Enabled" || field == "m_IsActive";
+                if (setupChanged || viewChanged || obj is PlaylistAdapter || authorityChanged || stateChanged)
                 { InvalidateReadOnlyCache(); break; }
             }
             return changes;
@@ -247,7 +208,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (cacheData != setup.data || cachePlayer != setup.player || cacheView != setup.view || cacheTitleSource != setup.titleMetadataSource || cacheUserList != setup.enableUserList)
                 readOnlyCacheDirty = true;
             if (!readOnlyCacheDirty || (Event.current != null && Event.current.type != EventType.Layout)) return;
-            loadedUsers = PlaylistAssets.LoadedUsers(setup.data);
             playerCandidates = PlaylistConnections.Find(setup);
             playerLabels = playerCandidates.Select(PlaylistConnections.Label).ToArray();
             connectorAvailable = new bool[playerCandidates.Count]; connectorWarnings = new string[playerCandidates.Count];
@@ -258,8 +218,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 connectorWarnings[i] = kind < 0 ? "対応するConnectorを導入してください。" : PlaylistConnections.Kinds[kind] + " Connectorを導入してください。";
             }
             connectionProblem = PlaylistConnections.Validate(setup);
-            audioLinkStatus = PlaylistConnections.AudioLinkStatus(setup);
-            connectedPlayerLabel = PlaylistConnections.Label(setup.player);
             cacheData = setup.data; cachePlayer = setup.player; cacheView = setup.view; cacheTitleSource = setup.titleMetadataSource; cacheUserList = setup.enableUserList;
             readOnlyCacheDirty = false;
         }
@@ -277,23 +235,14 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 serializedObject.ApplyModifiedProperties();
                 if (dataChanged && setup.view != null) TryBake(setup);
                 if (GUILayout.Button("新規プレイリストを作成")) CreatePlaylist(setup);
-                int users = loadedUsers;
-                if (PlaylistAssets.IsDefault(setup.data))
-                    EditorGUILayout.HelpBox("DefaultPlaylistは空の配布用テンプレートです。「新規プレイリストを作成」で別データを用意できます。", MessageType.Info);
-                else if (users > 1)
-                    EditorGUILayout.HelpBox(users + " 個のUIがこのデータを共有しています。編集はすべてに反映されます。別々に使う場合は「新規プレイリストを作成」で別データを割り当ててください。", MessageType.Warning);
                 using (new EditorGUI.DisabledScope(setup.data == null))
                     if (GUILayout.Button("プレイリストを編集する", GUILayout.Height(30)))
                         PlaylistEditWindow.Open(setup.data);
-                EditorGUILayout.HelpBox("編集ウィンドウの「保存」でUIへ自動反映します。", MessageType.Info);
                 FeatureExtensionRegistry.DrawButtons("Playlist", setup.data);
                 if (!string.IsNullOrEmpty(editError)) EditorGUILayout.HelpBox(editError, MessageType.Error);
 
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("見た目", EditorStyles.boldLabel);
-                if (setup.GetComponentInParent<PlaylistTabletTouch>() == null && PlaylistConnections.CanConnect(setup)
-                    && GUILayout.Button("現在のUIから手持ちタブレット版を作成"))
-                    Selection.activeGameObject = PlaylistTabletBuilder.Create(setup);
                 serializedObject.UpdateIfRequiredOrScript();
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("theme"),new GUIContent("テーマ"));
@@ -307,7 +256,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 bool iconsChanged = EditorGUI.EndChangeCheck();
                 serializedObject.ApplyModifiedProperties();
                 if (iconsChanged) { PlaylistTabIcons.Apply(setup); PlaylistConnections.Save(setup); }
-                EditorGUILayout.HelpBox("Theme Assetで色と表示方式を選べます。Wireframeは背景透過・枠線のみのテーマです。サイズはルートのScaleで調整してください。",MessageType.Info);
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("動画プレイヤーへの接続", EditorStyles.boldLabel);
                 serializedObject.UpdateIfRequiredOrScript();
@@ -327,9 +275,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                     PlaylistConnections.Connect(setup, setup.player);
                     PlaylistAppearance.EnsureConnectionLabel(setup);
                 }
-                if (!PlaylistConnections.CanConnect(setup))
-                    EditorGUILayout.HelpBox("Prefabをシーンに配置して接続してください。", MessageType.Info);
-                else
+                if (PlaylistConnections.CanConnect(setup))
                 {
                     var candidates = playerCandidates;
                     if (setup.player == null && candidates.Count == 1)
@@ -352,12 +298,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                         if (GUILayout.Button(new GUIContent("接続設定を修復", "選択中のプレイヤーとの接続設定を作り直します。")))
                         { PlaylistConnections.Connect(setup, setup.player); InvalidateReadOnlyCache(); }
                 }
-                else EditorGUILayout.HelpBox("接続済み: " + connectedPlayerLabel, MessageType.Info);
-                EditorGUILayout.LabelField("AudioLink", audioLinkStatus);
-                if (GUILayout.Button("AudioLinkの接続状況を更新")) {
-                    PlaylistAppearance.EnsureConnectionLabel(setup);
-                    PlaylistConnections.RefreshAudioLinkStatus(setup); InvalidateReadOnlyCache();
-                }
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("特殊リスト", EditorStyles.boldLabel);
                 serializedObject.UpdateIfRequiredOrScript();
@@ -370,7 +310,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 if (specialChanged) TrySpecialLists(setup);
                 FeatureExtensionRegistry.DrawInspector("Playlist", setup);
                 EditorGUILayout.LabelField("チェックを変更すると、その場で反映します。", EditorStyles.wordWrappedMiniLabel);
-                EditorGUILayout.HelpBox("ユーザーリストは自分用・同じワールド内で共通です（最大32件）。タイトル取得拡張なしでもURLで利用できます。保存用PlayerObjectは公開後に削除・再作成しないでください。", MessageType.Info);
                 EditorGUILayout.Space();
                 advanced = EditorGUILayout.Foldout(advanced, "詳細設定（UIデザイン・参照）", true);
                 if (advanced)
@@ -379,8 +318,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                     foreach (var name in new[] { "view", "tabContent", "videoContent", "tabTemplate", "videoTemplate" })
                         EditorGUILayout.PropertyField(serializedObject.FindProperty(name));
                     serializedObject.ApplyModifiedProperties();
-                    if (GUILayout.Button("テンプレートからUIを再生成")) TryBake(setup);
-                    EditorGUILayout.HelpBox("行デザインはTemplates内で調整し、再生成してください。Play/Build時にも自動反映します。", MessageType.Info);
                 }
             }
             if (EditorGUI.EndChangeCheck()) InvalidateReadOnlyCache();

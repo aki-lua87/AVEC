@@ -19,6 +19,8 @@ namespace aki_lua87.CommonGestureRemote
         public virtual bool _GetMute() { return false; }
         public virtual void _SetMute(bool value) { }
         public virtual int _Playback(int action) { return 5; }
+        // Optional bridge implemented by the Playlist extension, preserving package independence.
+        public virtual void _NotifyPlayerStateChanged() { }
         public virtual int _Execute(int action, float amount)
         {
             if (NetworkCalling.InNetworkCall || !_Ready()) return 0;

@@ -17,7 +17,7 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist.Editor
         {
             Id = "DynamicPlaylist",
             Feature = "Playlist",
-            Label = "aki_lua87's Playlist Generator を開く",
+            Label = "AVEC-PlaylistGenerator を開く",
             Open = DynamicPlaylistWindow.Open,
             Bake = Apply
         });
@@ -71,12 +71,17 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist.Editor
         bool loading;
         Vector2 scroll;
         int revision;
-        void OnEnable() { titleContent = new GUIContent("aki_lua87's Playlist Generator"); }
-        [MenuItem("Tools/AVEC/Extensions/aki_lua87's Playlist Generator")]
+        void OnEnable()
+        {
+            titleContent = new GUIContent("AVEC-PlaylistGenerator");
+            // Discard saved search previews from earlier versions.
+            if (sourceKind < 0 || sourceKind > 1) { sourceKind = 0; input = ""; preview = null; }
+        }
+        [MenuItem("Tools/AVEC/AVEC-PlaylistGenerator")]
         public static void ShowWindow() => Open(Selection.activeObject);
         public static void Open(UnityEngine.Object context)
         {
-            var window = GetWindow<DynamicPlaylistWindow>("aki_lua87's Playlist Generator");
+            var window = GetWindow<DynamicPlaylistWindow>("AVEC-PlaylistGenerator");
             if (context is PlaylistData data) window.target = data;
             if (context is PlaylistSetup setup) window.target = setup.data;
             window.minSize = new Vector2(560, 400); window.Show();
@@ -91,20 +96,13 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist.Editor
                     EditorGUILayout.LabelField(AssetDatabase.GetAssetPath(target), EditorStyles.wordWrappedMiniLabel);
                 }
                 EditorGUI.BeginChangeCheck();
-                sourceKind = EditorGUILayout.Popup("取り込み元", sourceKind, new[] { "YouTubeチャンネル", "YouTubeプレイリスト", "YouTube検索" });
-                input = EditorGUILayout.TextField(sourceKind == 2 ? "検索キーワード" : sourceKind == 0 ? "チャンネルID / @ハンドル / URL" : "ID / URL", input);
-                if (sourceKind == 2)
-                {
-                    using (new EditorGUI.DisabledScope(true)) EditorGUILayout.Toggle("動的URLを使用", true);
-                }
-                else dynamicUrls = EditorGUILayout.Toggle("動的URLを使用", dynamicUrls);
-                if (sourceKind != 2 && !dynamicUrls) limitIndex = EditorGUILayout.Popup("取得件数", limitIndex, Enumerable.Range(1, 10).Select(n => (n * 50) + "件").ToArray());
+                sourceKind = EditorGUILayout.Popup("取り込み元", sourceKind, new[] { "YouTubeチャンネル", "YouTubeプレイリスト" });
+                input = EditorGUILayout.TextField(sourceKind == 0 ? "チャンネルID / @ハンドル / URL" : "ID / URL", input);
+                dynamicUrls = EditorGUILayout.Toggle(new GUIContent("動画一覧を自動更新", "ON: 外部サービスの一覧の更新に追従します。OFF: 取得した動画URLを固定して保存します。"), dynamicUrls);
+                if (!dynamicUrls) limitIndex = EditorGUILayout.Popup("取得件数", limitIndex, Enumerable.Range(1, 10).Select(n => (n * 50) + "件").ToArray());
                 else EditorGUILayout.LabelField("動画数", "50枠（n=0～49）");
                 if (EditorGUI.EndChangeCheck()) { preview = null; revision++; }
-                EditorGUILayout.HelpBox(sourceKind == 2
-                    ? "固定キーワードの検索結果を新着順で表示する動的タブを作成します（最大50枠）。結果はサーバーの時刻単位キャッシュに従って更新されます。タブ名はプレビューで変更できます。"
-                    : "動的URLは外部サービスの最新一覧に追従します。OFFでは取得時の固定URLを挿入します。", MessageType.Info);
-                if (sourceKind == 2 || dynamicUrls) EditorGUILayout.LabelField("動的URLにはAllow Untrusted URLsが必要です。", EditorStyles.wordWrappedMiniLabel);
+                if (dynamicUrls) EditorGUILayout.LabelField("自動更新URLにはAllow Untrusted URLsが必要です。", EditorStyles.wordWrappedMiniLabel);
                 if (GUILayout.Button(loading ? "取得中…" : "取得してプレビュー")) FetchPreview();
                 if (!string.IsNullOrEmpty(message)) EditorGUILayout.HelpBox(message, messageType);
                 if (preview != null)
@@ -126,8 +124,7 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist.Editor
             loading = true; preview = null; message = "取得中…"; messageType = MessageType.Info;
             try
             {
-                var tab = sourceKind == 2 ? await YoutubeSearchImport.Fetch(input)
-                    : sourceKind == 1 ? await YoutubePlaylistImport.Fetch(input, dynamicUrls, (limitIndex + 1) * 50)
+                var tab = sourceKind == 1 ? await YoutubePlaylistImport.Fetch(input, dynamicUrls, (limitIndex + 1) * 50)
                     : await YoutubeChannelImport.Fetch(input, dynamicUrls, (limitIndex + 1) * 50);
                 if (this == null || request != revision) return;
                 preview = tab; message = "取得しました。内容を確認して挿入してください。";

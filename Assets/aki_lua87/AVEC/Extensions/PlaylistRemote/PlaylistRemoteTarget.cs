@@ -11,6 +11,10 @@ namespace aki_lua87.CommonGestureRemote
         public PlaylistTabletTouch tablet;
         public override bool _CanStep() { return _Ready() && view.urls != null && view.urls.Length > 0; }
         public override bool _Ready() { return view != null && view.adapter != null && view.adapter._Available(); }
+        public override void _NotifyPlayerStateChanged()
+        {
+            if (!NetworkCalling.InNetworkCall && view != null && view.adapter != null) view.adapter._NotifyLocalStateChanged();
+        }
         public override int _Execute(int action, float amount)
         {
             if (NetworkCalling.InNetworkCall) return 0;

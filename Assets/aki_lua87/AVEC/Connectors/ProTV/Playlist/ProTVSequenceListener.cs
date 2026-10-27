@@ -8,6 +8,8 @@ namespace aki_lua87.CommonVideoPlaylist
     public class ProTVSequenceListener : TVPlugin
     {
         public ProTVAdapter adapter;
+        public override void _TvPause() { if (adapter != null) adapter._NotifyLocalStateChanged(); }
+        public override void _TvSeekChange() { if (adapter != null) adapter._NotifyLocalStateChanged(); }
         public override void _TvMediaReady() { if (adapter != null) adapter._NativeStarted(); }
         public override void _TvPlay() { if (adapter != null) adapter._NativeStarted(); }
         public override void _TvMediaEnd() { if (adapter != null) adapter._NativeEnded(); }

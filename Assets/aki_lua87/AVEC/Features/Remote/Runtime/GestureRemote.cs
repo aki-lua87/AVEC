@@ -356,7 +356,9 @@ namespace aki_lua87.CommonGestureRemote
             bool sequence = action == 1 || action == 2 || action == 9 || action == 10 || action == 11 || action == 18 || action == 20 || action == 23;
             bool repeat = action == 16 || action == 19;
             RemoteTarget target = sequence || (repeat && playlistTarget != null && playlistTarget._Ready()) ? playlistTarget : playerTarget;
-            return target == null ? 0 : target._Execute(action, volumeStep);
+            int result = target == null ? 0 : target._Execute(action, volumeStep);
+            if (playlistTarget != null) playlistTarget._NotifyPlayerStateChanged();
+            return result;
         }
         public bool _ActionAvailable(int action)
         {

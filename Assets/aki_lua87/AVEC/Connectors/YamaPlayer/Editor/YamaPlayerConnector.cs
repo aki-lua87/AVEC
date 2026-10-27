@@ -13,7 +13,6 @@ namespace aki_lua87.AVEC.Connectors.Editor
             ValidatePlaylist = (adapter, player) => ConnectorWiring.ValidatePlaylist(adapter, player, 3),
             ConfigureRemote = (target, player) => ConnectorWiring.ConfigureRemote(target, player, 3),
             DiscoverRemoteOutputs = (target, player) => ConnectorWiring.DetectOutputs(target, player, 3),
-            AudioSources = player => ConnectorWiring.AudioSources(player, 3)
         });
     }
 }

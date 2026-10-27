@@ -109,7 +109,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
                     Ref(Ref(setup.playlist, "adapter") as Component, "player") != setup.player || setup.player == null)
                     throw new InvalidOperationException("同じ接続先プレイヤーの PlaylistView を選択してください。");
                 var type = Resolve("aki_lua87.CommonGestureRemote.PlaylistRemoteTarget");
-                if (type == null) throw new InvalidOperationException("PlaylistRemote Extension が必要です。");
+                if (type == null) throw new InvalidOperationException("Core同梱のPlaylistRemoteが見つかりません。AVEC-Coreを再導入してください。");
                 var target = setup.GetComponentsInChildren<RemoteTarget>(true).FirstOrDefault(t => t.GetType() == type);
                 if (target == null)
                 {

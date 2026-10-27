@@ -78,6 +78,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             PlaylistUndo.RecordObject(setup, "Keep original playlist sprites");
             foreach (var image in setup.GetComponentsInChildren<Image>(true))
             {
+                if (setup.view != null && setup.view.controlTip != null && image.transform.IsChildOf(setup.view.controlTip)) continue;
                 if (only != null && image != only) continue;
                 if ((only == null && known.Contains(image)) || IsForeground(setup.view, image) || IsViewport(image)) continue;
                 if (!known.Contains(image)) states.Add(new PlaylistThemeImageState { image = image, sprite = image.sprite, overrideSprite = image.overrideSprite == image.sprite ? null : image.overrideSprite,
@@ -160,6 +161,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         public static bool IsViewport(Image image) => image.name.IndexOf("viewport", System.StringComparison.OrdinalIgnoreCase) >= 0;
         public static bool IsForeground(PlaylistView view, Image image)
         {
+            if (view != null && view.remoteToggleButton != null && image.gameObject != view.remoteToggleButton &&
+                image.transform.IsChildOf(view.remoteToggleButton.transform)) return true;
             string name = image.name;
             if (name == "Handle" || name == "Volume fill" || name == "Track") return false;
             return name == "Icon" || name == "Tab kind icon" || name == "Playback progress" ||
@@ -167,19 +170,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 (view != null && (image == view.playbackModeIcon || image == view.volumeIcon || image == view.transportIcon));
         }
 
-        [MenuItem("Tools/AVEC/Playlist/Create Wireframe Theme")]
-        public static void CreatePreset()
-        {
-            var theme = AssetDatabase.LoadAssetAtPath<PlaylistTheme>(PresetPath);
-            if (theme != null) return;
-            theme = ScriptableObject.CreateInstance<PlaylistTheme>();
-            theme.outlineOnly = true; theme.outlineWidth = 1.5f; theme.outlineSprite = EnsureSprite();
-            theme.background = new Color(1, 1, 1, .9f); theme.surface = new Color(1, 1, 1, .25f);
-            theme.button = new Color(1, 1, 1, .6f); theme.selected = new Color(.65f, .74f, 1, 1);
-            theme.accent = new Color(.9f, .94f, 1, 1); theme.text = new Color(1, 1, 1, .95f);
-            theme.mutedText = new Color(1, 1, 1, .7f);
-            AssetDatabase.CreateAsset(theme, PresetPath); AssetDatabase.SaveAssetIfDirty(theme);
-        }
         internal static Sprite EnsureSprite()
         {
             var existing = AssetDatabase.LoadAssetAtPath<Sprite>(SpritePath); if (existing != null) return existing;

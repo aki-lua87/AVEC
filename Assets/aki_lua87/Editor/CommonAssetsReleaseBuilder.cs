@@ -19,54 +19,71 @@ namespace aki_lua87.CommonAssets.Editor
         static PackageSpec[] CreatePackages()
         {
             var packages = new System.Collections.Generic.List<PackageSpec> {
-                new PackageSpec { Name="AVEC-Core", Folders=new[]{Root+"/Core"}, Requires=new string[0] },
-                new PackageSpec { Name="AVEC-Playlist", Folders=new[]{Root+"/Features/Playlist"}, Assets=new[]{Root+"/Prefabs/CommonVideoPlaylist.prefab",Root+"/Prefabs/CommonVideoPlaylistTablet.prefab"}, Requires=new[]{"AVEC-Core"} },
-                new PackageSpec { Name="AVEC-Remote", Folders=new[]{Root+"/Features/Remote"}, Assets=new[]{Root+"/Prefabs/CommonGestureRemote.prefab",Root+"/Prefabs/CommonGestureGuide.prefab"}, Requires=new[]{"AVEC-Core"} }
+                new PackageSpec { Name="AVEC-Core", Folders=new[]{Root+"/Core",Root+"/Features/Playlist",Root+"/Features/Remote",Root+"/Extensions/PlaylistRemote"}, Assets=new[]{Root+"/Prefabs/CommonVideoPlaylist.prefab",Root+"/Prefabs/CommonVideoPlaylistTablet.prefab",Root+"/Prefabs/CommonGestureRemote.prefab",Root+"/Prefabs/CommonGestureGuide.prefab"}, Requires=new string[0] }
             };
-            foreach (var player in new[]{"IwaSync","KineL","VizVid","YamaPlayer"})
-                foreach (var feature in new[]{"Playlist","Remote"}) packages.Add(new PackageSpec {
-                    Name="AVEC-Connector-"+player+"-"+feature,
-                    Folders=new[]{Root+"/Connectors/Shared", Root+"/Connectors/"+player+"/Editor", Root+"/Connectors/"+player+"/"+feature},
-                    Requires=new[]{"AVEC-Core", "AVEC-"+feature, player+" (external)"}
+            foreach (var player in new[]{"IwaSync","KineL","VizVid","YamaPlayer","ProTV","KineLV3"})
+                packages.Add(new PackageSpec {
+                    Name="AVEC-Connector-"+player,
+                    Folders=(player == "KineLV3" ? new string[0] : new[]{Root+"/Connectors/Shared"}).Concat(new[]{Root+"/Connectors/"+player+"/Editor", Root+"/Connectors/"+player+"/Playlist", Root+"/Connectors/"+player+"/Remote"}).ToArray(),
+                    Requires=new[]{"AVEC-Core", (player == "KineL" ? "KineL V2" : player == "KineLV3" ? "KineL V3" : player == "ProTV" ? "ProTV 3" : player)+" (external)"}
                 });
-            packages.Add(new PackageSpec { Name="AVEC-Extension-DynamicPlaylist", Folders=new[]{Root+"/Extensions/DynamicPlaylist"}, Requires=new[]{"AVEC-Core", "AVEC-Playlist"} });
-            packages.Add(new PackageSpec { Name="AVEC-Extension-PlaylistRemote", Folders=new[]{Root+"/Extensions/PlaylistRemote"}, Requires=new[]{"AVEC-Core", "AVEC-Playlist", "AVEC-Remote"} });
-            packages.Add(new PackageSpec { Name="AVEC-Extension-RTabPlaylist", Folders=new[]{Root+"/Extensions/RTabPlaylist"}, Requires=new[]{"AVEC-Core", "AVEC-Playlist", "AVEC-Connector-YamaPlayer-Playlist", "AVEC-Extension-DynamicPlaylist", "RTab (external)", "YamaPlayer (external)"} });
-            foreach (var feature in new[]{"Playlist","Remote"}) packages.Add(new PackageSpec {
-                Name="AVEC-Connector-ProTV-"+feature,
-                Folders=new[]{Root+"/Connectors/Shared", Root+"/Connectors/ProTV/Editor", Root+"/Connectors/ProTV/"+feature},
-                Requires=new[]{"AVEC-Core", "AVEC-"+feature, "ProTV 3 (external)"}
-            });
-            packages.Add(new PackageSpec { Name="AVEC-Extension-YttlTitles", Folders=new[]{Root+"/Extensions/YttlTitles"}, Requires=new[]{"AVEC-Core", "AVEC-Playlist", "VizVid bundled YTTL (external)"} });
+            packages.Add(new PackageSpec { Name="AVEC-Extension-DynamicPlaylist", Folders=new[]{Root+"/Extensions/DynamicPlaylist"}, Requires=new[]{"AVEC-Core"} });
+            packages.Add(new PackageSpec { Name="AVEC-Extension-RTabPlaylist", Folders=new[]{Root+"/Extensions/RTabPlaylist"}, Requires=new[]{"AVEC-Core", "AVEC-Connector-YamaPlayer", "AVEC-Extension-DynamicPlaylist", "RTab (external)", "YamaPlayer (external)"} });
+            packages.Add(new PackageSpec { Name="AVEC-Extension-YttlTitles", Folders=new[]{Root+"/Extensions/YttlTitles"}, Requires=new[]{"AVEC-Core", "VizVid bundled YTTL (external)"} });
             return packages.ToArray();
         }
         static string[] Names => Packages.Select(p=>p.Name).ToArray();
         static bool Exists(int index) => Packages[index].Folders.All(Directory.Exists) && Packages[index].Assets.All(File.Exists);
         static string[] LegalAssets => new[]{Root+"/Core/LICENSE.txt",Root+"/Core/THIRD_PARTY_NOTICES.txt"};
-        public static string[] CollectPaths(int index) => AssetDatabase.FindAssets("",Packages[index].Folders).Select(AssetDatabase.GUIDToAssetPath).Concat(Packages[index].Assets).Concat(LegalAssets).Where(p=>!p.EndsWith(".unity",StringComparison.OrdinalIgnoreCase)).Distinct().ToArray();
-        static bool[] NormalizeSelection(bool[] selected)
+        // Keep these authoring notes in the project, outside distributed packages.
+        static readonly string[] ExcludedDocumentation = {
+            Root + "/Features/Playlist/Tablet.md",
+            Root + "/Features/Playlist/UserList.md"
+        };
+        public static string[] CollectPaths(int index) => AssetDatabase.FindAssets("",Packages[index].Folders).Select(AssetDatabase.GUIDToAssetPath).Concat(Packages[index].Assets).Concat(LegalAssets).Where(p=>!p.EndsWith(".unity",StringComparison.OrdinalIgnoreCase) && !ExcludedDocumentation.Contains(p, StringComparer.OrdinalIgnoreCase) && AssetDatabase.GetMainAssetTypeAtPath(p) != typeof(aki_lua87.CommonVideoPlaylist.PlaylistData)).Distinct().ToArray();
+        // Refuse to export personal authoring data, including data baked into prefabs.
+        public static void ValidatePlaylistTemplates(string[] paths)
         {
-            if (selected != null && selected.Length == Packages.Length) return selected;
-            if (selected != null && selected.Length == 11) {
-                var migrated = new bool[Packages.Length]; migrated[0]=selected.Any(v=>v); migrated[1]=selected[0]; migrated[2]=selected[5];
-                for(int i=0;i<4;i++){migrated[3+i*2]=selected[1+i];migrated[4+i*2]=selected[6+i];}
-                migrated[11]=selected[0];migrated[12]=selected[10];return migrated;
+            foreach (string path in paths.Where(p => p.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase)))
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (prefab == null) continue;
+                foreach (var setup in prefab.GetComponentsInChildren<aki_lua87.CommonVideoPlaylist.PlaylistSetup>(true))
+                {
+                    if (setup.data != null || setup.view == null ||
+                        setup.view.tabNames.Length != 0 || setup.view.titles.Length != 0 ||
+                        setup.view.urls.Length != 0 || setup.view.titleSourceUrls.Length != 0)
+                        throw new InvalidOperationException("配布用Prefabにプレイリストの内容が残っています: " + path);
+                }
             }
-            if (selected != null && selected.Length < Packages.Length) {
-                var migrated = new bool[Packages.Length];
-                Array.Copy(selected, migrated, selected.Length);
-                return migrated;
-            }
-            return Enumerable.Repeat(true,Packages.Length).ToArray();
         }
-        [Serializable] class Settings { public string version="0.2.0";public string output="Release/AVEC";public bool[] selected=Enumerable.Repeat(true,Packages.Length).ToArray(); }
+        static bool[] NormalizeSelection(bool[] selected, int selectionVersion)
+        {
+            if (selectionVersion == 2 && selected != null && selected.Length == Packages.Length) return selected;
+            if (selectionVersion == 2 || selected == null) return Enumerable.Repeat(true,Packages.Length).ToArray();
+            // Version 1 had a separate PlaylistRemote entry at index 8.
+            if (selectionVersion == 1) {
+                if (selected.Length != 11) return Enumerable.Repeat(true,Packages.Length).ToArray();
+                return new[]{selected[0] || selected[8],selected[1],selected[2],selected[3],selected[4],selected[5],selected[6],selected[7],selected[9],selected[10]};
+            }
+            // First expand the original 11-entry layout into the split 19-entry layout.
+            if (selected != null && selected.Length == 11) {
+                var migrated = new bool[19]; migrated[0]=selected.Any(v=>v); migrated[1]=selected[0]; migrated[2]=selected[5];
+                for(int i=0;i<4;i++){migrated[3+i*2]=selected[1+i];migrated[4+i*2]=selected[6+i];}
+                migrated[11]=selected[0];migrated[12]=selected[10];selected=migrated;
+            }
+            // Either former feature selects its combined package. Missing later entries stay off.
+            int[][] oldIndices = {new[]{0,1,2,12},new[]{3,4},new[]{5,6},new[]{7,8},new[]{9,10},new[]{14,15},new[]{17,18},new[]{11},new[]{13},new[]{16}};
+            return oldIndices.Select(indices=>indices.Any(i=>i<selected.Length && selected[i])).ToArray();
+        }
+        [Serializable] class Settings { public string version="0.2.0";public string output="Release/AVEC";public bool[] selected=Enumerable.Repeat(true,Packages.Length).ToArray();public int selectionVersion; }
         [Serializable] class Manifest { public string version;public string unity;public string createdUtc;public Entry[] packages; }
         [Serializable] class Entry { public string file;public int assets;public string sha256;public string[] requires; }
-        Settings settings=new Settings();
+        Settings settings=new Settings { selectionVersion=2 };
         string PrefKey=>"CommonAssets.Release."+Application.dataPath;
-        [MenuItem("Tools/Common Assets/Release Builder")]
+        [MenuItem("Tools/AVEC/Release Builder")]
         public static void ShowWindow() { GetWindow<CommonAssetsReleaseBuilder>("AVEC Release").Show(); }
-        void OnEnable() { var json=EditorPrefs.GetString(PrefKey,"");if(!string.IsNullOrEmpty(json))settings=JsonUtility.FromJson<Settings>(json);settings.selected=NormalizeSelection(settings.selected); }
+        void OnEnable() { var json=EditorPrefs.GetString(PrefKey,"");if(!string.IsNullOrEmpty(json))settings=JsonUtility.FromJson<Settings>(json);settings.selected=NormalizeSelection(settings.selected,settings.selectionVersion);settings.selectionVersion=2; }
         void OnDisable() { EditorPrefs.SetString(PrefKey,JsonUtility.ToJson(settings)); }
         void OnGUI()
         {
@@ -82,13 +99,15 @@ namespace aki_lua87.CommonAssets.Editor
             if(GUILayout.Button("出力先を開く")&&Directory.Exists(settings.output))EditorUtility.RevealInFinder(Path.GetFullPath(settings.output));
         }
         // Optional command-line entry point, using this same project and saved settings.
-        public static void ExportDefault() { var json=EditorPrefs.GetString("CommonAssets.Release."+Application.dataPath,"");var s=string.IsNullOrEmpty(json)?new Settings():JsonUtility.FromJson<Settings>(json);Build(s.version,s.output,NormalizeSelection(s.selected)); }
+        public static void ExportDefault() { var json=EditorPrefs.GetString("CommonAssets.Release."+Application.dataPath,"");var s=string.IsNullOrEmpty(json)?new Settings { selectionVersion=2 }:JsonUtility.FromJson<Settings>(json);Build(s.version,s.output,NormalizeSelection(s.selected,s.selectionVersion)); }
         public static void Build(string version,string output,bool[] selected)
         {
             if(!Regex.IsMatch(version??"",@"^[A-Za-z0-9][A-Za-z0-9._-]*$"))throw new ArgumentException("バージョンには英数字・ピリオド・ハイフン・アンダースコアを使用してください。");
             if(selected==null||selected.Length!=Names.Length)throw new ArgumentException("パッケージ選択が不正です。");
             if(!selected.Where((v,i)=>v&&Exists(i)).Any())throw new ArgumentException("出力するパッケージを選択してください。");
             foreach(string path in LegalAssets)if(!File.Exists(path))throw new FileNotFoundException("ライセンス・帰属表示が見つかりません。AVEC-Coreを導入してください。",path);
+            for (int i = 0; i < Packages.Length; i++)
+                if (selected[i] && Exists(i)) ValidatePlaylistTemplates(CollectPaths(i));
             string error=null;Application.LogCallback capture=(message,stack,type)=>{if(type==LogType.Error||type==LogType.Exception)error=message;};
             Application.logMessageReceived+=capture;
             try { UdonSharpCompilerV1.CompileSync(); }
@@ -117,11 +136,6 @@ namespace aki_lua87.CommonAssets.Editor
                 string file=Names[i]+"-"+version+".unitypackage";AssetDatabase.ExportPackage(paths,Path.Combine(destination,file),ExportPackageOptions.Default);
                 entries.Add(new Entry{file=file,assets=paths.Length,sha256=Hash(Path.Combine(destination,file)),requires=Packages[i].Requires});
             }
-            string tool="Assets/aki_lua87/Editor/CommonAssetsReleaseBuilder.cs";
-            string toolsFile="AVEC-EditorTools-"+version+".unitypackage";
-            var toolPaths=new[]{tool}.Concat(LegalAssets).ToArray();
-            AssetDatabase.ExportPackage(toolPaths,Path.Combine(destination,toolsFile),ExportPackageOptions.Default);
-            entries.Add(new Entry{file=toolsFile,assets=toolPaths.Length,sha256=Hash(Path.Combine(destination,toolsFile))});
             var manifest=new Manifest{version=version,unity=Application.unityVersion,createdUtc=DateTime.UtcNow.ToString("o"),packages=entries.ToArray()};
             File.WriteAllText(Path.Combine(destination,"manifest.json"),JsonUtility.ToJson(manifest,true));
             string zip=Path.Combine(destination,"AVEC-"+version+".zip");

@@ -17,7 +17,6 @@ namespace aki_lua87.CommonVideoPlaylist
         public Component player;
         [Tooltip("各タブに種類を示すアイコンを表示します。")]
         public bool showTabIcons = true;
-        [Header("特殊リスト")]
         public bool enableQueue = true;
         public bool enableHistory = true;
         public bool enableUserList = true;

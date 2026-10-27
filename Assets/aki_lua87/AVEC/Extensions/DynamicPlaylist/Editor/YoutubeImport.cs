@@ -67,7 +67,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         internal static PlaylistTab CreateDynamicTab(string id, string author)
         {
             if (string.IsNullOrEmpty(id) || !Regex.IsMatch(id, @"\AUC[A-Za-z0-9_-]{22}\z"))
-                throw new ArgumentException("動的URLにはUC形式のチャンネルIDが必要です。");
+                throw new ArgumentException("自動更新URLにはUC形式のチャンネルIDが必要です。");
             var videos = new PlaylistEntry[50];
             for (int i = 0; i < videos.Length; i++) videos[i] = new PlaylistEntry {
                 title = (i + 1).ToString(), url = Server + "/videos/yt/ch/" + id + "?n=" + i, dynamicTitleIndex = i
@@ -109,62 +109,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 return new PlaylistTab { name = string.IsNullOrWhiteSpace(data.auther)
                     ? (string.IsNullOrWhiteSpace(registration.auther) ? id : registration.auther) : data.auther, videos = data.videos.Take(limit).ToArray() };
             }
-        }
-    }
-
-    public static class YoutubeSearchImport
-    {
-        const string Server = "https://vrc.akakitune87.net";
-        const int Slots = 50;
-        [Serializable] class Response { public string[] titles; public string[] urls; }
-
-        internal static string NormalizeQuery(string input)
-        {
-            string query = (input ?? "").Trim();
-            if (query.Length == 0 || query.Length > 256 || query.Any(char.IsControl))
-                throw new ArgumentException("検索キーワードを1～256文字で入力してください（改行や制御文字は使用できません）。");
-            return query;
-        }
-
-        internal static string TitlesUrl(string input)
-        {
-            return Server + "/yt/search/titles?q=" + Uri.EscapeDataString(NormalizeQuery(input)) + "&version=v2";
-        }
-
-        public static async Task<PlaylistTab> Fetch(string input)
-        {
-            string query = NormalizeQuery(input);
-            using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(60) })
-            using (var response = await client.GetAsync(TitlesUrl(query)))
-            {
-                if (!response.IsSuccessStatusCode)
-                    throw new InvalidOperationException("検索結果を取得できませんでした（HTTP " + (int)response.StatusCode + "）。時間を空けて再試行してください。");
-                return ParseResponse(query, await response.Content.ReadAsStringAsync());
-            }
-        }
-
-        // Kept separate from HTTP so the generated URLs can be verified offline.
-        internal static PlaylistTab ParseResponse(string input, string json)
-        {
-            string query = NormalizeQuery(input);
-            var data = JsonUtility.FromJson<Response>(json);
-            if (data?.titles == null || data.urls == null || data.titles.Length != data.urls.Length)
-                throw new InvalidOperationException("検索結果の形式が不正です。JSON対応の検索API（version=v2）を確認してください。");
-            var videos = new PlaylistEntry[Slots];
-            string videoUrl = Server + "/yt/search/video?q=" + Uri.EscapeDataString(query) + "&n=";
-            for (int i = 0; i < videos.Length; i++)
-            {
-                if (i < data.urls.Length && (!Uri.TryCreate(data.urls[i], UriKind.Absolute, out var url) ||
-                    (url.Scheme != "https" && url.Scheme != "http")))
-                    throw new InvalidOperationException("検索結果に不正な動画URLが含まれています。");
-                videos[i] = new PlaylistEntry {
-                    title = i < data.titles.Length && !string.IsNullOrEmpty(data.titles[i]) ? data.titles[i] : (i + 1).ToString(),
-                    url = videoUrl + i, dynamicTitleIndex = i
-                };
-            }
-            // Reserve all slots even for an empty result: future results can appear
-            // without rebuilding the world. Runtime title loading hides empty slots.
-            return new PlaylistTab { name = query, titleSourceUrl = TitlesUrl(query), videos = videos };
         }
     }
 

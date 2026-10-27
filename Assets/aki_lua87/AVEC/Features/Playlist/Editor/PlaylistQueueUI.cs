@@ -1,4 +1,4 @@
-﻿using UnityEditor;
+using UnityEditor;
 using UnityEditor.Events;
 using UnityEngine;
 using UnityEngine.UI;
@@ -70,29 +70,54 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
 
         public static void EnsureQueueSkipButton(PlaylistView view)
         {
-            if (view.queuePanel == null || view.queuePanel.transform.Find("Skip queued playback") != null) return;
+            if (view == null || view.queuePanel == null) return;
             var panel = view.queuePanel.transform;
-            var play = panel.Find("Start queued playback") as RectTransform;
-            if (play == null) return;
-            var next = Button(panel, "Skip queued playback", "次の動画へ", view, "_SkipQueuedPlayback", 0, 0, 104, play.rect.height, view.normalColor);
-            var rect = (RectTransform)next.transform;
-            rect.anchorMin = play.anchorMin; rect.anchorMax = play.anchorMax; rect.pivot = play.pivot;
-            rect.anchoredPosition = play.anchoredPosition - new Vector2(112f, 0f);
-            var caption = next.GetComponentInChildren<Text>(true); caption.fontSize = 14;
-            PlaylistConnections.Save(caption); PlaylistConnections.Save(rect);
-            var add = panel.Find("Add video") as RectTransform;
-            if (add != null && add.anchorMin == rect.anchorMin && add.anchorMax == rect.anchorMax)
+            var rect = panel.Find("Skip queued playback") as RectTransform;
+            if (rect == null)
             {
-                float right = rect.anchoredPosition.x - rect.rect.width * rect.pivot.x - 8f;
-                float width = right - (add.anchoredPosition.x - add.rect.width * add.pivot.x);
-                if (width > 0 && width < add.rect.width)
-                {
-                    Undo.RecordObject(add, "Reserve next queue button space");
-                    add.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
-                    PlaylistConnections.Save(add);
-                }
+                float width = ((RectTransform)panel).rect.width;
+                var next = Button(panel, "Skip queued playback", "次の動画へ", view, "_SkipQueuedPlayback", width - 116, 3, 104, 30, view.normalColor);
+                rect = (RectTransform)next.transform;
+                var caption = next.GetComponentInChildren<Text>(true); caption.fontSize = 14;
+                PlaylistConnections.Save(caption);
             }
-            RefreshQueueControlLayout(view);
+            RefreshQueueHeader(view);
+        }
+
+        // Migrate only the header controls; retain authored height, styling and events.
+        public static void RefreshQueueHeader(PlaylistView view)
+        {
+            if (view == null || view.queuePanel == null) return;
+            var panel = view.queuePanel.transform;
+            var rect = panel.Find("Skip queued playback") as RectTransform;
+            var add = panel.Find("Add video") as RectTransform;
+            if (rect == null || add == null) return;
+            var clear = panel.Find("Clear queue") as RectTransform;
+            if (clear != null)
+            {
+                // Preserve the old right edge, including any manual margin adjustment.
+                float right = clear.localPosition.x + clear.rect.xMax;
+                PlaylistUndo.RecordObject(rect, "Move next video button to header edge");
+                var position = rect.localPosition; position.x = right - rect.rect.xMax;
+                rect.localPosition = position;
+                PlaylistConnections.Save(rect);
+            }
+            float nextLeft = rect.localPosition.x + rect.rect.xMin;
+            float addLeft = add.localPosition.x + add.rect.xMin;
+            float width = nextLeft - 8f - addLeft;
+            if (width > 0 && !Mathf.Approximately(width, add.rect.width))
+            {
+                PlaylistUndo.RecordObject(add, "Expand add video button");
+                add.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+                var position = add.localPosition; position.x = addLeft - add.rect.xMin;
+                add.localPosition = position;
+                PlaylistConnections.Save(add);
+            }
+            foreach (string name in new[] { "Start queued playback", "Clear queue" })
+            {
+                var old = panel.Find(name);
+                if (old != null) PlaylistUndo.DestroyObjectImmediate(old.gameObject);
+            }
         }
 
         // Keep controls inside their actual row, including after ScrollRect lays it out.
@@ -419,8 +444,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 float width = panel.rect.width;
                 var header = Label(panel, "Queue heading", "再生キュー", view, 18);
                 PlaylistAppearance.Place(header.rectTransform, 12, 3, width - 210, 32);
-                Button(panel, "Start queued playback", "再生", view, "_StartQueuedPlayback", width - 182, 3, 76, 30, view.normalColor);
-                Button(panel, "Clear queue", "クリア", view, "_ClearQueue", width - 98, 3, 86, 30, view.normalColor);
+                Button(panel, "Skip queued playback", "次の動画へ", view, "_SkipQueuedPlayback", width - 116, 3, 104, 30, view.normalColor);
                 view.queueLabels = new Text[6]; view.queueRows = new GameObject[6];
                 for (int i = 0; i < 6; i++) {
                     var row = Box(panel, "Queue row " + i, view.normalColor);
@@ -453,7 +477,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             for (int i = 0; i < view.videoImages.Length; i++)
                 if (view.videoImages[i] != null) EnsureAddButton(setup, view.videoImages[i].gameObject, i);
         }
-        // Update only the requested labels and icon, preserving layout and button events.
+        // Update captions without changing layout or button events.
         public static void UpdateQueueLabels(PlaylistView view)
         {
             if (view == null) return;
@@ -462,30 +486,9 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (view.heading != null && (view.heading.text == "キュー" || view.heading.text == "再生待ちキュー")) { PlaylistUndo.RecordObject(view.heading, "Rename queue heading"); view.heading.text = "再生キュー"; PlaylistConnections.Save(view.heading); }
             if (view.queuePanel == null) return;
             var panel = view.queuePanel.transform;
-            var clear = panel.Find("Clear queue");
-            var clearLabel = clear == null ? null : clear.GetComponentInChildren<Text>(true);
-            if (clearLabel != null) { PlaylistUndo.RecordObject(clearLabel, "Rename clear button"); clearLabel.text = "クリア"; PlaylistConnections.Save(clearLabel); }
             var heading = panel.Find("Queue heading");
             var headingLabel = heading == null ? null : heading.GetComponent<Text>();
             if (headingLabel != null) { PlaylistUndo.RecordObject(headingLabel, "Rename queue heading"); headingLabel.text = "再生キュー"; PlaylistConnections.Save(headingLabel); }
-            var play = panel.Find("Start queued playback");
-            if (play == null) return;
-            var label = play.GetComponentInChildren<Text>(true);
-            if (label != null) { PlaylistUndo.RecordObject(label, "Replace queue play text with icon"); label.enabled = false; PlaylistConnections.Save(label); }
-            var existing = play.Find("Icon");
-            Image icon;
-            if (existing == null)
-            {
-                var go = new GameObject("Icon", typeof(RectTransform), typeof(Image));
-                PlaylistUndo.RegisterCreatedObjectUndo(go, "Add queue play icon"); go.transform.SetParent(play, false);
-                icon = go.GetComponent<Image>();
-                icon.rectTransform.anchorMin = icon.rectTransform.anchorMax = icon.rectTransform.pivot = new Vector2(.5f, .5f);
-                icon.rectTransform.anchoredPosition = Vector2.zero; icon.rectTransform.sizeDelta = new Vector2(24f, 24f);
-                icon.color = label == null ? view.iconColor : label.color;
-            }
-            else { icon = existing.GetComponent<Image>(); if (icon == null) return; PlaylistUndo.RecordObject(icon, "Update queue play icon"); }
-            icon.sprite = PlaylistIcons.Get("play"); icon.preserveAspect = true; icon.raycastTarget = false;
-            PlaylistConnections.Save(icon);
         }
         static void EnsureTabLayout(PlaylistSetup setup)
         {
@@ -518,7 +521,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             var oldHeading = panel.Find("Queue heading");
             if (oldHeading != null) { oldHeading.gameObject.SetActive(false); PlaylistConnections.Save(oldHeading.gameObject); }
             if (panel.Find("Add video") == null)
-                Button(panel, "Add video", "＋ 動画を追加", view, "_OpenQueueAdd", 8, 3, width - 198, 30, view.normalColor);
+                Button(panel, "Add video", "＋ 動画を追加", view, "_OpenQueueAdd", 8, 3, width - 132, 30, view.normalColor);
             if (view.queueAddPanel == null) {
                 var form = Box(panel, "Add video form", setup.theme == null ? view.normalColor : setup.theme.surface);
                 PlaylistAppearance.Place(form, 8, 38, width - 16, 126);

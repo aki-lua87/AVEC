@@ -54,53 +54,6 @@ namespace aki_lua87.AVEC.Connectors.Editor
         {
             if(kind==3) target.GetType().GetField("controller").SetValue(target,Ref(player,"_controller"));
         }
-        public static AudioSource[] AudioSources(Component player,int kind)
-        {
-            if(player==null) return new AudioSource[0];
-            var authority = Authority(player, kind);
-            var sources = new List<AudioSource>();
-
-            if (authority != null) {
-                string fieldName = kind == 0 ? "speaker" : kind == 2 ? "audioSources" : kind == 3 ? "_audioSources" : null;
-                if (fieldName != null) {
-                    var field = authority.GetType().GetField(fieldName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
-                    var assigned = field?.GetValue(authority) as AudioSource[];
-                    if (assigned != null) sources.AddRange(assigned);
-                }
-                if (kind == 1) sources.AddRange(player.GetComponentsInChildren<AudioSource>(true));
-                if (kind == 0) {
-                    // iwaSync3 also fills its runtime speaker array during build.
-                    var speakerType = Resolve("HoshinoLabs.IwaSync3.Speaker");
-                    var mainType = Resolve("HoshinoLabs.IwaSync3.IwaSync3");
-                    if (speakerType != null && mainType != null)
-                        foreach (var speaker in Resources.FindObjectsOfTypeAll(speakerType).OfType<Component>()) {
-                            if (EditorUtility.IsPersistent(speaker) || speaker.gameObject.scene != player.gameObject.scene) continue;
-                            var owner = speaker.GetComponentInParent(mainType) ?? new SerializedObject(speaker).FindProperty("iwaSync3")?.objectReferenceValue as Component;
-                            if (owner == null) {
-                                var owners = Resources.FindObjectsOfTypeAll(mainType).OfType<Component>().Where(c => !EditorUtility.IsPersistent(c) && c.gameObject.scene == player.gameObject.scene).ToArray();
-                                if (owners.Length == 1) owner = owners[0];
-                            }
-                            for (int step = 0; owner != null && step < 64; step++) {
-                                var next = new SerializedObject(owner).FindProperty("iwaSync3")?.objectReferenceValue as Component;
-                                if (next == null || next == owner) break;
-                                owner = next;
-                            }
-                            if (owner != null && owner.GetComponentsInChildren(authority.GetType(), true).Contains(authority))
-                                sources.AddRange(speaker.GetComponentsInChildren<AudioSource>(true));
-                        }
-                }
-                if (kind == 3) {
-                    // YamaPlayer registers speakers at build time; match their explicit controller now.
-                    var speakerType = Resolve("Yamadev.YamaStream.YamaPlayerSpeaker");
-                    if (speakerType != null)
-                        foreach (var speaker in Resources.FindObjectsOfTypeAll(speakerType).OfType<Component>())
-                            if (!EditorUtility.IsPersistent(speaker) && speaker.gameObject.scene == player.gameObject.scene && speakerType.GetField("controller")?.GetValue(speaker) as Component == authority)
-                                sources.Add(speaker.GetComponent<AudioSource>());
-                }
-            }
-
-            return sources.Where(s=>s!=null).Distinct().ToArray();
-        }
         public static void DetectOutputs(Component target, Component player, int kind)
         {
             var renderers = new List<Renderer>();

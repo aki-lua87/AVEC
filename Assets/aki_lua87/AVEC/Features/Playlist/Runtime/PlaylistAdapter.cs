@@ -12,6 +12,116 @@ namespace aki_lua87.CommonVideoPlaylist
     {
         // Persisted editor wiring; all UIs for this player share one cursor.
         [HideInInspector] public PlaylistView[] views = new PlaylistView[0];
+        // Runtime-only snapshot shared by all views. Native controls are sampled once per player.
+        [System.NonSerialized] public bool localAvailable;
+        [System.NonSerialized] public float localVolume = -1f;
+        [System.NonSerialized] public bool localMuted;
+        [System.NonSerialized] public bool localPlaying;
+        [System.NonSerialized] public float localProgress = -1f;
+        [System.NonSerialized] public VRCUrl localUrl = VRCUrl.Empty;
+        private bool localStateInitialized;
+        private bool localMonitorScheduled;
+        private bool localReady;
+        private bool localRepeat;
+        private GameObject[] localRemotes = new GameObject[0];
+        private bool[] localRemoteEnabled = new bool[0];
+
+        public void _EnsureLocalStateMonitor()
+        {
+            if (NetworkCalling.InNetworkCall) return;
+            if (!localStateInitialized)
+            {
+                for (int v = 0; v < views.Length; v++)
+                {
+                    if (views[v] == null) continue;
+                    var remotes = views[v].remoteObjects;
+                    for (int r = 0; r < remotes.Length; r++)
+                    {
+                        if (remotes[r] == null || System.Array.IndexOf(localRemotes, remotes[r]) >= 0) continue;
+                        int count = localRemotes.Length;
+                        var expanded = new GameObject[count + 1];
+                        System.Array.Copy(localRemotes, expanded, count);
+                        expanded[count] = remotes[r]; localRemotes = expanded;
+                    }
+                }
+                localRemoteEnabled = new bool[localRemotes.Length];
+                SampleLocalState(true);
+            }
+            if (localMonitorScheduled) return;
+            localMonitorScheduled = true;
+            SendCustomEventDelayedSeconds(nameof(_PollLocalState), .5f);
+        }
+        public void _PollLocalState()
+        {
+            if (NetworkCalling.InNetworkCall) return;
+            localMonitorScheduled = false;
+            SampleLocalState(false);
+            _EnsureLocalStateMonitor();
+        }
+        // Call after an AVEC operation; external/native operations use the single fallback poll.
+        public void _NotifyLocalStateChanged()
+        {
+            if (NetworkCalling.InNetworkCall) return;
+            _EnsureLocalStateMonitor();
+            SampleLocalState(true);
+        }
+        public int _ChangeLocalVolume(float value)
+        {
+            if (NetworkCalling.InNetworkCall) return 0;
+            int result = _SetVolume(value);
+            _NotifyLocalStateChanged();
+            return result;
+        }
+        public int _ChangeLocalMute(bool value)
+        {
+            if (NetworkCalling.InNetworkCall) return 0;
+            int result = _SetMute(value);
+            _NotifyLocalStateChanged();
+            return result;
+        }
+        public int _ChangeLocalPlayback(bool pause)
+        {
+            if (NetworkCalling.InNetworkCall) return 0;
+            int result = _ControlPlayback(pause);
+            _NotifyLocalStateChanged();
+            return result;
+        }
+        private void SampleLocalState(bool refreshProgress)
+        {
+            bool available = _Available();
+            float volume = available ? _GetVolume() : -1f;
+            bool muted = available && _GetMute();
+            bool playing = available && _IsPlaybackRunning();
+            bool ready = available && _NativeReady();
+            bool repeat = available && _GetNativeRepeat();
+            VRCUrl url = available ? _CurrentUrl() : VRCUrl.Empty;
+            string raw = VRCUrl.IsNullOrEmpty(url) ? "" : url.Get();
+            string previous = VRCUrl.IsNullOrEmpty(localUrl) ? "" : localUrl.Get();
+            bool playbackChanged = !localStateInitialized || available != localAvailable || playing != localPlaying || ready != localReady || raw != previous;
+            bool controlsChanged = playbackChanged || volume != localVolume || muted != localMuted || repeat != localRepeat;
+            bool remotesChanged = !localStateInitialized;
+            for (int i = 0; i < localRemotes.Length; i++)
+            {
+                bool enabled = localRemotes[i] != null && localRemotes[i].activeSelf;
+                if (localRemoteEnabled[i] != enabled) remotesChanged = true;
+                localRemoteEnabled[i] = enabled;
+            }
+            float progress = localProgress;
+            // Paused/stopped playback has no periodic time query. Transitions and explicit events refresh once.
+            if (playing || playbackChanged || refreshProgress) progress = available ? _GetProgress() : -1f;
+            bool progressChanged = playbackChanged || progress != localProgress;
+            localAvailable = available; localVolume = volume; localMuted = muted;
+            localPlaying = playing; localReady = ready; localRepeat = repeat;
+            localUrl = url; localProgress = progress; localStateInitialized = true;
+            for (int i = 0; i < views.Length; i++)
+            {
+                var view = views[i];
+                if (view == null || !view.gameObject.activeInHierarchy || !view.enabled) continue;
+                if (controlsChanged) view._RefreshVolume();
+                else if (remotesChanged) view._RefreshRemoteToggle();
+                if (progressChanged) view._RefreshProgress();
+            }
+        }
         [UdonSynced] private int syncedView = -1;
         [UdonSynced] private int syncedVideo = -1;
         [UdonSynced] private int syncedRevision;
@@ -572,6 +682,7 @@ namespace aki_lua87.CommonVideoPlaylist
         }
         private void ShowCursor()
         {
+            _NotifyLocalStateChanged();
             var view = ActiveView();
             for (int i = 0; i < views.Length; i++) if (views[i] != null) views[i]._ShowSequenceSelection(views[i] == view ? cursorVideo : -1);
             for (int i = 0; i < views.Length; i++) if (views[i] != null) { views[i]._RefreshPlaybackMode(); views[i]._RefreshQueue(); views[i]._RefreshHistory(); }
@@ -628,11 +739,13 @@ namespace aki_lua87.CommonVideoPlaylist
         public void _NativeLoading()
         {
             if (NetworkCalling.InNetworkCall) return;
+            _NotifyLocalStateChanged();
             lastLoadTime = Time.realtimeSinceStartup;
             if (queueAdvanceRequested && !requesting && CanWrite()) { queueAdvanceRequested = false; CommitCursor(); }
         }
         public void _NativeStarted()
         {
+            _NotifyLocalStateChanged();
             if (NetworkCalling.InNetworkCall || requesting || !_Available() || endPending) return;
             if (queueAdvanceRequested && CanWrite()) { queueAdvanceRequested = false; CommitCursor(); }
             if (MatchesCurrent())
@@ -649,6 +762,7 @@ namespace aki_lua87.CommonVideoPlaylist
         }
         public void _NativeEnded()
         {
+            _NotifyLocalStateChanged();
             if (NetworkCalling.InNetworkCall || requesting || endPending || (!armed && queueViews.Length == 0)) return;
             if (_IsRepeatMode() && MatchesCurrent()) return;
             if (CanWrite()) { FinishQueued(); CommitCursor(); }
@@ -723,6 +837,7 @@ namespace aki_lua87.CommonVideoPlaylist
         }
         public void _NativeStopped()
         {
+            _NotifyLocalStateChanged();
             if (NetworkCalling.InNetworkCall || requesting) return;
             stopRevision = revision; stopDuringEnd = endPending;
             SendCustomEventDelayedFrames(nameof(_CheckSequenceStop), 1);
@@ -736,10 +851,12 @@ namespace aki_lua87.CommonVideoPlaylist
         public void _NativeError()
         {
             if (NetworkCalling.InNetworkCall) return;
+            _NotifyLocalStateChanged();
             armed = false; endPending = false; // Native retry may arm this entry again.
         }
         public void _CancelSequence()
         {
+            _NotifyLocalStateChanged();
             if (NetworkCalling.InNetworkCall || requesting) return;
             armed = false; endPending = false;
             if (!CanWrite()) return;

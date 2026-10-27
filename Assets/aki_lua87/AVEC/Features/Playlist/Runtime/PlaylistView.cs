@@ -69,9 +69,17 @@ namespace aki_lua87.CommonVideoPlaylist
         public Sprite playIcon;
         public Sprite pauseIcon;
         public Text connectionLabel;
+        // Local visibility only. Editor wiring keeps the optional Remote package independent.
+        [HideInInspector] public GameObject[] remoteObjects = new GameObject[0];
+        [HideInInspector] public GameObject remoteToggleButton;
+        [HideInInspector] public GameObject remoteOffSlash;
+        // Persisted editor wiring for local ray-pointer hints; the panel never blocks rays.
+        [HideInInspector] public RectTransform controlTip;
+        [HideInInspector] public Text controlTipLabel;
+        [HideInInspector] public RectTransform[] controlTipTargets = new RectTransform[0];
+        private RectTransform activeTipTarget;
         // Editor-baked destination name; persisted because PlaylistSetup is EditorOnly.
         [HideInInspector] public string connectionName = "";
-        public Text audioLinkLabel;
         public GameObject queuePanel;
         public Text queueButtonLabel;
         public Text queuePageLabel;
@@ -81,13 +89,23 @@ namespace aki_lua87.CommonVideoPlaylist
         public Text[] queueLabels = new Text[0];
         public GameObject[] queueRows = new GameObject[0];
         private int queuePage;
-        // Editor-discovered optional integration references, persisted for runtime status only.
-        [HideInInspector] public VRC.Udon.UdonBehaviour[] audioLinks = new VRC.Udon.UdonBehaviour[0];
-        [HideInInspector] public AudioSource[] connectedAudioSources = new AudioSource[0];
-        [HideInInspector] public bool audioLinkInstalled;
         public Color accentColor = new Color(.25f, .86f, .76f);
         public Color iconColor = new Color(.92f, .96f, 1f);
         public ScrollRect videoScroll;
+        // Editor-wired, inactive spacers preserve the full scroll extent while rows are windowed.
+        [HideInInspector] public LayoutElement videoTopSpacer;
+        [HideInInspector] public LayoutElement videoBottomSpacer;
+        // RectOffset getters are not exposed to Udon; preserve the authored padding at edit time.
+        [HideInInspector] public float videoWindowPaddingTop;
+        private int[] windowEntries;
+        private float[] windowOffsets;
+        private float[] windowHeights;
+        private int windowCount;
+        private int windowTab = -1;
+        private int windowFirst = -1;
+        private int windowLast = -1;
+        private float windowSpacing;
+        private float windowRowsEnd;
         public Color normalColor = new Color(.12f, .16f, .22f);
         public Color selectedColor = new Color(.12f, .43f, .48f);
         // Persisted editor-baked data: no ScriptableObject access in Udon.
@@ -105,7 +123,15 @@ namespace aki_lua87.CommonVideoPlaylist
         [HideInInspector] public FeatureExtensionBehaviour[] extensions = new FeatureExtensionBehaviour[0];
         private int selectedTab = -1;
         private int selectedVideo = -1;
-        private void Start() { _ApplySpecialLists(); SelectInitialList(); _RefreshVolume(); SendCustomEventDelayedSeconds(nameof(_PollVolume), .5f); }
+        private void Start() { _ApplySpecialLists(); SelectInitialList(); _RefreshLocalState(); }
+        private void OnEnable() { _RefreshLocalState(); }
+        public void _RefreshLocalState()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            if (adapter != null) adapter._NotifyLocalStateChanged();
+            _RefreshVolume();
+            _RefreshProgress();
+        }
         public void _ApplySpecialLists()
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
@@ -193,19 +219,81 @@ namespace aki_lua87.CommonVideoPlaylist
         }
         public void _PollVolume()
         {
+            // Compatibility entry point; periodic polling now belongs to the shared adapter.
+            _RefreshLocalState();
+        }
+        public void _ToggleRemote()
+        {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
-            _RefreshVolume();
-            SendCustomEventDelayedSeconds(nameof(_PollVolume), .5f);
+            bool enabled = false;
+            for (int i = 0; i < remoteObjects.Length; i++)
+                if (remoteObjects[i] != null && remoteObjects[i].activeSelf) enabled = true;
+            for (int i = 0; i < remoteObjects.Length; i++)
+            {
+                var remote = remoteObjects[i];
+                if (remote == null) continue;
+                // Drop our held remote before disabling its entire object and input loop.
+                var pickup = (VRC.SDK3.Components.VRCPickup)remote.GetComponent(typeof(VRC.SDK3.Components.VRCPickup));
+                if (enabled && pickup != null && pickup.IsHeld && Utilities.IsValid(pickup.currentPlayer) && pickup.currentPlayer.isLocal) pickup.Drop();
+                remote.SetActive(!enabled);
+            }
+            _RefreshRemoteToggle();
+            if (adapter != null) adapter._NotifyLocalStateChanged();
+        }
+        public void _ShowPlaybackTip() { ShowControlTip(0, "再生/一時停止"); }
+        public void _ShowPlaybackModeTip() { ShowControlTip(1, "順送り/シャッフル/リピート"); }
+        public void _ShowRemoteTip() { ShowControlTip(2, "リモコンON/OFF"); }
+        public void _ShowMuteTip() { ShowControlTip(3, "ミュートON/OFF"); }
+        private void ShowControlTip(int index, string caption)
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || controlTip == null || controlTipLabel == null ||
+                index < 0 || index >= controlTipTargets.Length) return;
+            var target = controlTipTargets[index];
+            if (target == null || !target.gameObject.activeInHierarchy) return;
+            var root = (RectTransform)transform;
+            var top = root.InverseTransformPoint(target.TransformPoint(new Vector3(target.rect.center.x, target.rect.yMax, 0)));
+            var bottom = root.InverseTransformPoint(target.TransformPoint(new Vector3(target.rect.center.x, target.rect.yMin, 0)));
+            float halfWidth = controlTip.rect.width * .5f;
+            float halfHeight = controlTip.rect.height * .5f;
+            float x = Mathf.Clamp(top.x, root.rect.xMin + halfWidth + 8, root.rect.xMax - halfWidth - 8);
+            float y = top.y + halfHeight + 8;
+            if (y + halfHeight > root.rect.yMax - 8) y = bottom.y - halfHeight - 8;
+            controlTip.position = root.TransformPoint(new Vector3(x, y, 0));
+            controlTipLabel.text = caption;
+            activeTipTarget = target;
+            controlTip.SetAsLastSibling();
+            controlTip.gameObject.SetActive(true);
+        }
+        public void _HideControlTip()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            activeTipTarget = null;
+            if (controlTip != null) controlTip.gameObject.SetActive(false);
+        }
+        private void OnDisable() { _HideControlTip(); }
+        public void _RefreshRemoteToggle()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            bool available = false;
+            bool enabled = false;
+            for (int i = 0; i < remoteObjects.Length; i++)
+            {
+                if (remoteObjects[i] == null) continue;
+                available = true;
+                if (remoteObjects[i].activeSelf) enabled = true;
+            }
+            if (remoteToggleButton != null && remoteToggleButton.activeSelf != available) remoteToggleButton.SetActive(available);
+            if (remoteOffSlash != null && remoteOffSlash.activeSelf != !enabled) remoteOffSlash.SetActive(!enabled);
         }
         public void _RefreshVolume()
         {
-            _RefreshProgress();
+            _RefreshRemoteToggle();
+            if (activeTipTarget != null && !activeTipTarget.gameObject.activeInHierarchy) _HideControlTip();
             _RefreshPlaybackMode();
-            if (connectionLabel != null) connectionLabel.text = "connnect: " + (adapter == null || !adapter._Available() ? "未接続" : connectionName);
-            if (audioLinkLabel != null) audioLinkLabel.text = _AudioLinkStatus();
-            if (volumeIcon != null) volumeIcon.sprite = adapter != null && adapter._GetMute() ? mutedIcon : speakerIcon;
-            if (transportIcon != null) transportIcon.sprite = adapter != null && adapter._IsPlaybackRunning() ? pauseIcon : playIcon;
-            float value = adapter == null ? -1f : adapter._GetVolume();
+            if (connectionLabel != null) connectionLabel.text = "接続先: " + (adapter == null || !adapter.localAvailable ? "未接続" : connectionName);
+            if (volumeIcon != null) volumeIcon.sprite = adapter != null && adapter.localMuted ? mutedIcon : speakerIcon;
+            if (transportIcon != null) transportIcon.sprite = adapter != null && adapter.localPlaying ? pauseIcon : playIcon;
+            float value = adapter == null ? -1f : adapter.localVolume;
             if (volumeSlider != null) { volumeSlider.interactable = value >= 0f; if (value >= 0f) volumeSlider.SetValueWithoutNotify(value); }
             if (volumeLabel != null) volumeLabel.text = value < 0f ? "—" : Mathf.RoundToInt(value * 100f) + "%";
         }
@@ -297,6 +385,7 @@ namespace aki_lua87.CommonVideoPlaylist
                 if (i < queueRows.Length && queueRows[i] != null) queueRows[i].SetActive(visible);
                 if (queueLabels[i] != null) queueLabels[i].text = visible ? adapter._QueueDisplayTitle(index) : "";
             }
+            _RefreshProgress();
         }
         public void _ToggleHistory()
         {
@@ -430,8 +519,88 @@ namespace aki_lua87.CommonVideoPlaylist
         public bool _EntryVisible(int index) { return hiddenEntries == null || index >= hiddenEntries.Length || !hiddenEntries[index]; }
         public void _RefreshVisibleEntries()
         {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
+            _RefreshProgress();
+            if (videoTopSpacer != null && videoBottomSpacer != null && videoScroll != null && videoScroll.content != null)
+            {
+                var layout = videoScroll.content.GetComponent<VerticalLayoutGroup>();
+                if (layout != null && layout.enabled)
+                {
+                    if (windowEntries == null || windowEntries.Length != videoImages.Length)
+                    {
+                        windowEntries = new int[videoImages.Length];
+                        windowOffsets = new float[videoImages.Length];
+                        windowHeights = new float[videoImages.Length];
+                    }
+                    windowCount = 0; windowFirst = -1; windowLast = -1; windowTab = selectedTab;
+                    windowSpacing = layout.spacing;
+                    float offset = videoWindowPaddingTop;
+                    // Build the selected tab once. Scroll callbacks only search these cached offsets.
+                    for (int i = 0; i < videoImages.Length; i++)
+                    {
+                        if (videoImages[i] == null) continue;
+                        videoImages[i].gameObject.SetActive(false);
+                        if (selectedTab < 0 || i >= videoTabs.Length || videoTabs[i] != selectedTab || !_EntryVisible(i)) continue;
+                        var rect = videoImages[i].rectTransform;
+                        // LayoutUtility ignores inactive behaviours, but offscreen rows are deliberately inactive.
+                        var element = videoImages[i].GetComponent<LayoutElement>();
+                        float height = layout.childControlHeight && element != null
+                            ? Mathf.Max(element.minHeight, element.preferredHeight) : rect.rect.height;
+                        if (height < 0f) height = rect.rect.height;
+                        height = Mathf.Max(1f, height);
+                        windowEntries[windowCount] = i;
+                        windowOffsets[windowCount] = offset;
+                        windowHeights[windowCount] = height;
+                        offset += height + windowSpacing;
+                        windowCount++;
+                    }
+                    windowRowsEnd = windowCount > 0 ? offset - windowSpacing : offset;
+                    _RefreshVideoWindow();
+                    return;
+                }
+            }
+            // Older, unmigrated instances remain usable.
             for (int i = 0; i < videoImages.Length; i++) if (videoImages[i] != null)
-                videoImages[i].gameObject.SetActive(i < videoTabs.Length && videoTabs[i] == selectedTab && _EntryVisible(i));
+                videoImages[i].gameObject.SetActive(selectedTab >= 0 && i < videoTabs.Length && videoTabs[i] == selectedTab && _EntryVisible(i));
+        }
+
+        // Wired to ScrollRect.onValueChanged as a local SendCustomEvent, preserving other listeners.
+        public void _RefreshVideoWindow()
+        {
+            if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || windowEntries == null || windowTab != selectedTab || videoTopSpacer == null || videoBottomSpacer == null) return;
+            if (windowCount == 0)
+            {
+                videoTopSpacer.gameObject.SetActive(false); videoBottomSpacer.gameObject.SetActive(false);
+                return;
+            }
+            float top = Mathf.Max(0f, videoScroll.content.anchoredPosition.y);
+            float height = videoScroll.viewport != null ? videoScroll.viewport.rect.height : 0f;
+            if (height <= 0f) height = ((RectTransform)videoScroll.transform).rect.height;
+            float bottom = top + Mathf.Max(1f, height);
+            int lo = 0, hi = windowCount;
+            while (lo < hi)
+            {
+                int mid = (lo + hi) / 2;
+                if (windowOffsets[mid] + windowHeights[mid] < top) lo = mid + 1; else hi = mid;
+            }
+            int first = Mathf.Max(0, Mathf.Min(windowCount - 1, lo) - 5);
+            lo = 0; hi = windowCount;
+            while (lo < hi)
+            {
+                int mid = (lo + hi) / 2;
+                if (windowOffsets[mid] <= bottom) lo = mid + 1; else hi = mid;
+            }
+            int last = Mathf.Min(windowCount - 1, Mathf.Max(0, lo - 1) + 5);
+            if (first == windowFirst && last == windowLast) return;
+            for (int i = windowFirst; i >= 0 && i <= windowLast; i++)
+                if (i < first || i > last) videoImages[windowEntries[i]].gameObject.SetActive(false);
+            for (int i = first; i <= last; i++)
+                if (i < windowFirst || i > windowLast) videoImages[windowEntries[i]].gameObject.SetActive(true);
+            videoTopSpacer.preferredHeight = first > 0 ? Mathf.Max(0f, windowOffsets[first] - windowOffsets[0] - windowSpacing) : 0f;
+            videoBottomSpacer.preferredHeight = last < windowCount - 1 ? Mathf.Max(0f, windowRowsEnd - windowOffsets[last] - windowHeights[last] - windowSpacing) : 0f;
+            videoTopSpacer.gameObject.SetActive(first > 0);
+            videoBottomSpacer.gameObject.SetActive(last < windowCount - 1);
+            windowFirst = first; windowLast = last;
         }
         private string progressUrl = "";
         private int progressSelection = -2;
@@ -447,8 +616,8 @@ namespace aki_lua87.CommonVideoPlaylist
                 for (int i = 0; i < videoProgress.Length; i++) if (videoProgress[i] != null) videoProgress[i].gameObject.SetActive(false);
                 for (int i = 0; i < queueProgress.Length; i++) if (queueProgress[i] != null) queueProgress[i].gameObject.SetActive(false);
             }
-            float progress = adapter == null || !adapter._Available() ? -1f : adapter._GetProgress();
-            VRCUrl current = progress >= 0f ? adapter._CurrentUrl() : VRCUrl.Empty;
+            float progress = adapter == null ? -1f : adapter.localProgress;
+            VRCUrl current = progress >= 0f ? adapter.localUrl : VRCUrl.Empty;
             string raw = VRCUrl.IsNullOrEmpty(current) ? "" : current.Get();
             if (raw != progressUrl || progressSelection != selectedVideo)
             {
@@ -478,35 +647,17 @@ namespace aki_lua87.CommonVideoPlaylist
             if (video >= 0 && videoProgress[video] != null) videoProgress[video].fillAmount = progress;
             if (queued >= 0 && queueProgress[queued] != null) queueProgress[queued].fillAmount = progress;
         }
-        public string _AudioLinkStatus()
-        {
-            if (!audioLinkInstalled) return "AudioLink: 未導入";
-            if (audioLinks.Length == 0) return "AudioLink: 未配置";
-            if (adapter == null || !adapter._Available()) return "AudioLink: プレイヤー未接続";
-            if (connectedAudioSources.Length == 0) return "AudioLink: 音源未設定";
-            for (int i = 0; i < audioLinks.Length; i++)
-            {
-                var link = audioLinks[i];
-                if (link == null || !link.enabled || !link.gameObject.activeInHierarchy) continue;
-                var source = (AudioSource)link.GetProgramVariable("audioSource");
-                var right = (AudioSource)link.GetProgramVariable("optionalRightAudioSource");
-                for (int j = 0; j < connectedAudioSources.Length; j++)
-                    if (connectedAudioSources[j] != null && (connectedAudioSources[j] == source || connectedAudioSources[j] == right))
-                        return "AudioLink: 接続中";
-            }
-            return "AudioLink: 未接続";
-        }
         public void _ChangeVolume()
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || volumeSlider == null) return;
-            int result = adapter == null ? 0 : adapter._SetVolume(Mathf.Clamp01(volumeSlider.value));
+            int result = adapter == null ? 0 : adapter._ChangeLocalVolume(Mathf.Clamp01(volumeSlider.value));
             if (result != 1) SetStatus("音量を変更できません。接続先を確認してください");
             _RefreshVolume();
         }
         public void _ToggleMute()
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
-            int result = adapter == null ? 0 : adapter._SetMute(!adapter._GetMute());
+            int result = adapter == null ? 0 : adapter._ChangeLocalMute(!adapter._GetMute());
             SetStatus(result == 1 ? (adapter._GetMute() ? "ミュートしました" : "ミュートを解除しました") : result == 2 ? "操作権限がありません" : "接続先を確認してください");
             _RefreshVolume();
         }
@@ -519,13 +670,13 @@ namespace aki_lua87.CommonVideoPlaylist
         public void _StopPlayback()
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
-            int result = adapter == null ? 0 : adapter._ControlPlayback(true);
+            int result = adapter == null ? 0 : adapter._ChangeLocalPlayback(true);
             SetStatus(result == 1 ? "一時停止を要求しました" : result == 2 ? "操作権限がありません" : "接続先を確認してください");
         }
         public void _StartPlayback()
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
-            int result = adapter == null ? 0 : adapter._ControlPlayback(false);
+            int result = adapter == null ? 0 : adapter._ChangeLocalPlayback(false);
             SetStatus(result == 1 ? "再開を要求しました" : result == 2 ? "操作権限がありません" : result == 4 ? "再開できる動画がありません。動画を選択してください" : "接続先を確認してください");
         }
 
@@ -556,10 +707,10 @@ namespace aki_lua87.CommonVideoPlaylist
             {
                 if (videoImages[i] == null) continue;
                 bool visible = i < videoTabs.Length && videoTabs[i] == index && _EntryVisible(i);
-                videoImages[i].gameObject.SetActive(visible);
                 if (visible) count++;
             }
             if (videoScroll != null) { videoScroll.StopMovement(); videoScroll.verticalNormalizedPosition = 1; }
+            _RefreshVisibleEntries();
             // Scroll bounds may not exist until the first Canvas layout completes.
             SendCustomEventDelayedFrames(nameof(_ResetVideoScroll), 1);
             if (count == 0) SetStatus("No videos in this tab / このタブは空です");
@@ -575,6 +726,7 @@ namespace aki_lua87.CommonVideoPlaylist
             videoScroll.StopMovement();
             if (videoScroll.content != null) videoScroll.content.anchoredPosition = new Vector2(videoScroll.content.anchoredPosition.x, 0f);
             videoScroll.verticalNormalizedPosition = 1f;
+            _RefreshVideoWindow();
         }
 
         public void _SelectVideo(int index)
@@ -609,6 +761,7 @@ namespace aki_lua87.CommonVideoPlaylist
             selectedVideo = index;
             for (int i = 0; i < videoImages.Length; i++)
                 if (videoImages[i] != null) videoImages[i].color = i == selectedVideo ? selectedColor : normalColor;
+            _RefreshProgress();
         }
         public void _SequenceStatus(string message) { SetStatus(message); }
         public int _NextVideoInTab(int current)

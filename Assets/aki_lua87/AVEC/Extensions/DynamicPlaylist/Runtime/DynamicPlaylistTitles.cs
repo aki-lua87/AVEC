@@ -12,13 +12,15 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist
     {
         public PlaylistView view;
         private bool[] titleRequests;
+        // Cache successful loads per tab for this client's world visit. Failed loads remain retryable.
+        private bool[] titlesLoaded;
         private float[] nextTitleRequests;
         private string[] originalTitles;
         public override void _OnSelectionChanged(int tab)
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall || view == null || view.titleSourceUrls == null || tab < 0 || tab >= view.titleSourceUrls.Length || VRCUrl.IsNullOrEmpty(view.titleSourceUrls[tab])) return;
-            if (titleRequests == null) { titleRequests = new bool[view.titleSourceUrls.Length]; nextTitleRequests = new float[view.titleSourceUrls.Length]; originalTitles = (string[])view.titles.Clone(); }
-            if (titleRequests[tab] || Time.realtimeSinceStartup < nextTitleRequests[tab]) return;
+            if (titleRequests == null) { titleRequests = new bool[view.titleSourceUrls.Length]; titlesLoaded = new bool[view.titleSourceUrls.Length]; nextTitleRequests = new float[view.titleSourceUrls.Length]; originalTitles = (string[])view.titles.Clone(); }
+            if (titlesLoaded[tab] || titleRequests[tab] || Time.realtimeSinceStartup < nextTitleRequests[tab]) return;
             if (view.loadingTabs == null) view.loadingTabs = new bool[view.titleSourceUrls.Length];
             view.loadingTabs[tab] = true; view._RefreshTabInfo();
             titleRequests[tab] = true; nextTitleRequests[tab] = Time.realtimeSinceStartup + 5f;
@@ -78,6 +80,7 @@ namespace aki_lua87.AVEC.Extensions.DynamicPlaylist
                     view.titles[i] = title;
                     if (i < view.videoLabels.Length && view.videoLabels[i] != null) view.videoLabels[i].text = title;
                 }
+                titlesLoaded[tab] = true;
                 if (view.loadingTabs != null) view.loadingTabs[tab] = false;
                 view._RefreshTabInfo(); view._RefreshVisibleEntries();
             }
