@@ -111,7 +111,7 @@ namespace aki_lua87.CommonVideoPlaylist
             if (!Utilities.IsValid(player) || !player.isLocal || !_Ready()) return;
             storageExceeded = true;
             for (int i = 0; i < views.Length; i++) if (views[i] != null && views[i].enableUserList)
-                views[i]._SequenceStatus("永続化の保存容量を超えています。ユーザーリストを削除して容量を空けてください。");
+                views[i]._SequenceStatus("永続化の保存容量を超えています。保存リストを削除して容量を空けてください。");
         }
     }
 }

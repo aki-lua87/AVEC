@@ -304,7 +304,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 EditorGUI.BeginChangeCheck();
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("enableQueue"), new GUIContent("再生キューを使用"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("enableHistory"), new GUIContent("再生履歴を使用"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("enableUserList"), new GUIContent("ユーザーリストを使用"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("enableUserList"), new GUIContent("保存リストを使用"));
                 bool specialChanged = EditorGUI.EndChangeCheck();
                 serializedObject.ApplyModifiedProperties();
                 if (specialChanged) TrySpecialLists(setup);

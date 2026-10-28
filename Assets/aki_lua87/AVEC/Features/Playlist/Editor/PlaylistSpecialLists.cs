@@ -44,7 +44,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 SetVisible(view.userPanel, !setup.enableHistory && setup.enableUserList);
                 bool regular = !setup.enableHistory && !setup.enableUserList;
                 SetVisible(view.videoScroll == null ? null : view.videoScroll.gameObject, regular);
-                if (view.heading != null) { Undo.RecordObject(view.heading, "Select enabled playlist list"); view.heading.text = setup.enableHistory ? "再生履歴" : setup.enableUserList ? "ユーザーリスト" : view.tabNames.Length > 0 ? view.tabNames[0] : "Playlist"; PlaylistConnections.Save(view.heading); }
+                if (view.heading != null) { Undo.RecordObject(view.heading, "Select enabled playlist list"); view.heading.text = setup.enableHistory ? "再生履歴" : setup.enableUserList ? "保存リスト" : view.tabNames.Length > 0 ? view.tabNames[0] : "Playlist"; PlaylistConnections.Save(view.heading); }
                 SetColor(view.queueTabImage, view.normalColor);
                 SetColor(view.historyTabImage, setup.enableHistory ? view.selectedColor : view.normalColor);
                 SetColor(view.userTabImage, !setup.enableHistory && setup.enableUserList ? view.selectedColor : view.normalColor);
@@ -69,7 +69,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         {
             var scene = setup.gameObject.scene;
             var stores = UnityEngine.Object.FindObjectsOfType<PlaylistUserData>(true).Where(s => s.gameObject.scene == scene).ToArray();
-            if (stores.Length > 1) throw new InvalidOperationException("ユーザーリスト保存用PlayerObjectが複数あります。既存のNetwork IDを保持したまま参照を確認してください。");
+            if (stores.Length > 1) throw new InvalidOperationException("保存リスト保存用PlayerObjectが複数あります。既存のNetwork IDを保持したまま参照を確認してください。");
             PlaylistUserData store;
             if (stores.Length == 0)
             {
@@ -82,22 +82,22 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             }
             else store = stores[0];
             if (store.GetComponent<VRCPlayerObject>() == null || store.GetComponent<VRCEnablePersistence>() == null)
-                throw new InvalidOperationException("既存ユーザーリスト保存オブジェクトのPersistenceコンポーネントを確認してください。");
+                throw new InvalidOperationException("既存保存リスト保存オブジェクトのPersistenceコンポーネントを確認してください。");
             Undo.RecordObject(store, "Wire persistent playlist views");
             store.views = UnityEngine.Object.FindObjectsOfType<PlaylistSetup>(true)
                 .Where(s => s.gameObject.scene == scene && s.enableUserList && s.view != null).Select(s => s.view).Distinct().ToArray();
             PlaylistConnections.Save(store);
             var backing = UdonSharpEditorUtility.GetBackingUdonBehaviour(store);
-            if (backing == null || backing.programSource == null) throw new InvalidOperationException("ユーザーリストのUdonプログラムが未設定です。");
+            if (backing == null || backing.programSource == null) throw new InvalidOperationException("保存リストのUdonプログラムが未設定です。");
         }
         static void CreateUserUI(PlaylistSetup setup)
         {
             var view = setup.view;
-            if (setup.tabContent == null || view.queueTabImage == null || view.queuePanel == null) throw new InvalidOperationException("ユーザーリスト追加に必要な既存キューUIがありません。");
+            if (setup.tabContent == null || view.queueTabImage == null || view.queuePanel == null) throw new InvalidOperationException("保存リスト追加に必要な既存キューUIがありません。");
             var tab = UnityEngine.Object.Instantiate(view.queueTabImage.gameObject, setup.tabContent, false);
             tab.name = "User list toggle"; Undo.RegisterCreatedObjectUndo(tab, "Add user list tab");
             tab.transform.SetSiblingIndex(view.historyTabImage == null ? 1 : view.historyTabImage.transform.GetSiblingIndex() + 1);
-            var tabLabel = tab.GetComponentInChildren<Text>(true); tabLabel.text = "ユーザーリスト";
+            var tabLabel = tab.GetComponentInChildren<Text>(true); tabLabel.text = "保存リスト";
             tabLabel.resizeTextForBestFit = true; tabLabel.resizeTextMinSize = 14; tabLabel.resizeTextMaxSize = Mathf.Max(14, tabLabel.fontSize);
             tabLabel.horizontalOverflow = HorizontalWrapMode.Wrap; tabLabel.verticalOverflow = VerticalWrapMode.Truncate;
             Wire(tab.GetComponent<Button>(), view, "_ToggleUserList"); view.userTabImage = tab.GetComponent<Image>();
@@ -145,6 +145,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         public static void PlaceUserAddButton(PlaylistView view)
         {
             if (view == null || view.userPanel == null) return;
+            if (view.listPickerPanel != null) { PlaylistCompactLayout.UserFooter(view); return; }
             var panel = (RectTransform)view.userPanel.transform;
             var button = panel.Find("Add user video") as RectTransform;
             if (button == null) return;

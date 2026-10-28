@@ -1,0 +1,5 @@
+{
+  "name": "AVEC.SimpleScreen.Runtime",
+  "references": ["UdonSharp.Runtime", "VRC.Udon", "VRC.Udon.Serialization.OdinSerializer", "Unity.ugui", "AVEC.Core.Runtime", "CommonVideoPlaylist.Runtime", "CommonGestureRemote.Runtime"],
+  "autoReferenced": true
+}

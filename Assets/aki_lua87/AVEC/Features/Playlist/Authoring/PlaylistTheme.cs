@@ -14,6 +14,7 @@ namespace aki_lua87.CommonVideoPlaylist
         // VRC Slate: an original slate/cyan palette inspired by VRChat UI.
         public Color background = new Color(.071f, .094f, .125f);
         public Color surface = new Color(.106f, .137f, .180f);
+        [InspectorName("ボタン色"), Tooltip("リスト行と操作ボタンの共通色。枠線テーマでは枠線の色です。")]
         public Color button = new Color(.161f, .204f, .259f);
         public Color selected = new Color(.055f, .333f, .443f);
         public Color accent = new Color(.216f, .765f, .906f);

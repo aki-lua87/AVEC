@@ -224,6 +224,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             panel.gameObject.SetActive(false);
             foreach (var component in panel.GetComponentsInChildren<Component>(true)) if (component != null) PlaylistConnections.Save(component);
             PlaylistConnections.Save(panel.gameObject); PlaylistConnections.Save(view);
+            PlaylistAppearance.RefreshSupplementalTheme(view.GetComponent<PlaylistSetup>());
+            PlaylistCompactLayout.Details(view);
         }
         public static void EnsureUserDetailActions(PlaylistView view)
         {
@@ -288,7 +290,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             {
                 var area = view.heading.rectTransform;
                 if (area.parent.name == "Title viewport") area = (RectTransform)area.parent;
-                var label = Label(area.parent, "Playlist description", "", view, Mathf.Max(10, view.heading.fontSize - 4));
+                var label = Label(area.parent, "Playlist description", "", view, 10);
                 var rect = label.rectTransform;
                 rect.anchorMin = area.anchorMin; rect.anchorMax = area.anchorMax; rect.pivot = area.pivot;
                 rect.sizeDelta = area.sizeDelta; rect.anchoredPosition3D = area.anchoredPosition3D;

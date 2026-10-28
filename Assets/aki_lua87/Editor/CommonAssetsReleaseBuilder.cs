@@ -19,7 +19,7 @@ namespace aki_lua87.CommonAssets.Editor
         static PackageSpec[] CreatePackages()
         {
             var packages = new System.Collections.Generic.List<PackageSpec> {
-                new PackageSpec { Name="AVEC-Core", Folders=new[]{Root+"/Core",Root+"/Features/Playlist",Root+"/Features/Remote",Root+"/Extensions/PlaylistRemote"}, Assets=new[]{Root+"/Prefabs/CommonVideoPlaylist.prefab",Root+"/Prefabs/CommonVideoPlaylistTablet.prefab",Root+"/Prefabs/CommonGestureRemote.prefab",Root+"/Prefabs/CommonGestureGuide.prefab"}, Requires=new string[0] }
+                new PackageSpec { Name="AVEC-Core", Folders=new[]{Root+"/Core",Root+"/Features/Playlist",Root+"/Features/Remote",Root+"/Features/SimpleScreen",Root+"/Extensions/PlaylistRemote"}, Assets=new[]{Root+"/Prefabs/CommonVideoPlaylist.prefab",Root+"/Prefabs/CommonVideoPlaylistTablet.prefab",Root+"/Prefabs/CommonVideoPlaylistCompact.prefab",Root+"/Prefabs/CommonGestureRemote.prefab",Root+"/Prefabs/CommonGestureGuide.prefab",Root+"/Prefabs/AVEC-SimpleScreen.prefab"}, Requires=new string[0] }
             };
             foreach (var player in new[]{"IwaSync","KineL","VizVid","YamaPlayer","ProTV","KineLV3"})
                 packages.Add(new PackageSpec {

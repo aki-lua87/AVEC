@@ -343,6 +343,10 @@ namespace aki_lua87.CommonVideoPlaylist
         }
         public int _EnqueueUrl(VRCUrl url)
         {
+            return _EnqueueTitledUrl(url, "");
+        }
+        public int _EnqueueTitledUrl(VRCUrl url, string title)
+        {
             if (NetworkCalling.InNetworkCall || requesting || !_Available()) return 0;
             if (VRCUrl.IsNullOrEmpty(url)) return 3;
             string raw = url.Get();
@@ -355,7 +359,7 @@ namespace aki_lua87.CommonVideoPlaylist
             sources[length] = -1; videos[length] = -1; inputs[length] = url;
             queueViews = sources; queueVideos = videos; queueUrls = inputs;
             AppendQueueSubmitter();
-            AppendQueueTitle(raw);
+            AppendQueueTitle(string.IsNullOrEmpty(title) ? raw : title);
             CommitCursor();
             if (VRCUrl.IsNullOrEmpty(_CurrentUrl()) && !_NativeReady())
                 SendCustomEventDelayedSeconds(nameof(_StartQueue), Mathf.Max(.1f, 5.1f - (Time.realtimeSinceStartup - lastLoadTime)));
@@ -445,12 +449,13 @@ namespace aki_lua87.CommonVideoPlaylist
                 VRCUrl url = queueUrls[0];
                 requesting = true;
                 _SetNativeMode(modeOverride == 2 ? 2 : 0);
-                int submitted = _Request(url, url.Get());
+                string title = _QueueTitle(0);
+                int submitted = _Request(url, title);
                 requesting = false;
                 if (submitted != 1) return submitted;
                 queueAdvanceRequested = false;
                 queuePlayingUrl = url; queueOnly = true;
-                queuePlayingTitle = url.Get();
+                queuePlayingTitle = title;
                 playingSubmitter = queueSubmitters[0];
                 cursorView = -1; cursorVideo = -1; revision++; endPending = false; armed = false;
                 queueActive = true; CommitCursor(); return 1;

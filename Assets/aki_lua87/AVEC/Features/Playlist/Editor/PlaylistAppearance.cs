@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
@@ -28,8 +28,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             Position(root, "Library title",24,18,640,42);
             Position(root, "Divider",24,64,852,1);
             Position(root, "Tab title",232,68,644,36);
-            Position(root, "Tabs",24,106,196,328);
-            Position(root, "Videos",232,106,644,328);
+            Position(root, "Tabs",24,90,196,344);
+            Position(root, "Videos",232,90,644,344);
             Position(root, "Status",24,510,852,30);
             Hide(root,"Subtitle"); Hide(root,"Hint"); Hide(root,"Collections label");
             var title = root.Find("Library title")?.GetComponent<Text>(); if (title != null) { title.text = "PLAYLIST"; title.fontSize = 26; }
@@ -53,6 +53,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         public static void UpdateHeaderPresentation(PlaylistView view)
         {
             if (view == null) return;
+            if (view.listPickerPanel != null) { PlaylistCompactLayout.SingleLineDescription(view); return; }
             var root = view.transform as RectTransform;
             if (root == null) return;
             var title = root.Find("Library title")?.GetComponent<Text>();
@@ -73,15 +74,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (view.descriptionLabel != null && view.heading != null)
             {
                 var description = view.descriptionLabel;
-                var heading = view.heading.rectTransform;
-                Undo.RecordObject(description, "Show three-line playlist description");
-                Undo.RecordObject(description.rectTransform, "Align playlist description at left");
-                float x = heading.anchoredPosition.x;
-                Place(description.rectTransform, x, -heading.anchoredPosition.y - 2, root.rect.width - x - 24, 38);
-                description.fontSize = 10; description.lineSpacing = .8f;
-                description.resizeTextForBestFit = false; description.alignment = TextAnchor.LowerLeft;
-                description.horizontalOverflow = HorizontalWrapMode.Wrap; description.verticalOverflow = VerticalWrapMode.Truncate;
-                description.supportRichText = false; PlaylistConnections.Save(description);
+                PlaylistCompactLayout.SingleLineDescription(view);
             }
             if (view.connectionLabel != null && title != null)
             {
@@ -224,9 +217,10 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                     System.Array.IndexOf(view.videoImages, image) >= 0 || image == view.queueTabImage || image == view.historyTabImage || image == view.userTabImage);
                 if (PlaylistThemeGraphics.IsViewport(image)) continue;
                 if(name=="Background")image.color=theme.background;
+                else if(name=="List picker")image.color=theme.selected;
                 else if(name=="Accent"||name=="Handle"||name=="Volume fill"||name=="Playback progress")image.color=theme.accent;
                 else if(name=="Divider"||name=="Track")image.color=theme.outlineOnly?theme.button:theme.surface;
-                else if(name=="Scrollbar"||name=="List scrollbar"||name=="Tabs"||name=="Videos"||name=="Volume rail"||name=="Queue panel"||name=="History panel"||name=="User list panel"||name=="Add video form"||name=="Add user video form")image.color=theme.surface;
+                else if(image.gameObject==view.historyUrlPanel||name=="Scrollbar"||name=="List scrollbar"||name=="Tabs"||name=="Videos"||name=="Volume rail"||name=="Queue panel"||name=="History panel"||name=="User list panel"||name=="Add video form"||name=="Add user video form")image.color=theme.surface;
                 else if(PlaylistThemeGraphics.IsForeground(view,image))image.color=theme.text;
                 else image.color=selected?theme.selected:theme.button;
                 PlaylistConnections.Save(image);
@@ -237,6 +231,41 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             PlaylistThemeGraphics.ApplyNew(setup);
             PlaylistQueueUI.RefreshQueueControlLayout(setup.view);
             PlaylistConnections.Save(setup.view);
+        }
+        // Repair only controls added after the original theme pass. Never move or rebuild UI.
+        public static void RefreshSupplementalTheme(PlaylistSetup setup)
+        {
+            if (setup == null || setup.theme == null || setup.view == null) return;
+            var view = setup.view;
+            var theme = setup.theme;
+            foreach (var image in setup.GetComponentsInChildren<Image>(true))
+            {
+                bool details = view.historyUrlPanel != null && image.transform.IsChildOf(view.historyUrlPanel.transform);
+                bool remote = image.gameObject == view.remoteToggleButton;
+                if (!details && !remote) continue;
+                Color color = image.gameObject == view.historyUrlPanel ? theme.surface :
+                    PlaylistThemeGraphics.IsForeground(view, image) ? theme.text : theme.button;
+                if (image.color != color)
+                {
+                    PlaylistUndo.RecordObject(image, "Repair supplemental control theme");
+                    image.color = color;
+                    PlaylistConnections.Save(image);
+                }
+                if (theme.outlineOnly && !PlaylistThemeGraphics.IsForeground(view, image) &&
+                    (image.sprite != theme.outlineSprite || image.fillCenter))
+                    PlaylistThemeGraphics.ApplyNew(setup, image);
+            }
+            foreach (var button in setup.GetComponentsInChildren<Button>(true))
+            {
+                bool details = view.historyUrlPanel != null && button.transform.IsChildOf(view.historyUrlPanel.transform);
+                if (!details && button.gameObject != view.remoteToggleButton) continue;
+                var colors = button.colors;
+                colors.normalColor = colors.selectedColor = Color.white;
+                colors.highlightedColor = theme.buttonHighlightTint; colors.pressedColor = theme.buttonPressedTint;
+                if (button.colors == colors) continue;
+                PlaylistUndo.RecordObject(button, "Repair supplemental button transitions");
+                button.colors = colors; PlaylistConnections.Save(button);
+            }
         }
         public static void EnsureControls(PlaylistSetup setup)
         {
