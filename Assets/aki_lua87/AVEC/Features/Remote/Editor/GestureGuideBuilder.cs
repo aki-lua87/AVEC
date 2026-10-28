@@ -9,7 +9,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
 {
     public static class GestureGuideBuilder
     {
-        public const string PrefabPath = aki_lua87.AVEC.Editor.PackageLayout.Prefabs + "/CommonGestureGuide.prefab";
+        public const string PrefabPath = aki_lua87.AVEC.Editor.PackageLayout.Prefabs + "/AVEC-GestureGuide.prefab";
         public static string Description(RemoteAction action)
         {
             switch (action) {

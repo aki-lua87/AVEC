@@ -13,7 +13,7 @@ RTab依存のコードとPrefabは、このExtension内だけに置いていま�
 
 ## 配置と接続
 
-シーンにRTabを配置し、`Prefabs/RTabPlaylist.prefab`をRTabのApps直下へ配置してください。子の`Playlist Screen`のPlaylistSetupでYamaPlayerのUIControllerを接続先に指定してください。保存リストを使用する場合は、同Inspectorの特殊リスト設定で永続化参照も更新してください。接続先を変更するときも、このInspectorを使用します。
+シーンにRTabを配置し、`Prefabs/AVEC-RTabPlaylist.prefab`をRTabのApps直下へ配置してください。子の`Playlist Screen`のPlaylistSetupでYamaPlayerのUIControllerを接続先に指定してください。保存リストを使用する場合は、同Inspectorの特殊リスト設定で永続化参照も更新してください。接続先を変更するときも、このInspectorを使用します。
 
 配布Prefabにはシーン固有のプレイヤー参照を保存していません。既存アプリを二重に配置しないでください。
 プレイリスト・キュー・履歴・保存リスト・再生操作・音量操作は既存のAVEC機能を使用します。保存リストはシーン内の既存PlayerObjectに参照を追加し、既存の保存オブジェクトやNetwork IDを作り直しません。URL追加時のタイトル自動取得には、必要に応じて別途YTTLの接続が必要です。

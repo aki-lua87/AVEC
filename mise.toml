@@ -1,0 +1,22 @@
+[tools]
+node = "22.23.4"
+
+[tasks."docs:install"]
+description = "Install documentation dependencies from package-lock.json"
+dir = "{{ config_root }}/website"
+run = "npm ci --no-audit --no-fund"
+
+[tasks."docs:dev"]
+description = "Preview documentation with live reload"
+dir = "{{ config_root }}/website"
+run = "npm start -- --no-open"
+
+[tasks."docs:build"]
+description = "Build the production documentation and search index"
+dir = "{{ config_root }}/website"
+run = "npm run build"
+
+[tasks."docs:serve"]
+description = "Preview the production build (including search)"
+dir = "{{ config_root }}/website"
+run = "npm run serve -- --no-open"

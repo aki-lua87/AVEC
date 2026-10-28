@@ -8,7 +8,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
     public static class RemoteSummonAreas
     {
         // Included automatically in AVEC-Core through its Features/Remote folder.
-        public const string PrefabPath = RemoteFactory.Root + "/Samples/RemoteSummonArea.prefab";
+        public const string PrefabPath = RemoteFactory.Root + "/Samples/AVEC-RemoteSummonArea.prefab";
 
         public static string Validate(GestureRemote remote)
         {
@@ -31,7 +31,7 @@ namespace aki_lua87.CommonGestureRemote.Editor
             if (prefab != null) return prefab;
             var scene = EditorSceneManager.NewPreviewScene();
             try {
-                var go = new GameObject("Remote Summon Area");
+                var go = new GameObject("AVEC-RemoteSummonArea");
                 UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go, scene);
                 go.layer = 2; // Ignore Raycast; the trigger never blocks player movement.
                 var box = go.AddComponent<BoxCollider>();

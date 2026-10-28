@@ -82,11 +82,17 @@ crashlytics-build.properties
 /Assets/aki_lua87/*
 !/Assets/aki_lua87/AVEC/
 !/Assets/aki_lua87/AVEC.meta
+!/Assets/aki_lua87/Documentation/
+!/Assets/aki_lua87/Documentation.meta
 !/Assets/aki_lua87/Editor/
 !/Assets/aki_lua87/Editor.meta
 /Assets/aki_lua87/Editor/*
 !/Assets/aki_lua87/Editor/CommonAssetsReleaseBuilder.cs
 !/Assets/aki_lua87/Editor/CommonAssetsReleaseBuilder.cs.meta
+!/Assets/aki_lua87/Editor/CommonAssetsReleaseValidation.cs
+!/Assets/aki_lua87/Editor/CommonAssetsReleaseValidation.cs.meta
+!/Assets/aki_lua87/Editor/CommonAssetsReleasePreparation.cs
+!/Assets/aki_lua87/Editor/CommonAssetsReleasePreparation.cs.meta
 /Packages/
 /ProjectSettings/
 /.Validation/
@@ -98,3 +104,4 @@ crashlytics-build.properties
 /作業指示.txt
 work
 docs
+Assets/aki_lua87/Documentation

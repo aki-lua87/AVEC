@@ -32,7 +32,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             SetVisible(view.queueTabImage == null ? null : view.queueTabImage.gameObject, setup.enableQueue);
             SetVisible(view.historyTabImage == null ? null : view.historyTabImage.gameObject, setup.enableHistory);
             SetVisible(view.userTabImage == null ? null : view.userTabImage.gameObject, setup.enableUserList);
-            foreach (var button in view.queueAddButtons) SetVisible(button, setup.enableQueue);
+            PlaylistQueueUI.HideLegacyRowButtons(view);
             if (!setup.enableQueue) SetVisible(view.queuePanel, false);
             if (!setup.enableHistory) SetVisible(view.historyPanel, false);
             if (!setup.enableUserList) SetVisible(view.userPanel, false);

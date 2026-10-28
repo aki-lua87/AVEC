@@ -57,15 +57,16 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             PlaylistConnections.Save(label);
         }
 
-        public static int RefreshAddButtonCaptions(PlaylistView view)
+        // Legacy scene rows may still contain these; queue actions now live in video details.
+        public static void HideLegacyRowButtons(PlaylistView view)
         {
-            int changed = 0;
-            foreach (var button in view.GetComponentsInChildren<Button>(true))
+            if (view == null) return;
+            foreach (var button in view.queueAddButtons ?? new GameObject[0])
             {
-                if (button.name != "Add to queue") continue;
-                StyleAddButton(button); changed++;
+                if (button == null || !button.activeSelf) continue;
+                PlaylistUndo.RecordObject(button, "Hide legacy row queue action");
+                button.SetActive(false); PlaylistConnections.Save(button);
             }
-            return changed;
         }
 
         public static void EnsureQueueSkipButton(PlaylistView view)
@@ -285,7 +286,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             EnsureHistoryUrlPanel(view);
             foreach (var labels in new[] { view.videoLabels, view.historyLabels, view.userLabels, view.queueLabels })
                 foreach (var label in labels) if (label != null) FitTitle(label, 9, Mathf.Max(9, label.fontSize));
-            foreach (var button in view.queueAddButtons) if (button != null) { button.SetActive(false); PlaylistConnections.Save(button); }
+            HideLegacyRowButtons(view);
             if (view.descriptionLabel == null && view.heading != null)
             {
                 var area = view.heading.rectTransform;
@@ -376,57 +377,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             }
         }
 
-        static void StyleAddButton(Button button)
-        {
-            var rect = button.GetComponent<RectTransform>();
-            var caption = button.GetComponentInChildren<Text>(true);
-            float delta = 64f - rect.sizeDelta.x;
-            if (Mathf.Abs(delta) > .01f)
-            {
-                Undo.RecordObject(rect, "Compact queue button");
-                rect.sizeDelta = new Vector2(64f, rect.sizeDelta.y);
-                PlaylistConnections.Save(rect);
-                foreach (var title in button.transform.parent.GetComponentsInChildren<Text>(true))
-                {
-                    if (title.transform.IsChildOf(button.transform)) continue;
-                    var titleArea = title.rectTransform;
-                    if (title.transform.parent != button.transform.parent && title.transform.parent.parent == button.transform.parent && title.transform.parent.GetComponent<RectMask2D>() != null)
-                        titleArea = (RectTransform)title.transform.parent;
-                    Undo.RecordObject(titleArea, "Queue button title space");
-                    var offset = titleArea.offsetMax; offset.x -= delta; titleArea.offsetMax = offset;
-                    PlaylistConnections.Save(titleArea); break;
-                }
-            }
-            if (caption != null)
-            {
-                Undo.RecordObject(caption, "Two-line queue button caption");
-                caption.text = "キューに\n追加"; caption.fontSize = 14;
-                caption.resizeTextForBestFit = false; caption.lineSpacing = .7f;
-                caption.alignment = TextAnchor.MiddleCenter;
-                caption.horizontalOverflow = HorizontalWrapMode.Wrap;
-                caption.verticalOverflow = VerticalWrapMode.Truncate;
-                PlaylistConnections.Save(caption);
-            }
-            var existing = button.transform.Find("Queue button outline");
-            var outline = existing == null ? null : existing.GetComponent<Image>();
-            if (outline == null)
-            {
-                var go = new GameObject("Queue button outline", typeof(RectTransform), typeof(Image));
-                Undo.RegisterCreatedObjectUndo(go, "Queue button outline");
-                go.transform.SetParent(button.transform, false);
-                outline = go.GetComponent<Image>();
-            }
-            Undo.RecordObject(outline, "Queue button outline");
-            Undo.RecordObject(outline.rectTransform, "Queue button outline bounds");
-            outline.rectTransform.anchorMin = Vector2.zero; outline.rectTransform.anchorMax = Vector2.one;
-            outline.rectTransform.offsetMin = outline.rectTransform.offsetMax = Vector2.zero;
-            outline.sprite = PlaylistThemeGraphics.EnsureSprite();
-            outline.type = Image.Type.Sliced; outline.fillCenter = false;
-            outline.pixelsPerUnitMultiplier = 2f; outline.raycastTarget = false;
-            var ink = caption == null ? Color.white : caption.color; ink.a *= .65f; outline.color = ink;
-            PlaylistConnections.Save(outline); PlaylistConnections.Save(outline.rectTransform);
-        }
-
         public static void Ensure(PlaylistSetup setup)
         {
             var view = setup.view;
@@ -476,8 +426,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             RefreshQueueTitleClipping(view);
             EnsureTabLayout(setup);
             EnsureQueueSkipButton(view);
-            for (int i = 0; i < view.videoImages.Length; i++)
-                if (view.videoImages[i] != null) EnsureAddButton(setup, view.videoImages[i].gameObject, i);
         }
         // Update captions without changing layout or button events.
         public static void UpdateQueueLabels(PlaylistView view)
@@ -549,10 +497,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             }
             PlaylistConnections.Save(view);
             Canvas.ForceUpdateCanvases();
-        }
-        public static void EnsureAddButton(PlaylistSetup setup, GameObject row, int index)
-        {
-            // Video details owns the queue action.
         }
         static Button Button(Transform parent, string name, string caption, PlaylistView view, string method, float x, float y, float width, float height, Color color)
         {

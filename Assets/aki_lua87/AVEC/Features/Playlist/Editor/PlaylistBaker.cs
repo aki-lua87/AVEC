@@ -127,6 +127,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             ValidateDataRows(setup);
             PlaylistVirtualization.Ensure(setup.view);
             var data = new Data(setup.data); var view = setup.view;
+            PlaylistQueueUI.HideLegacyRowButtons(view);
             if (data.Matches(view)) return;
             RecordUdon(view);
             var tabRows = new List<Image>(view.tabImages ?? new Image[0]);
@@ -172,11 +173,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (structureChanged)
             {
                 view.queueAddButtons = setup.GetComponentsInChildren<PlaylistButton>(true).Where(b => b.enqueue).Select(b => b.gameObject).ToArray();
-                foreach (var row in videoRows.Skip(oldVideoCount))
-                {
-                    var add = row.transform.Find("Add to queue");
-                    if (add != null) add.gameObject.SetActive(view.enableQueue);
-                }
+                PlaylistQueueUI.HideLegacyRowButtons(view);
             }
             // Extensions can update their Udon backing objects as well as the visible proxies.
             foreach (var extension in view.GetComponents<aki_lua87.AVEC.FeatureExtensionBehaviour>())
@@ -294,7 +291,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             UnityEventTools.AddStringPersistentListener(button.onClick, UdonSharpEditorUtility.GetBackingUdonBehaviour(click).SendCustomEvent, "_Click");
             var image = row.GetComponent<Image>();
             image.color = setup.view.normalColor;
-            if (!tab) PlaylistQueueUI.EnsureAddButton(setup, row, index);
             return image;
         }
         public static void BakeLoaded()

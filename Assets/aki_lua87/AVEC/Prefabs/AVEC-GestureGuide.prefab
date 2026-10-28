@@ -140,7 +140,7 @@ GameObject:
   - component: {fileID: 2648659130871773710}
   - component: {fileID: 5305432603101849136}
   m_Layer: 13
-  m_Name: CommonGestureGuide
+  m_Name: AVEC-GestureGuide
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

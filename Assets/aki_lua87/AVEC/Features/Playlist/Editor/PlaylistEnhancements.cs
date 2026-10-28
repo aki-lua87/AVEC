@@ -12,43 +12,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
     // Additive migration: never rebuild existing rows, themes, connections or data.
     public static class PlaylistEnhancements
     {
-        public static void ExpandDynamicSlots(PlaylistSetup setup)
-        {
-            var view = setup.view;
-            var urls = new List<VRCUrl>(view.urls); var titles = new List<string>(view.titles);
-            var tabs = new List<int>(view.videoTabs); var indices = new List<int>(view.dynamicTitleIndices);
-            var images = new List<Image>(view.videoImages); var labels = new List<Text>(view.videoLabels);
-            PlaylistUndo.RecordObject(view, "Expand dynamic playlist to twenty slots");
-            for (int tab = 0; tab < view.titleSourceUrls.Length; tab++) {
-                string source = view.titleSourceUrls[tab].Get();
-                if (!source.StartsWith("https://vrc.akakitune87.net/yt/pl/") || !source.EndsWith("/titles")) continue;
-                int template = -1;
-                for (int i = 0; i < view.videoTabs.Length; i++) if (view.videoTabs[i] == tab && view.videoImages[i] != null) { template = i; break; }
-                if (template < 0) continue;
-                for (int slot = 0; slot < 20; slot++) {
-                    bool exists = false;
-                    for (int i = 0; i < tabs.Count; i++) if (tabs[i] == tab && indices[i] == slot) { exists = true; break; }
-                    if (exists) continue;
-                    int index = urls.Count;
-                    string title = (slot + 1).ToString();
-                    var row = Object.Instantiate(view.videoImages[template].gameObject, setup.videoContent, false);
-                    row.name = "Video " + index; PlaylistUndo.RegisterCreatedObjectUndo(row, "Add dynamic playlist slot");
-                    var label = row.GetComponentInChildren<Text>(true); label.text = title;
-                    foreach (var click in row.GetComponentsInChildren<PlaylistButton>(true)) {
-                        click.view = view; click.index = index; PlaylistConnections.Save(click);
-                        var button = click.GetComponent<Button>(); button.onClick = new Button.ButtonClickedEvent();
-                        UnityEventTools.AddStringPersistentListener(button.onClick, UdonSharpEditorUtility.GetBackingUdonBehaviour(click).SendCustomEvent, "_Click");
-                        PlaylistConnections.Save(button);
-                    }
-                    row.SetActive(view.videoImages[template].gameObject.activeSelf);
-                    urls.Add(new VRCUrl(source.Substring(0, source.Length - 7) + "/video?n=" + slot));
-                    titles.Add(title); tabs.Add(tab); indices.Add(slot); images.Add(row.GetComponent<Image>()); labels.Add(label);
-                }
-            }
-            view.urls = urls.ToArray(); view.titles = titles.ToArray(); view.videoTabs = tabs.ToArray();
-            view.dynamicTitleIndices = indices.ToArray(); view.videoImages = images.ToArray(); view.videoLabels = labels.ToArray();
-            PlaylistConnections.Save(view);
-        }
         public static void Apply(PlaylistSetup setup)
         {
             var view = setup.view;

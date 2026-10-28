@@ -10,7 +10,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
     // Presentation-only edits. Never rebake data or reset a connected scene instance.
     public static class PlaylistCompactLayout
     {
-        public const string PrefabPath = "Assets/aki_lua87/AVEC/Prefabs/CommonVideoPlaylistCompact.prefab";
+        public const string PrefabPath = "Assets/aki_lua87/AVEC/Prefabs/AVEC-VideoPlaylistCompact.prefab";
         const string DescriptionClip = "Playlist description clip";
 
         public static void SingleLineDescription(PlaylistView view, bool reclaimInheritedOverrides = false)
@@ -67,10 +67,10 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         {
             if (AssetDatabase.LoadMainAssetAtPath(PrefabPath) != null)
                 throw new InvalidOperationException("Compact prefab already exists; edit it without regenerating it.");
-            var root = PrefabUtility.LoadPrefabContents("Assets/aki_lua87/AVEC/Prefabs/CommonVideoPlaylist.prefab");
+            var root = PrefabUtility.LoadPrefabContents("Assets/aki_lua87/AVEC/Prefabs/AVEC-VideoPlaylist.prefab");
             try
             {
-                root.name = "CommonVideoPlaylistCompact";
+                root.name = "AVEC-VideoPlaylistCompact";
                 var setup = root.GetComponent<PlaylistSetup>();
                 var view = setup.view;
                 var picker = new GameObject("List picker", typeof(RectTransform), typeof(Image), typeof(Button));

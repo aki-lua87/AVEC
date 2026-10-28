@@ -1,5 +1,7 @@
 # AVEC — Aki's Video Enhancement Components
 
+公開ドキュメントサイトのソースは[`website/`](website/README.md)で管理しています。ローカル表示・編集・GitHub Pagesへの公開手順は、そちらを参照してください。
+
 VRChatの動画プレイヤーに、共通プレイリストUIとジェスチャーリモコンを追加するアセットです。iwaSync3 / KineL / VizVid / YamaPlayer / ProTV 3に対応し、Coreに独自の小型プレイヤーAVEC-SimpleScreenも含みます。
 
 ## 主な機能
@@ -21,7 +23,7 @@ VRChatの動画プレイヤーに、共通プレイリストUIとジェスチャ
 1. SDK入りのWorldプロジェクトに、使用する動画プレイヤー本体を導入します。
 2. `AVEC-Core`を導入します。Core・Playlist・リモコン・PlaylistRemote連携と、それぞれの配布用Prefabを含みます。
 3. 使用するプレイヤーに対応した`AVEC-Connector-プレイヤー名`を導入します。各ConnectorはPlaylist・リモコン両方の接続を含みます。未導入プレイヤー用のConnectorは入れないでください。KineL V2は`AVEC-Connector-KineL`、V3は`AVEC-Connector-KineLV3`を使用します。
-4. `Assets/aki_lua87/AVEC/Prefabs/`から`CommonVideoPlaylist.prefab`または`CommonGestureRemote.prefab`を配置し、ルートのSetup Inspectorで接続先を選択します。
+4. `Assets/aki_lua87/AVEC/Prefabs/`から`AVEC-VideoPlaylist.prefab`または`AVEC-GestureRemote.prefab`を配置し、ルートのSetup Inspectorで接続先を選択します。
 
 AVEC-SimpleScreenを使用する場合は外部プレイヤーと追加Connectorは不要です。Core同梱の`AVEC-SimpleScreen.prefab`を配置し、Playlist／RemoteのSetup Inspectorでその`SimpleScreenPlayer`を選択してください。モニターにレイを当てるとシーク・ローカル音量／ミュート・URL入力を表示します。[設定と手動確認](Assets/aki_lua87/AVEC/Features/SimpleScreen/README.md)を参照してください。
 
@@ -33,9 +35,9 @@ ProTVは`Packages/dev.architech.protv`のTVManagerへ接続します。ProTV 2�
 
 ## プレイリスト
 
-手持ち版は`CommonVideoPlaylistTablet.prefab`を使用します。配置後、PlaylistSetupでプレイリスト・テーマ・接続先を設定します。幅32cmの画面、Pickup、レイ操作、VRの人差し指タップ・スクロールに対応します。[設定と手動確認](Assets/aki_lua87/AVEC/Features/Playlist/Tablet.md)を参照してください。
+手持ち版は`AVEC-VideoPlaylistTablet.prefab`を使用します。配置後、PlaylistSetupでプレイリスト・テーマ・接続先を設定します。幅32cmの画面、Pickup、レイ操作、VRの人差し指タップ・スクロールに対応します。[設定と手動確認](Assets/aki_lua87/AVEC/Features/Playlist/Tablet.md)を参照してください。
 
-横幅を抑える場合は`CommonVideoPlaylistCompact.prefab`を使用します。画面は440×560で、通常版と同じ高さです。上部のリスト選択を開くとキュー・履歴・保存リスト・通常リストを選べます。選択後、または外側を押すと閉じます。設定するプレイリスト・テーマ・接続先と操作は通常版と共通です。配布用Prefabは未接続・動画データなしです。
+横幅を抑える場合は`AVEC-VideoPlaylistCompact.prefab`を使用します。画面は440×560で、通常版と同じ高さです。上部のリスト選択を開くとキュー・履歴・保存リスト・通常リストを選べます。選択後、または外側を押すと閉じます。設定するプレイリスト・テーマ・接続先と操作は通常版と共通です。配布用Prefabは未接続・動画データなしです。
 
 各タブの説明は1行表示です。入力欄も単一行になり、既存データの改行は表示時のみ空白に置き換えます。長い説明は枠の右端で切り、元の説明データは保持します。
 
@@ -58,7 +60,7 @@ YouTubeプレイリストのタブ名はサーバー応答の`playlist_title`を
 
 背景を透過して枠線だけを表示する場合は、PlaylistSetupのテーマに`Samples/Themes/Wireframe.asset`を指定します。枠線の太さと色をテーマで調整できます。左メニューはスクロールバーとの間に余白を確保し、重複するコンテナの枠を省きます。元のテーマへ切り替えると元のスプライトと余白に戻ります。ルートの位置・サイズ、フォント、動画データ、接続先は変更しません。
 
-RTAB上で使う場合は`AVEC-Extension-RTabPlaylist`を導入してください。[導入手順](Assets/aki_lua87/AVEC/Extensions/RTabPlaylist/README.md)に従って、RTABのApps配下へ`RTabPlaylist.prefab`を配置します。RTab本体・YamaPlayerと、AVEC-Core・AVEC-Connector-YamaPlayer・DynamicPlaylistが必要です。
+RTAB上で使う場合は`AVEC-Extension-RTabPlaylist`を導入してください。[導入手順](Assets/aki_lua87/AVEC/Extensions/RTabPlaylist/README.md)に従って、RTABのApps配下へ`AVEC-RTabPlaylist.prefab`を配置します。RTab本体・YamaPlayerと、AVEC-Core・AVEC-Connector-YamaPlayer・DynamicPlaylistが必要です。
 
 追加の配色は、PlaylistSetupの「Theme Asset」に`Assets/aki_lua87/AVEC/Features/Playlist/Samples/Themes/`内のアセットを指定して切り替えます。
 
@@ -81,17 +83,23 @@ RTAB上で使う場合は`AVEC-Extension-RTabPlaylist`を導入してくださ�
 
 再生・再生順・リモコン・ミュートの各アイコンにレイを合わせると機能名のTipsを表示し、レイを外すと消えます。Tipsはローカル表示で、クリックやレイ判定を遮りません。
 
-操作の割り当てはワールド内のガイドを参照してください。手元ガイドはリモコンを持って右スティックを下へ長押し（初期値約1.33秒）、DesktopではHキー長押しで表示します。常設の操作一覧には`CommonGestureGuide.prefab`を配置し、リモコンと同じGestureDataを指定します。
+操作の割り当てはワールド内のガイドを参照してください。手元ガイドはリモコンを持って右スティックを下へ長押し（初期値約1.33秒）、DesktopではHキー長押しで表示します。常設の操作一覧には`AVEC-GestureGuide.prefab`を配置し、リモコンと同じGestureDataを指定します。
 
 持っていないリモコンは右スティックの下長押し（初期値3秒）で呼び出せます。各Setup Inspectorの「呼び出しを初期状態で有効にする」でON／OFFを設定します。「呼び出し可能範囲（任意）」にBoxColliderを指定すると、プレイヤーの足元が範囲内にいる時だけ呼び出せます。未設定なら従来どおりどこからでも呼び出せます。範囲外へ出ると長押しの進行はキャンセルされ、ガイド表示や通常のPickup操作には影響しません。
 
-「呼び出し範囲を作成・接続」で、通行を妨げないTrigger設定済みの範囲を作成できます。選択されたBoxColliderのCenter／SizeとTransformで範囲を調整してください。配布用の`Features/Remote/Samples/RemoteSummonArea.prefab`も同梱します。範囲はリモコンとは別の固定オブジェクトとして配置してください。リモコン自身やその子にある範囲、無効・非アクティブな範囲では呼び出せません。複数台の範囲を重ねたり範囲なしで有効にすると、その場所では複数台が呼び出し対象になります。
+「呼び出し範囲を作成・接続」で、通行を妨げないTrigger設定済みの範囲を作成できます。選択されたBoxColliderのCenter／SizeとTransformで範囲を調整してください。配布用の`Features/Remote/Samples/AVEC-RemoteSummonArea.prefab`も同梱します。範囲はリモコンとは別の固定オブジェクトとして配置してください。リモコン自身やその子にある範囲、無効・非アクティブな範囲では呼び出せません。複数台の範囲を重ねたり範囲なしで有効にすると、その場所では複数台が呼び出し対象になります。
 
 プレイリストも操作する場合は、Core同梱のPlaylistRemote連携を使用し、同じプレイヤーへ接続したPlaylistViewを指定します。追加パッケージは不要です。「次の動画」は再生キューを優先します。
 
 ## 配布
 
 必要な時に`Tools > AVEC > Release Builder`でUnityPackageとZIPを生成します。ツールのソースは`Assets/aki_lua87/Editor/CommonAssetsReleaseBuilder.cs`です。AVEC-SimpleScreen本体とコネクターはCoreに収録し、外部プレイヤー本体と開発用デモワールドは収録しません。
+
+1. **配布準備**：ソース変更・未コンパイル時にUdonSharpをコンパイルし、選択した配布対象のProgram配置と保存を行います。無変更ならコンパイルを省略します。
+2. **配布検証**：不要な生成済みUI・動画データ・任意拡張、特殊リストの枠数、パッケージ間の依存、Program配置と準備後の変更を確認します。
+3. **UnityPackage と ZIP を作成**：検証後、梱包・ハッシュ計算を行います。コンパイルやアセット保存は行いません。UnityPackageは圧縮済みのため、ZIP内では再圧縮しません。
+
+準備後に配布内容・ソース・SDK・ビルド対象が変わった場合は、配布準備を再実行してください。準備記録は`Library/AVECRelease/`に保存し、リポジトリや配布物には含めません。各処理の所要時間はConsoleに表示します。通常の編集では配布パッケージを生成する必要はありません。
 
 配布は計10パッケージです。`AVEC-Core`が1つ、Connectorが6つ（IwaSync / KineL / VizVid / YamaPlayer / ProTV / KineLV3）、Extensionが3つ（DynamicPlaylist / RTabPlaylist / YttlTitles）です。Extensionは引き続き個別導入します。
 
@@ -103,6 +111,6 @@ C#／UdonSharpコンパイルと編集時の構成を確認しています。VRC
 
 独自コード・Prefab・アイコン等は[MIT License](LICENSE)です。Copyright (c) 2026 aki_lua87。
 
-同梱のZen Maru Gothic Regularは**SIL Open Font License 1.1**です。全文はCoreとRemoteの`Fonts/OFL.txt`にあります。
+同梱のZen Maru Gothic Regularは**SIL Open Font License 1.1**です。全文は`Core/Fonts/OFL.txt`にあります。
 
 外部プレイヤー・RTab・SDK等の帰属表示、公式配布先、利用条件とProTV／ArchiTech.SDK等のライセンス全文は[THIRD_PARTY_NOTICES.txt](Assets/aki_lua87/AVEC/Core/THIRD_PARTY_NOTICES.txt)にまとめています。本体のソース・ネイティブPrefab・導入パッケージは同梱しません。一部のコンパイル済みUdonに含まれる外部基底クラス等の処理には元の利用条件が適用され、AVECのMITライセンスの対象にはなりません。通知ファイルはRelease Builderで各UnityPackageとZIPへ収録します。RTAB拡張の配布・販売説明には[RTabのBOOTH URL](https://rasta.booth.pm/items/7311462)も記載してください。

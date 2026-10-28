@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5837075784983076670}
   - component: {fileID: 4918624174672097331}
   m_Layer: 2
-  m_Name: RemoteSummonArea
+  m_Name: AVEC-RemoteSummonArea
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
