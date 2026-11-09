@@ -71,18 +71,18 @@ Markdown内のページリンクは相対`.md`パスを使います。画像は�
 
 1. 変更内容をレビューしてリポジトリへcommit／pushします。
 2. GitHubの **Settings > Pages > Build and deployment > Source** を **GitHub Actions** にします。
-3. 公開準備ができたらActionsの **Documentation** を開き、**Run workflow** の`deploy`をONにして実行します。
+3. `master`へpushすると、Actionsの **Documentation** がビルドと公開を自動実行します。再公開したい場合は **Run workflow** で`master`を選び、`deploy`をONにして実行することもできます。
 4. `github-pages`環境に承認設定がある場合は、その設定に従ってデプロイします。
 
-公開先は`https://aki-lua87.github.io/VRC_MultiVideoPlayerPlaylist/`です（公開完了を示すURLではありません）。
+公開先は`https://aki-lua87.github.io/VRC_MultiVideoPlayerPlaylist/`です（公開完了を示すURLではありません）。サイト本文はアセットの公開を前提として案内し、先行公開・配布準備中の表示は設けません。BOOTHの商品リンクも掲載した状態を維持します。
 
-**pushとPRではビルドだけ**を行います。公開前の作業を意図せず配信しないよう、デプロイは`master`上の手動実行で`deploy`をONにした場合に限定しています。公開開始後にpush連動へ変更する場合は、workflowのトリガーとdeploy条件を一緒に見直してください。
+**`master`へのpushではビルド後に自動公開**します。Webサイト以外の変更でも実行します。PRはサイト・ツール設定・workflowに変更がある場合にビルドだけを行い、公開しません。手動実行では`master`かつ`deploy`がONの場合に公開し、OFFの場合はビルドだけを行います。
 
 リポジトリ名や独自ドメインを変更した場合は、configの`url`・`baseUrl`を更新します。環境変数`SITE_URL`・`SITE_BASE_URL`でも上書きできます。ワークフローはGitHubのPagesメタデータを使用します。
 
 ## 公開前に残る編集
 
-- 配布先は[BOOTH](https://aki-lua87.booth.pm/items/9029664)を予定。公開時に商品ページとダウンロード導線を確認し、インストールページの「予定」表記を更新する。
+- [BOOTHの商品ページ](https://aki-lua87.booth.pm/items/9029664)とダウンロード導線を公開時に確認する。商品リンクは公開本文に掲載する。
 - プレイリスト全体・接続Inspector・動画編集画面は、撮影専用シーンとダミーデータで撮影済み。[撮影記録](SCREENSHOTS.md)を参照。タブレット・リモコン・各拡張の説明画像は順次追加する。
 - VRChatでの手動確認結果に応じて、対応環境・端末・同期の記述を更新する。
 - 外部サービスと各配布先の案内を公開時点で確認する。

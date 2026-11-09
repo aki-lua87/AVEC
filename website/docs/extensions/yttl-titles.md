@@ -11,6 +11,8 @@ description: VizVid同梱YTTLを使う任意拡張の接続と更新方法。
 
 VizVid同梱の **`VVMW.ThirdParties.Yttl.YttlManager`** が使えるプロジェクトを対象とします。YTTL本体は同梱しません。単体版YTTLやiwaSync3用YTTL Connectorを追加する必要はありません。
 
+通常版（単体版）YTTLのManagerへの直接差し替えには対応していません。VizVid同梱版の型とAPIを使用します。
+
 再生するプレイヤーはVizVidに限定しません。この拡張のためにAVEC-Connector-VizVidを入れる必要もありません。
 
 ## 接続する
