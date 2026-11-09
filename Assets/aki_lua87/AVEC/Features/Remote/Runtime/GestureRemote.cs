@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using VRC.SDKBase;
 using VRC.Udon;
 using VRC.SDK3.UdonNetworkCalling;
+using VRC.SDK3.Persistence;
 
 namespace aki_lua87.CommonGestureRemote
 {
@@ -77,6 +78,41 @@ namespace aki_lua87.CommonGestureRemote
         private Transform[] helpMenuLines = new Transform[3];
         private bool[] helpMenuLineVisible = new bool[3];
         private Transform helpCallIcon;
+        private bool preferencesRestored;
+        private bool summonPreferenceChanged;
+
+        public override void OnPlayerRestored(VRCPlayerApi player)
+        {
+            if (!Utilities.IsValid(player) || !player.isLocal) return;
+            _RestoreSummonPreference();
+        }
+        // PlaylistView also calls this after local restoration, before hiding the remote.
+        // Custom events reach inactive remotes that missed OnPlayerRestored.
+        public void _RestoreSummonPreference()
+        {
+            if (NetworkCalling.InNetworkCall || preferencesRestored || !Utilities.IsValid(Networking.LocalPlayer)) return;
+            preferencesRestored = true;
+            if (summonPreferenceChanged) PlayerData.SetBool(SummonPreferenceKey(), summonEnabled);
+            else
+            {
+                bool saved;
+                if (PlayerData.TryGetBool(Networking.LocalPlayer, SummonPreferenceKey(), out saved)) summonEnabled = saved;
+            }
+            summonDownSince = -1f;
+            summonConsumed = false;
+        }
+        private string SummonPreferenceKey()
+        {
+            // Hierarchy identity keeps separate remotes independent within the same world.
+            string path = "";
+            Transform node = transform;
+            while (node != null)
+            {
+                path = "/" + node.GetSiblingIndex() + ":" + node.name.Length + ":" + node.name + path;
+                node = node.parent;
+            }
+            return "AVEC.Remote" + path + "/Summon";
+        }
 
         private void Start()
         {
@@ -343,6 +379,8 @@ namespace aki_lua87.CommonGestureRemote
             if (action == 22)
             {
                 summonEnabled = !summonEnabled;
+                summonPreferenceChanged = true;
+                if (preferencesRestored) PlayerData.SetBool(SummonPreferenceKey(), summonEnabled);
                 summonDownSince = -1f;
                 summonConsumed = false;
                 return 1;

@@ -25,6 +25,32 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         {
             foreach (var label in view.videoLabels) if (label != null) ClipTitle(label, "Video title viewport");
             foreach (var label in view.historyLabels) if (label != null) ClipTitle(label, "History title viewport");
+            RefreshHistoryTitleBounds(view);
+        }
+
+        // History rows resize with their list; inherited fixed-width title clips must follow.
+        public static void RefreshHistoryTitleBounds(PlaylistView view)
+        {
+            if (view == null) return;
+            foreach (var label in view.historyLabels)
+            {
+                if (label == null) continue;
+                var clip = label.rectTransform.parent as RectTransform;
+                if (clip == null || clip.name != "History title viewport") continue;
+                Undo.RecordObject(clip, "Fit history title to row width");
+                var min = clip.anchorMin; min.x = 0; clip.anchorMin = min;
+                var max = clip.anchorMax; max.x = 1; clip.anchorMax = max;
+                var left = clip.offsetMin; left.x = 10; clip.offsetMin = left;
+                var right = clip.offsetMax; right.x = -10; clip.offsetMax = right;
+                if (clip.GetComponent<RectMask2D>() == null) Undo.AddComponent<RectMask2D>(clip.gameObject);
+                Undo.RecordObject(label, "Fit history title inside row");
+                label.horizontalOverflow = HorizontalWrapMode.Wrap;
+                label.verticalOverflow = VerticalWrapMode.Truncate;
+                label.resizeTextForBestFit = true;
+                label.resizeTextMinSize = Mathf.Min(9, Mathf.Max(1, label.fontSize));
+                label.resizeTextMaxSize = Mathf.Max(1, label.fontSize);
+                PlaylistConnections.Save(clip); PlaylistConnections.Save(label);
+            }
         }
 
         static void ClipTitle(Text label, string viewportName)

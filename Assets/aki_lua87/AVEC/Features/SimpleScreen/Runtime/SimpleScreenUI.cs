@@ -71,7 +71,7 @@ namespace aki_lua87.AVEC.SimpleScreen
             if (VRC.SDKBase.VRCUrl.IsNullOrEmpty(url)) return;
             lastSubmit = Time.realtimeSinceStartup;
             // Use the adapter entrypoint to cancel the previous playlist sequence and record history.
-            Feedback(player.adapter != null ? player.adapter._PlayUserUrl(url, "URL") : player._Load(url));
+            Feedback(player.adapter != null ? player.adapter._PlayUserUrl(url, url.Get()) : player._Load(url));
         }
         private void Feedback(int result)
         {

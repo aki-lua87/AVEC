@@ -13,6 +13,31 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         public const string PrefabPath = "Assets/aki_lua87/AVEC/Prefabs/AVEC-VideoPlaylistCompact.prefab";
         const string DescriptionClip = "Playlist description clip";
 
+        // Targeted repair for existing compact instances, without reapplying the layout.
+        public static void RefreshDescriptionAndScrollbars(PlaylistView view)
+        {
+            if (view == null || view.listPickerPanel == null) return;
+            var picker = view.transform.Find("List picker") as RectTransform;
+            var clip = view.descriptionLabel == null ? null : view.descriptionLabel.transform.parent as RectTransform;
+            if (picker != null && clip != null && clip.name == DescriptionClip)
+            {
+                Undo.RecordObject(clip, "Place compact description below list title");
+                // Match the selector's horizontal bounds, retaining the description height.
+                clip.anchorMin = picker.anchorMin; clip.anchorMax = picker.anchorMax; clip.pivot = picker.pivot;
+                clip.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, picker.rect.width);
+                clip.anchoredPosition = picker.anchoredPosition + new Vector2(0, -picker.rect.height - 6);
+                PlaylistConnections.Save(clip);
+            }
+            foreach (var bar in view.GetComponentsInChildren<Scrollbar>(true))
+            {
+                if (bar.direction != Scrollbar.Direction.BottomToTop && bar.direction != Scrollbar.Direction.TopToBottom) continue;
+                var rect = (RectTransform)bar.transform;
+                Undo.RecordObject(rect, "Slim compact scrollbar");
+                rect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 10);
+                PlaylistConnections.Save(rect);
+            }
+        }
+
         public static void SingleLineDescription(PlaylistView view, bool reclaimInheritedOverrides = false)
         {
             if (view == null || view.descriptionLabel == null) return;
@@ -140,6 +165,8 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             foreach (var image in view.tabImages) if (image != null) SetRow(image.gameObject, 44, 20);
             foreach (var image in view.videoImages) if (image != null) SetRow(image.gameObject, 58, 22);
             foreach (var rows in new[] { view.queueRows, view.historyRows, view.userRows }) foreach (var row in rows) SetRow(row, 58, 22);
+            RefreshDescriptionAndScrollbars(view);
+            PlaylistQueueUI.RefreshHistoryTitleBounds(view);
             if (view.queuePanel != null)
             {
                 Position(view.queuePanel.transform, "Add video", 8, 4, 264, 44);

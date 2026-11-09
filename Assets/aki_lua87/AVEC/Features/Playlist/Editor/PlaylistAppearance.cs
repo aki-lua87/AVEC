@@ -278,6 +278,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 view.orderedIcon=PlaylistIcons.Get("ordered"); view.randomIcon=PlaylistIcons.Get("shuffle");
                 view.playbackModeIcon=IconButton(view,"Playback mode","ordered","_TogglePlaybackMode",824,18);
             }
+            PlaylistReleaseVersion.Ensure(view, PlaylistReleaseVersion.CurrentText);
             if(view.transform.Find("Play")==null)IconButton(view,"Play","play","_TogglePlayback",24,451);
             EnsureTransportControls(view);
             EnsureConnectionLabel(setup);

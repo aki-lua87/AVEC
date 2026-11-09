@@ -108,6 +108,8 @@ namespace aki_lua87.CommonAssets.Editor
             Validate(selected);
             var indices=CommonAssetsReleaseValidation.Selection(selected);
             string destination=Path.GetFullPath(Path.Combine(output,version));Directory.CreateDirectory(destination);
+            using (var stamp = new aki_lua87.CommonVideoPlaylist.Editor.PlaylistReleaseVersion.ExportStamp(indices.SelectMany(CollectPaths), version))
+            {
             var entries=new System.Collections.Generic.List<Entry>();
             foreach(int i in indices)
             {
@@ -129,7 +131,12 @@ namespace aki_lua87.CommonAssets.Editor
                     archive.CreateEntryFromFile(LegalAssets[1],"THIRD_PARTY_NOTICES.txt");
                 }
             });
+            CommonAssetsReleasePreparation.RecordPrepared(selected);
+            stamp.Commit();
+            int updated = aki_lua87.CommonVideoPlaylist.Editor.PlaylistReleaseVersion.UpdateLoadedDevelopmentScene(version);
+            if (updated > 0) Debug.Log("[AVEC Release] 開発シーンのバージョン表示を更新しました。シーンを保存してください。");
             Debug.Log("Release created: "+zip);EditorUtility.RevealInFinder(destination);
+            }
         }
         static string Hash(string path) { using(var sha=SHA256.Create())using(var file=File.OpenRead(path))return BitConverter.ToString(sha.ComputeHash(file)).Replace("-","").ToLowerInvariant(); }
     }

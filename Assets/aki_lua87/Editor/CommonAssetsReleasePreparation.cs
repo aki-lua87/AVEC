@@ -110,11 +110,18 @@ namespace aki_lua87.CommonAssets.Editor
                 }
             });
             CommonAssetsReleaseValidation.Validate(selected, false);
+            RecordPrepared(selected);
+            Debug.Log("[AVEC Release] 配布準備完了。検証・パッケージ出力を実行できます。");
+        }
+
+        // Refresh receipts after the builder changes only serialized version labels.
+        public static void RecordPrepared(bool[] selected)
+        {
+            var indices = CommonAssetsReleaseValidation.Selection(selected);
             var receipt = new Receipt { sources = SourceFingerprint(), packages = indices.Select(i => new Item {
                 name = CommonAssetsReleaseBuilder.Packages[i].Name, fingerprint = PackageFingerprint(i)
             }).ToArray() };
             Directory.CreateDirectory(Path.GetDirectoryName(ReceiptPath)); File.WriteAllText(ReceiptPath, JsonUtility.ToJson(receipt, true));
-            Debug.Log("[AVEC Release] 配布準備完了。検証・パッケージ出力を実行できます。");
         }
     }
 }

@@ -35,7 +35,7 @@ AVEC-Core同梱の独自プレイヤーです。VRChat SDKのAVPro再生コン�
 
 ## 確認範囲と手動確認
 
-実装時にC#／UdonSharpコンパイル、編集時のPrefab参照・UIイベント・音声映像出力・Playlist／Remote接続・Core収録対象を確認済みです。`Tools > AVEC > SimpleScreen > Validate Prefab`で編集時の参照チェックを再実行できます。Playモード／VRChatでの自動動作テストや別プロジェクトへのインポートは行っていません。
+実装時にC#／UdonSharpコンパイル、編集時のPrefab参照・UIイベント・音声映像出力・Playlist／Remote接続・Core収録対象を確認済みです。Playモード／VRChatでの自動動作テストや別プロジェクトへのインポートは行っていません。
 
 VRChatで以下を手動確認してください。
 

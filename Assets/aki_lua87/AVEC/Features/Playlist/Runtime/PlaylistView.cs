@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VRC.SDKBase;
 using aki_lua87.AVEC;
+using VRC.SDK3.Persistence;
 
 
 namespace aki_lua87.CommonVideoPlaylist
@@ -226,6 +227,46 @@ namespace aki_lua87.CommonVideoPlaylist
             // Compatibility entry point; periodic polling now belongs to the shared adapter.
             _RefreshLocalState();
         }
+        private bool remotePreferencesRestored;
+        private bool remotePreferenceChanged;
+        public override void OnPlayerRestored(VRCPlayerApi player)
+        {
+            if (!Utilities.IsValid(player) || !player.isLocal || remotePreferencesRestored) return;
+            remotePreferencesRestored = true;
+            for (int i = 0; i < remoteObjects.Length; i++)
+            {
+                var remote = remoteObjects[i];
+                if (remote == null) continue;
+                var behaviour = (VRC.Udon.UdonBehaviour)remote.GetComponent(typeof(VRC.Udon.UdonBehaviour));
+                if (behaviour != null) behaviour.SendCustomEvent("_RestoreSummonPreference");
+                string key = RemotePreferenceKey(remote.transform);
+                if (remotePreferenceChanged) PlayerData.SetBool(key, remote.activeSelf);
+                else
+                {
+                    bool saved;
+                    if (PlayerData.TryGetBool(player, key, out saved)) SetRemoteActive(remote, saved);
+                }
+            }
+            _RefreshRemoteToggle();
+            if (adapter != null) adapter._NotifyLocalStateChanged();
+        }
+        private string RemotePreferenceKey(Transform node)
+        {
+            string path = "";
+            while (node != null)
+            {
+                path = "/" + node.GetSiblingIndex() + ":" + node.name.Length + ":" + node.name + path;
+                node = node.parent;
+            }
+            return "AVEC.Remote" + path + "/Enabled";
+        }
+        private void SetRemoteActive(GameObject remote, bool value)
+        {
+            // Drop our held remote before disabling its entire object and input loop.
+            var pickup = (VRC.SDK3.Components.VRCPickup)remote.GetComponent(typeof(VRC.SDK3.Components.VRCPickup));
+            if (!value && pickup != null && pickup.IsHeld && Utilities.IsValid(pickup.currentPlayer) && pickup.currentPlayer.isLocal) pickup.Drop();
+            if (remote.activeSelf != value) remote.SetActive(value);
+        }
         public void _ToggleRemote()
         {
             if (VRC.SDK3.UdonNetworkCalling.NetworkCalling.InNetworkCall) return;
@@ -236,11 +277,11 @@ namespace aki_lua87.CommonVideoPlaylist
             {
                 var remote = remoteObjects[i];
                 if (remote == null) continue;
-                // Drop our held remote before disabling its entire object and input loop.
-                var pickup = (VRC.SDK3.Components.VRCPickup)remote.GetComponent(typeof(VRC.SDK3.Components.VRCPickup));
-                if (enabled && pickup != null && pickup.IsHeld && Utilities.IsValid(pickup.currentPlayer) && pickup.currentPlayer.isLocal) pickup.Drop();
-                remote.SetActive(!enabled);
+                SetRemoteActive(remote, !enabled);
+                if (remotePreferencesRestored) PlayerData.SetBool(RemotePreferenceKey(remote.transform), !enabled);
             }
+            // Preserve input made while persistence is still loading; never write early.
+            remotePreferenceChanged = true;
             _RefreshRemoteToggle();
             if (adapter != null) adapter._NotifyLocalStateChanged();
         }
