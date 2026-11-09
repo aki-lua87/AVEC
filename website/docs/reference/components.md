@@ -30,7 +30,7 @@ description: PlaylistSetup、RemoteSetup、保存用オブジェクトの役割�
 
 ワールド作者が登録するタブと動画のデータです。複数UIで共有できます。[利用者の保存リスト](../guides/queue-history-saved.md)とは別です。
 
-ユーザーデータは`Assets/AVECUserData/`へ保存できます。Release Builderはプレイリストデータを配布対象に含めません。
+自分で作成したプレイリストデータは`Assets/AVECUserData/`などへ保存し、シーンと一緒にバックアップしてください。
 
 ## RemoteSetupとGestureData
 
@@ -46,7 +46,7 @@ description: PlaylistSetup、RemoteSetup、保存用オブジェクトの役割�
 
 ## 保存用オブジェクト
 
-`CommonVideoPlaylist User Data`には、VRCPlayerObject、VRCEnablePersistence、PlaylistUserDataが付いています。同じシーンのUIはこのオブジェクトを共有します。
+`CommonVideoPlaylist User Data`は、利用者ごとの保存リストを保持するオブジェクトです。設定時に自動で用意され、同じシーンのUIで共有します。通常は個別に編集する必要はありません。
 
 公開後の削除・再作成・Network ID変更は、保存データとの対応を失う可能性があります。詳細は[保存リスト](../guides/queue-history-saved.md)を参照してください。
 

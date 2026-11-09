@@ -16,7 +16,6 @@ AVECは、共通機能の **Core**、外部プレイヤーとの接続を行う 
 :::note 配布先について
 AVECは[BOOTHの商品ページ](https://aki-lua87.booth.pm/items/9029664)から入手できます。このドキュメントではパッケージ名で案内します。
 
-GitHubのソースから導入する場合は、下の「ソースを利用する場合」を参照してください。
 :::
 
 ## 1. プレイヤー本体を導入する
@@ -67,11 +66,5 @@ KineL V2とV3は別のConnectorです。ProTV 2には対応していません。
 | `AVEC-Extension-RTabPlaylist` | [RTabのアプリとしてプレイリストを配置](../extensions/rtab.md) |
 
 基本のプレイリストや保存リストを使うだけなら、Extensionは不要です。
-
-## ソースを利用する場合
-
-このリポジトリは、cloneだけで開けるUnityプロジェクトや、UPMのGit URLから直接導入するパッケージではありません。
-
-`Assets/aki_lua87/AVEC`のCore、必要な機能・Connector・ExtensionとPrefabを、**`.meta`を含めて同じパスへ**配置してください。外部プレイヤーやSDKは別途必要です。
 
 更新時は、先に[対応環境と更新](../reference/compatibility.md)を確認してください。

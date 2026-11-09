@@ -1,6 +1,6 @@
 const repository = 'VRC_MultiVideoPlayerPlaylist';
 const organization = 'aki-lua87';
-const github = `https://github.com/${organization}/${repository}`;
+const booth = 'https://aki-lua87.booth.pm/items/9029664';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -18,7 +18,6 @@ const config = {
   presets: [['classic', {
     docs: {
       sidebarPath: './sidebars.js',
-      editUrl: `${github}/edit/master/website/`,
       showLastUpdateTime: false,
     },
     blog: false,
@@ -42,7 +41,7 @@ const config = {
       items: [
         { type: 'docSidebar', sidebarId: 'docs', label: 'ドキュメント', position: 'left' },
         { to: '/docs/getting-started/installation', label: '導入する', position: 'left' },
-        { href: github, label: 'GitHub', position: 'right' },
+        { href: booth, label: 'BOOTHで入手', position: 'right' },
       ],
     },
     docs: { sidebar: { hideable: true, autoCollapseCategories: false } },
@@ -55,8 +54,8 @@ const config = {
           { label: 'インストール', to: '/docs/getting-started/installation' },
           { label: '困ったときは', to: '/docs/troubleshooting' },
         ] },
-        { title: 'プロジェクト', items: [
-          { label: 'GitHub', href: github },
+        { title: '関連情報', items: [
+          { label: 'BOOTH', href: booth },
           { label: '更新と互換性', to: '/docs/reference/compatibility' },
           { label: 'ライセンス', to: '/docs/reference/licenses' },
         ] },

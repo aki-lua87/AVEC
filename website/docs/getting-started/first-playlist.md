@@ -24,7 +24,7 @@ AVEC-SimpleScreenの場合は、シーンに配置したPrefabの **SimpleScreen
 *撮影専用シーンでAVEC-SimpleScreenへ接続した設定例です。接続候補はシーン内のプレイヤーに応じて変わります。画像のテーマや、任意拡張のYTTL設定は必須ではありません。*
 
 :::tip 既存のプレイヤーをそのまま使えます
-ネイティブプレイヤー本体のソースやPrefabを書き換える必要はありません。シーン上の接続はSetup Inspectorから行います。
+使用中の動画プレイヤーを作り直す必要はありません。シーン上の接続はSetup Inspectorから行います。
 :::
 
 ## 3. 動画を登録する
@@ -40,7 +40,7 @@ AVEC-SimpleScreenの場合は、シーンに配置したPrefabの **SimpleScreen
 
 同じPlaylistDataを複数のUIで共有できます。壁版とタブレット版に別の内容を表示したい場合は、それぞれに別のデータを作成します。
 
-配布Prefab自体には動画データを含みません。未設定のUIには、既存の`Assets/AVECUserData/DefaultPlaylist.asset`、旧版の`DefaultPlaylist.asset`の順で接続します。どちらもない場合は前者のパスに作成します。DefaultPlaylistにはサンプル動画が入るため、公開前に内容を確認してください。
+未設定のUIには共通のDefaultPlaylistが自動で割り当てられます。自分の一覧を使う場合は、上の手順で作成したPlaylistDataを指定してください。ワールド公開前に登録内容を確認してください。
 
 ## 4. 必要なリストを選ぶ
 

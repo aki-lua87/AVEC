@@ -26,10 +26,6 @@ iwaSync3、KineL V2・V3、VizVid、YamaPlayer、ProTV 3、およびAVEC-SimpleS
 
 確認したバージョンと確認範囲は[対応環境と更新](reference/compatibility.md)にまとめています。
 
-:::info 公開前の確認範囲
-現在の記録はC#／UdonSharpコンパイルと編集時の構成確認です。VRChat内の操作、複数人同期、途中参加、Quest／Android、新規環境への導入は手動確認が必要です。
-:::
-
 ## はじめかた
 
 1. [インストール](getting-started/installation.md)で、必要なパッケージを選びます。

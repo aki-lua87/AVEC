@@ -17,9 +17,7 @@ PlaylistSetupの **Theme Asset** にテーマを指定し、プレイリスト�
 | `Monochrome.asset` | 白をベースに黒い文字。選択・ホバー・押下も無彩色 |
 | `Wireframe.asset` | 背景を透過し、枠線を表示 |
 
-RedBlackは旧GamingRedBlackのGUIDを維持しています。
-
-テーマは編集時にUIへ反映します。ランタイムでテーマアセットを読み込む必要はありません。
+テーマを選ぶと、Unity上のUIへ反映されます。
 
 ## 透明度とボタンの反応
 

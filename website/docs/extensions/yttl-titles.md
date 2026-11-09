@@ -9,9 +9,9 @@ description: VizVid同梱YTTLを使う任意拡張の接続と更新方法。
 
 ## 必要なもの
 
-VizVid同梱の **`VVMW.ThirdParties.Yttl.YttlManager`** が使えるプロジェクトを対象とします。YTTL本体は同梱しません。単体版YTTLやiwaSync3用YTTL Connectorを追加する必要はありません。
+VizVid付属の **YTTL Manager** が必要です。YTTL本体は同梱しません。
 
-通常版（単体版）YTTLのManagerへの直接差し替えには対応していません。VizVid同梱版の型とAPIを使用します。
+通常版（単体版）YTTLやiwaSync3用YTTL Connectorでは代用できません。
 
 再生するプレイヤーはVizVidに限定しません。この拡張のためにAVEC-Connector-VizVidを入れる必要もありません。
 
@@ -33,10 +33,6 @@ VizVidのプレイヤーを配置しただけでは、編集時にManagerが実�
 
 ## 旧版から更新する
 
-旧VizVid Connectorの`VizVidPlaylistTitles`は、この拡張へ移動しました。GUIDと型名を保持しているため、拡張も導入する更新では既存の接続を引き継ぎます。
+以前のVizVid Connectorでタイトル取得を使っていた場合は、AVEC-Coreとあわせてこの拡張も更新してください。既存の接続を引き継いで使えます。
 
-旧版から更新し、YTTL連携を外す場合は、**旧版のうちに**各SetupのManagerを空にして接続を解除します。その後、シーン上の`VizVidPlaylistTitles`と対応するBacking UdonBehaviour、旧`Connectors/VizVid/Playlist/VizVidPlaylistTitles.cs`・`.asset`と専用コンパイル済みProgramを除去します。
-
-UnityPackageの更新だけでは旧ファイルは削除されません。ネイティブプレイヤーやYTTL本体は削除対象に含めないでください。
-
-詳しい移行記録は[ソース内のREADME](https://github.com/aki-lua87/VRC_MultiVideoPlayerPlaylist/blob/master/Assets/aki_lua87/AVEC/Extensions/YttlTitles/README.md)を参照してください。
+タイトル取得をやめる場合は、各PlaylistSetupの **YTTL Manager** の指定を解除します。URLの追加・保存・再生・削除は引き続き使えます。
