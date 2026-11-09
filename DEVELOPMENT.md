@@ -1,6 +1,6 @@
 # 開発・配布
 
-利用方法は[公開ドキュメント](https://aki-lua87.github.io/VRC_MultiVideoPlayerPlaylist/)を参照してください。この文書はソースを編集・配布する方向けです。
+利用方法は[公開ドキュメント](https://aki-lua87.github.io/AVEC/)を参照してください。この文書はソースを編集・配布する方向けです。
 
 ## ソースの構成
 

@@ -20,7 +20,7 @@ mise run docs:dev
 
 `mise trust`は、このリポジトリのツール・タスク設定を確認して信頼する初回操作です。`mise run`がNode.jsのPATHを設定するので、シェルのactivate設定がなくてもタスクを実行できます。
 
-ブラウザで`http://localhost:3000/VRC_MultiVideoPlayerPlaylist/`を開きます。終了はPowerShell側で **Ctrl+C** です。次回からはルートで`mise run docs:dev`だけで起動できます。依存関係の更新時は`mise run docs:install`も実行します。
+ブラウザで`http://localhost:3000/AVEC/`を開きます。終了はPowerShell側で **Ctrl+C** です。次回からはルートで`mise run docs:dev`だけで起動できます。依存関係の更新時は`mise run docs:install`も実行します。
 
 本番と同じ静的サイト・検索を確認する場合は、開発サーバーを停止してから次を実行します。
 
@@ -67,14 +67,14 @@ Markdown内のページリンクは相対`.md`パスを使います。画像は�
 
 ## GitHub Pagesへ公開する
 
-現在のoriginとブランチに合わせて、`aki-lua87/VRC_MultiVideoPlayerPlaylist`・`master`を設定しています。
+現在のoriginとブランチに合わせて、`aki-lua87/AVEC`・`master`を設定しています。
 
 1. 変更内容をレビューしてリポジトリへcommit／pushします。
 2. GitHubの **Settings > Pages > Build and deployment > Source** を **GitHub Actions** にします。
 3. `master`へpushすると、Actionsの **Documentation** がビルドと公開を自動実行します。再公開したい場合は **Run workflow** で`master`を選び、`deploy`をONにして実行することもできます。
 4. `github-pages`環境に承認設定がある場合は、その設定に従ってデプロイします。
 
-公開先は`https://aki-lua87.github.io/VRC_MultiVideoPlayerPlaylist/`です（公開完了を示すURLではありません）。サイト本文はアセットの公開を前提として案内し、先行公開・配布準備中の表示は設けません。BOOTHの商品リンクも掲載した状態を維持します。
+公開先は`https://aki-lua87.github.io/AVEC/`です（公開完了を示すURLではありません）。サイト本文はアセットの公開を前提として案内し、先行公開・配布準備中の表示は設けません。BOOTHの商品リンクも掲載した状態を維持します。
 
 **`master`へのpushではビルド後に自動公開**します。Webサイト以外の変更でも実行します。PRはサイト・ツール設定・workflowに変更がある場合にビルドだけを行い、公開しません。手動実行では`master`かつ`deploy`がONの場合に公開し、OFFの場合はビルドだけを行います。
 

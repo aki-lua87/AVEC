@@ -1,4 +1,4 @@
-const repository = 'VRC_MultiVideoPlayerPlaylist';
+const repository = 'AVEC';
 const organization = 'aki-lua87';
 const booth = 'https://aki-lua87.booth.pm/items/9029664';
 const github = `https://github.com/${organization}/${repository}`;

@@ -14,7 +14,7 @@ iwaSync3 / KineL V2・V3 / VizVid / YamaPlayer / ProTV 3に対応し、独自プ
 ## 入手・使い方
 
 - [BOOTHで入手する](https://aki-lua87.booth.pm/items/9029664)
-- [導入手順・使い方](https://aki-lua87.github.io/VRC_MultiVideoPlayerPlaylist/)
+- [導入手順・使い方](https://aki-lua87.github.io/AVEC/)
 
 確認環境はUnity 2022.3.22f1 / VRChat Worlds SDK 3.10.5です。外部プレイヤー本体とSDKは別途導入してください。
 
