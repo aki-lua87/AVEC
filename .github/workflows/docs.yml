@@ -1,0 +1,60 @@
+name: Documentation
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    paths: ['website/**', 'mise.toml', '.github/workflows/docs.yml']
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Build and publish the documentation to GitHub Pages'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v5
+      - run: mise run docs:install
+      - name: Configure Pages
+        if: github.ref == 'refs/heads/master' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy))
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Build documentation
+        run: mise run docs:build
+        env:
+          SITE_URL: ${{ steps.pages.outputs.origin }}
+          SITE_BASE_URL: ${{ steps.pages.outputs.base_path && format('{0}/', steps.pages.outputs.base_path) || '' }}
+      - name: Upload Pages artifact
+        if: github.ref == 'refs/heads/master' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy))
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: website/build
+
+  deploy:
+    if: github.ref == 'refs/heads/master' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy))
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
