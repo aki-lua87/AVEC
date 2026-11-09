@@ -1,4 +1,4 @@
-# AVEC — Aki's Video Enhancement Components
+# AVEC — aki_lua87's Video Enhancement Components
 
 公開ドキュメントサイトのソースは[`website/`](website/README.md)で管理しています。ローカル表示・編集・GitHub Pagesへの公開手順は、そちらを参照してください。
 
