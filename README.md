@@ -57,27 +57,6 @@ YouTubeから取り込む場合は`AVEC-Extension-DynamicPlaylist`を導入し�
 
 チャンネルの指定には`UC…`形式のチャンネルID、`@ハンドル`、`/channel/ID`・`/@handle`形式のYouTube URLを使用できます。動的・固定のどちらも登録APIでチャンネルを解決し、応答の`channel_id`をタイトル取得・再生・固定一覧取得のURLに使用します。登録APIが有効なチャンネルIDを返さない場合は取り込みを中止します。既存タブのURLや手動設定は自動で書き換えません。
 
-YouTubeプレイリストのタブ名はサーバー応答の`playlist_title`を初期値として使用します。旧サーバーや名前を取得できない場合はIDを表示し、プレビューで変更できます。名前を取得するためのYouTubeページのHTML取得は行いません。既存タブ名は取り込み処理で上書きしません。
-
-
-背景を透過して枠線だけを表示する場合は、PlaylistSetupのテーマに`Samples/Themes/Wireframe.asset`を指定します。枠線の太さと色をテーマで調整できます。左メニューはスクロールバーとの間に余白を確保し、重複するコンテナの枠を省きます。元のテーマへ切り替えると元のスプライトと余白に戻ります。ルートの位置・サイズ、フォント、動画データ、接続先は変更しません。
-
-RTAB上で使う場合は`AVEC-Extension-RTabPlaylist`を導入してください。[導入手順](Assets/aki_lua87/AVEC/Extensions/RTabPlaylist/README.md)に従って、RTABのApps配下へ`AVEC-RTabPlaylist.prefab`を配置します。RTab本体・YamaPlayerと、AVEC-Core・AVEC-Connector-YamaPlayer・DynamicPlaylistが必要です。
-
-追加の配色は、PlaylistSetupの「Theme Asset」に`Assets/aki_lua87/AVEC/Features/Playlist/Samples/Themes/`内のアセットを指定して切り替えます。
-
-| アセット | 配色 |
-| --- | --- |
-| `RedBlack.asset` | 黒い背景に鮮やかな赤いボタン・アクセント、白い文字（旧GamingRedBlack、GUID維持） |
-| `WhiteBlue.asset` | 白い背景に鮮やかな青いボタン・アクセント、濃紺の文字 |
-| `DefaultThemeGlass.asset` | DefaultThemeの配色を保持した半透明版 |
-| `Monochrome.asset` | 白をベースに黒い文字。選択色・ホバー・押下も無彩色 |
-
-テーマの`Button Highlight Tint`と`Button Pressed Tint`は、ホバー・押下時にボタン色へ乗算する色です。
-
-各テーマの色のアルファ（A）が実装側の不透明度です。Glass版は背景45%、面55%、ボタン80%、選択90%で、文字は不透明です。背景と一覧などが重なる部分ではアルファが合成されます。テーマを適用すると編集時に各UIへ反映され、ランタイムにテーマを読み込む必要はありません。
-
-固定の背景画像は既存の`Background`のImageへ設定できます。画像を`Sprite (2D and UI)`としてインポートし、Imageの`Source Image`へ指定、`Image Type`を`Simple`にします。画像の色をそのまま表示する場合はImageのColorを白にし、Aで透明度を調整します。テーマを後から適用すると背景色も再設定されるため、画像と色の設定はテーマ適用後に行ってください。Wireframeは枠線用スプライトへ切り替えるため、画像背景には通常／Glassテーマを使用します。画像の手動設定を行ったPrefab／シーンを保存しておけば実行時も固定表示です。
 
 ## リモコンとガイド
 
@@ -95,28 +74,9 @@ RTAB上で使う場合は`AVEC-Extension-RTabPlaylist`を導入してくださ�
 
 プレイリストも操作する場合は、Core同梱のPlaylistRemote連携を使用し、同じプレイヤーへ接続したPlaylistViewを指定します。追加パッケージは不要です。「次の動画」は再生キューを優先します。
 
-## 配布
-
-必要な時に`Tools > AVEC > Release Builder`でUnityPackageとZIPを生成します。ツールのソースは`Assets/aki_lua87/Editor/CommonAssetsReleaseBuilder.cs`です。AVEC-SimpleScreen本体とコネクターはCoreに収録し、外部プレイヤー本体と開発用デモワールドは収録しません。
-
-プレイリストの再生モードの上に、出力時のバージョンを`v0.0.3`の形式で表示します。パッケージ出力時に対象の配布Prefabへ埋め込み、出力成功後は開いている開発用`CommonAssetsDemo`シーンの表示も更新します。開発シーンの更新後はシーンを保存してください。バージョン欄の入力・配布準備・検証だけでは表示を更新しません。
-
-1. **配布準備**：ソース変更・未コンパイル時にUdonSharpをコンパイルし、選択した配布対象のProgram配置と保存を行います。無変更ならコンパイルを省略します。
-2. **配布検証**：不要な生成済みUI・動画データ・任意拡張、特殊リストの枠数、パッケージ間の依存、Program配置と準備後の変更を確認します。
-3. **UnityPackage と ZIP を作成**：検証後、対象Prefabのバージョン表示を更新・保存してから梱包・ハッシュ計算を行います。コンパイルは行いません。出力成功後は開いている開発用シーンの表示も更新します。UnityPackageは圧縮済みのため、ZIP内では再圧縮しません。
-
-準備後に配布内容・ソース・SDK・ビルド対象が変わった場合は、配布準備を再実行してください。準備記録は`Library/AVECRelease/`に保存し、リポジトリや配布物には含めません。各処理の所要時間はConsoleに表示します。通常の編集では配布パッケージを生成する必要はありません。
-
-配布は計10パッケージです。`AVEC-Core`が1つ、Connectorが6つ（IwaSync / KineL / VizVid / YamaPlayer / ProTV / KineLV3）、Extensionが3つ（DynamicPlaylist / RTabPlaylist / YttlTitles）です。Extensionは引き続き個別導入します。
-
-旧版の`AVEC-Playlist`／`AVEC-Remote`／`AVEC-Extension-PlaylistRemote`は`AVEC-Core`へ、機能別Connectorは同じプレイヤーの統合Connectorへ置き換わります。アセットのパスとGUIDは維持するため、更新時に既存アセットを削除する必要はありません。Release Builderの保存済み選択は、統合前のいずれかが選択されていれば統合後も選択する形で移行します。
-
-C#／UdonSharpコンパイルと編集時の構成を確認しています。VRChat内の操作・複数人同期・途中参加・Quest/Android、新規環境への導入は別途手動確認が必要です。
 
 ## ライセンス
+[MIT License](LICENSE)
+Copyright (c) 2026 aki_lua87。
 
-独自コード・Prefab・アイコン等は[MIT License](LICENSE)です。Copyright (c) 2026 aki_lua87。
 
-同梱のZen Maru Gothic Regularは**SIL Open Font License 1.1**です。全文は`Core/Fonts/OFL.txt`にあります。
-
-外部プレイヤー・RTab・SDK等の帰属表示、公式配布先、利用条件とProTV／ArchiTech.SDK等のライセンス全文は[THIRD_PARTY_NOTICES.txt](Assets/aki_lua87/AVEC/Core/THIRD_PARTY_NOTICES.txt)にまとめています。本体のソース・ネイティブPrefab・導入パッケージは同梱しません。一部のコンパイル済みUdonに含まれる外部基底クラス等の処理には元の利用条件が適用され、AVECのMITライセンスの対象にはなりません。通知ファイルはRelease Builderで各UnityPackageとZIPへ収録します。RTAB拡張の配布・販売説明には[RTabのBOOTH URL](https://rasta.booth.pm/items/7311462)も記載してください。
