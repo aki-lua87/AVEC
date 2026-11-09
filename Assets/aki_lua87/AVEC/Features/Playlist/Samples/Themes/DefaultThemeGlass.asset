@@ -12,9 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0a29602582e47794f9c5138278a1fae5, type: 3}
   m_Name: DefaultThemeGlass
   m_EditorClassIdentifier: 
-  outlineOnly: 0
-  outlineWidth: 1.5
-  outlineSprite: {fileID: 0}
   background: {r: 0.071, g: 0.094, b: 0.125, a: 0.45}
   surface: {r: 0.106, g: 0.137, b: 0.18, a: 0.55}
   button: {r: 0.161, g: 0.204, b: 0.259, a: 0.8}

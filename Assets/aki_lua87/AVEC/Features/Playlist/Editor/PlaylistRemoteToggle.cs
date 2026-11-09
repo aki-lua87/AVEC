@@ -136,7 +136,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             view.remoteOffSlash = slash.gameObject;
             PlaylistConnections.Save(view);
             MoveToFooter(view);
-            PlaylistThemeGraphics.ApplyNew(setup, background);
             PlaylistAppearance.RefreshSupplementalTheme(setup);
             PlaylistControlTips.Ensure(setup);
             // Include the new button in the existing VR finger-touch dispatch table.

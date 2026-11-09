@@ -45272,8 +45272,6 @@ MonoBehaviour:
   enableHistory: 1
   enableUserList: 1
   titleMetadataSource: {fileID: 0}
-  themeImageStates: []
-  themeLayoutStates: []
 --- !u!114 &4853773664379289733
 MonoBehaviour:
   m_ObjectHideFlags: 0

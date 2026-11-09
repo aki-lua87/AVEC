@@ -20,7 +20,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             var view = setup.view;
             Undo.RecordObject(view, "Configure playlist special lists");
             view.enableQueue = setup.enableQueue; view.enableHistory = setup.enableHistory; view.enableUserList = setup.enableUserList;
-            if (setup.enableUserList && view.userPanel == null) { CreateUserUI(setup); PlaylistThemeGraphics.ApplyNew(setup); }
+            if (setup.enableUserList && view.userPanel == null) CreateUserUI(setup);
             PlaylistPresentation.ScrollUserList(view);
             PlaceUserAddButton(view);
             view.queueAddButtons = setup.GetComponentsInChildren<PlaylistButton>(true).Where(b => b.enqueue).Select(b => b.gameObject).ToArray();

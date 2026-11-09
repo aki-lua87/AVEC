@@ -23,8 +23,5 @@ namespace aki_lua87.CommonVideoPlaylist
         // Optional extensions own the provider's type, settings UI and connection logic.
         [UnityEngine.Serialization.FormerlySerializedAs("yttlManager"), HideInInspector]
         public Component titleMetadataSource;
-        // Editor-only sprite backups allow a wireframe theme to return to authored graphics.
-        [HideInInspector] public PlaylistThemeImageState[] themeImageStates = new PlaylistThemeImageState[0];
-        [HideInInspector] public PlaylistThemeLayoutState[] themeLayoutStates = new PlaylistThemeLayoutState[0];
     }
 }

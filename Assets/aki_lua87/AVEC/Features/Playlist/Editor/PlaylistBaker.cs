@@ -96,7 +96,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             var go = UnityEngine.Object.Instantiate(rows[rows.Count - 1].gameObject, tab ? setup.tabContent : setup.videoContent, false);
             go.name = (tab ? "Tab " : "Video ") + index;
             PlaylistUndo.RegisterCreatedObjectUndo(go, "Add playlist row");
-            PlaylistThemeGraphics.CopyRowStates(setup, rows[rows.Count - 1].gameObject, go);
             foreach (var click in go.GetComponentsInChildren<PlaylistButton>(true))
             {
                 click.view = setup.view; click.index = index;
@@ -192,7 +191,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (setup.view == null || setup.tabContent == null || setup.videoContent == null || setup.tabTemplate == null || setup.videoTemplate == null)
                 throw new InvalidOperationException("Playlist UI references are missing: " + setup.name);
             PlaylistUndo.RegisterFullObjectHierarchyUndo(setup.gameObject, "Bake playlist");
-            PlaylistThemeGraphics.Restore(setup);
             PlaylistFactory.EnsurePlaybackModeButton(setup);
             Clear(setup.tabContent); Clear(setup.videoContent);
             var names = new List<string>(); var descriptions = new List<string>(); var tabs = new List<int>(); var titles = new List<string>(); var urls = new List<VRCUrl>();
@@ -244,7 +242,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             if (view.queueAddPanel != null) view.queueAddPanel.SetActive(false);
             if (view.videoScroll != null) view.videoScroll.gameObject.SetActive(false);
             PlaylistSpecialLists.Apply(setup);
-            PlaylistThemeGraphics.ApplyNew(setup);
             PlaylistQueueUI.RefreshQueueControlLayout(view);
             PlaylistConnections.Save(view);
             PlaylistConnections.Save(setup);

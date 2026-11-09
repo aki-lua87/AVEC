@@ -203,7 +203,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         public static void ApplyTheme(PlaylistSetup setup)
         {
             var theme = setup.theme; if (theme == null) return;
-            PlaylistThemeGraphics.Restore(setup);
             var view = setup.view;
             Color oldSelected = view.selectedColor;
             PlaylistUndo.RecordObject(setup.view,"Apply playlist theme");
@@ -219,7 +218,7 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 if(name=="Background")image.color=theme.background;
                 else if(name=="List picker")image.color=theme.selected;
                 else if(name=="Accent"||name=="Handle"||name=="Volume fill"||name=="Playback progress")image.color=theme.accent;
-                else if(name=="Divider"||name=="Track")image.color=theme.outlineOnly?theme.button:theme.surface;
+                else if(name=="Divider"||name=="Track")image.color=theme.surface;
                 else if(image.gameObject==view.historyUrlPanel||name=="Scrollbar"||name=="List scrollbar"||name=="Tabs"||name=="Videos"||name=="Volume rail"||name=="Queue panel"||name=="History panel"||name=="User list panel"||name=="Add video form"||name=="Add user video form")image.color=theme.surface;
                 else if(PlaylistThemeGraphics.IsForeground(view,image))image.color=theme.text;
                 else image.color=selected?theme.selected:theme.button;
@@ -228,8 +227,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
             foreach(var text in setup.GetComponentsInChildren<Text>(true)) { if(view.controlTip != null && text.transform.IsChildOf(view.controlTip)) continue; PlaylistUndo.RecordObject(text,"Apply playlist theme"); text.color=text==setup.view.status||text==setup.view.volumeLabel?theme.mutedText:theme.text;PlaylistConnections.Save(text); }
             var colors=ColorBlock.defaultColorBlock; colors.normalColor=Color.white; colors.highlightedColor=theme.buttonHighlightTint; colors.pressedColor=theme.buttonPressedTint; colors.selectedColor=Color.white;
             foreach(var button in setup.GetComponentsInChildren<Button>(true)) { PlaylistUndo.RecordObject(button,"Apply playlist theme"); button.colors=colors;PlaylistConnections.Save(button); }
-            PlaylistThemeGraphics.ApplyNew(setup);
-            PlaylistQueueUI.RefreshQueueControlLayout(setup.view);
             PlaylistConnections.Save(setup.view);
         }
         // Repair only controls added after the original theme pass. Never move or rebuild UI.
@@ -251,9 +248,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                     image.color = color;
                     PlaylistConnections.Save(image);
                 }
-                if (theme.outlineOnly && !PlaylistThemeGraphics.IsForeground(view, image) &&
-                    (image.sprite != theme.outlineSprite || image.fillCenter))
-                    PlaylistThemeGraphics.ApplyNew(setup, image);
             }
             foreach (var button in setup.GetComponentsInChildren<Button>(true))
             {

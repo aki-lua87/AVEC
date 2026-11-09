@@ -148,11 +148,10 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
         }
 
         // Keep controls inside their actual row, including after ScrollRect lays it out.
-        // This migration changes only the affected spacing and the new skip button's graphics.
+        // Changes only the affected spacing.
         public static void RefreshQueueControlLayout(PlaylistView view)
         {
             if (view == null) return;
-            var setup = view.GetComponent<PlaylistSetup>();
             var scroll = view.videoScroll;
             if (scroll != null && scroll.content != null && scroll.verticalScrollbar != null)
             {
@@ -165,14 +164,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                     layout.padding = new RectOffset(p.left, inset, p.top, p.bottom);
                     PlaylistConnections.Save(layout);
                 }
-                // Theme restore must retain this spacing fix as the authored baseline.
-                if (setup != null && setup.themeLayoutStates != null)
-                    foreach (var state in setup.themeLayoutStates)
-                        if (state != null && state.layout == layout && state.rightPadding < inset)
-                        {
-                            Undo.RecordObject(setup, "Keep scrollbar clearance across themes");
-                            state.rightPadding = inset; PlaylistConnections.Save(setup);
-                        }
             }
             foreach (var row in view.queueRows)
             {
@@ -199,15 +190,6 @@ namespace aki_lua87.CommonVideoPlaylist.Editor
                 left.x = 10f; right.x = -52f; area.offsetMin = left; area.offsetMax = right;
                 PlaylistConnections.Save(area);
             }
-            if (setup == null || setup.theme == null || !setup.theme.outlineOnly || view.queuePanel == null) return;
-            var next = view.queuePanel.transform.Find("Skip queued playback");
-            var play = view.queuePanel.transform.Find("Start queued playback");
-            if (next == null || play == null) return;
-            var image = next.GetComponent<Image>(); var reference = play.GetComponent<Image>();
-            if (image == null || reference == null) return;
-            Undo.RecordObject(image, "Match next queue button theme");
-            image.color = reference.color;
-            PlaylistThemeGraphics.ApplyNew(setup, image);
         }
 
         public static void EnsureHistoryUrlPanel(PlaylistView view)
