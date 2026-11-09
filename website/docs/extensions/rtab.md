@@ -18,10 +18,10 @@ RTab本体・YamaPlayer本体は含まれていません。
 
 1. シーンにRTabを配置します。
 2. `Assets/aki_lua87/AVEC/Extensions/RTabPlaylist/Prefabs/AVEC-RTabPlaylist.prefab`を、RTabの **Apps直下** へ配置します。
-3. 子の **Playlist Screen** のPlaylistSetupで、YamaPlayerの **UIController** を接続先に指定します。
+3. 子の **Playlist Screen** のプレイリスト設定で、YamaPlayerの **UIController** を接続先に指定します。
 4. 保存リストを使う場合は、同じInspectorの特殊リスト設定で永続化参照も更新します。
 
-既存アプリを二重に配置しないでください。配布Prefabにはシーン固有のプレイヤー参照を保存していません。接続先の変更もPlaylistSetupから行います。
+既存アプリを二重に配置しないでください。配布Prefabにはシーン固有のプレイヤー参照を保存していません。接続先の変更もプレイリスト設定から行います。
 
 ## 操作と保存リスト
 

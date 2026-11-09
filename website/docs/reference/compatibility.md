@@ -1,22 +1,11 @@
 ---
 title: 対応環境と更新
-description: 確認したUnity・SDK・プレイヤーのバージョン、更新時の扱いと確認範囲。
+description: 対応するプレイヤー、更新手順と導入後の確認事項。
 ---
 
-## 確認環境
+## 対応するプレイヤー
 
-| 項目 | 確認バージョン |
-| --- | --- |
-| Unity | 2022.3.22f1 |
-| VRChat Worlds SDK | 3.10.5（同梱UdonSharp） |
-| iwaSync3 | 3.8.0 |
-| KineL V2 | 2.5.5 |
-| KineL V3 | `la.niri.videoplayer` 3.4.3 |
-| VizVid | 1.8.2 |
-| YamaPlayer | 2.0.0-beta.7 |
-| ProTV 3 | 3.0.0-beta.31 |
-
-Unityで設定とコンパイルを確認したバージョンです。全バージョン・全端末での動作を保証するものではありません。使用するワールドでも動作を確認してください。
+iwaSync3、KineL V2・V3、VizVid、YamaPlayer、ProTV 3、およびCore同梱のAVEC-SimpleScreenに対応します。外部プレイヤーを使う場合は、本体と対応するConnectorを導入してください。
 
 KineLは使用するプレイヤーがV2かV3かを確認し、それに対応したConnectorを選んでください。
 
@@ -27,7 +16,7 @@ ProTV 2は対象外です。ProTV 3では **Sync Volume ControlをOFF** にし�
 1. シーン、Prefab overrides、プレイリストデータを含めてバックアップします。
 2. 使用中の外部プレイヤーとConnectorの組み合わせを確認します。
 3. 必要なCore・Connector・Extensionを更新します。
-4. コンパイルと各Setupの参照を確認し、対象ワールドで手動確認します。
+4. コンパイルとプレイリスト設定・リモコン設定の接続先を確認し、対象ワールドで動作を確認します。
 
 更新のために既存UIや保存用オブジェクトを削除・再作成する必要はありません。パスと`.meta`を保持してください。
 
@@ -44,12 +33,11 @@ ProTV 2は対象外です。ProTV 3では **Sync Volume ControlをOFF** にし�
 
 YTTLの分離に関する移行は[YTTLタイトル取得](../extensions/yttl-titles.md)を参照してください。
 
-## 確認範囲
+## 導入・更新後に確認すること
 
-現在の確認範囲はUnityでのコンパイルと設定です。ワールド公開前に、次の動作を確認してください。
+ワールドの設定や接続先プレイヤーによって挙動が変わるため、公開前に使用する機能を確認してください。
 
 - VRChat内での操作と再生
 - 複数人同期、途中参加、所有者退出
 - 保存リストの保存と再訪時の復元
 - Quest／Androidでの再生・操作・URL互換性
-- 新規プロジェクトへの導入

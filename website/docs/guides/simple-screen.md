@@ -7,16 +7,24 @@ AVEC-SimpleScreenはCore同梱の独自プレイヤーです。VRChat SDKのAVPr
 
 外部プレイヤーと追加Connectorは不要です。VRChat SDK自体は別途必要です。
 
+![SimpleScreenのモニターと操作パネル](../assets/AVEC-SimpleScreen.png)
+
+*UnityでのPrefab表示例です。動画を読み込む前の状態です。*
+
 ## 配置する
 
 1. `Assets/aki_lua87/AVEC/Prefabs/AVEC-SimpleScreen.prefab`をシーンへ配置します。
 2. 必要なPlaylist／Remoteを配置します。
-3. 各Setup Inspectorで、このPrefabの **SimpleScreenPlayer** を接続先に指定します。
+3. 各設定画面で、このPrefabの **SimpleScreenPlayer** を接続先に指定します。
 4. ワールドにEventSystemがあることを確認します。
 
 モニターの正面はローカル-Z側です。初期サイズは幅3.2m×高さ1.8mで、ルートの移動・回転・一様スケールで配置できます。
 
 ## モニターから操作する
+
+![SimpleScreenの操作パネル。シーク、音量、URL入力とLOADの位置を示す](../../static/img/guides/simple-screen-controls.svg)
+
+*操作箇所を示す説明図です。実際のワールド画面ではありません。*
 
 レイを当てると操作パネルが表示され、外して2秒後に非表示になります。ドラッグやURL入力中は表示を維持します。
 
@@ -32,7 +40,7 @@ URL入力はキューへの追加ではありません。直前のPlaylist連続
 
 ## 権限と同期
 
-**masterOnly** を有効にすると、再生操作をMasterまたはインスタンス所有者へ制限します。ローカル音量操作は引き続き可能です。
+プレイヤー設定の **Master Only（再生操作の権限制限）** を有効にすると、再生操作をMasterまたはインスタンス所有者へ制限します。自分の音量・ミュートは引き続き変更できます。
 
 URL、再生状態、時刻基準、単曲リピートなどを同期します。音量とパネルの表示状態は同期しません。途中参加や所有者交代の際も、受信した時刻基準を使って追従する設計です。
 

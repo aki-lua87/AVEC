@@ -9,22 +9,22 @@ description: Prefabの配置から接続先の指定、動画登録、保存ま�
 
 1. 使用する動画プレイヤーをシーンに配置します。
 2. `Assets/aki_lua87/AVEC/Prefabs/AVEC-VideoPlaylist.prefab`をHierarchyへドラッグします。
-3. 配置したプレイリストのルートを選び、Inspectorで **PlaylistSetup** を確認します。
+3. 配置したプレイリストのルートを選び、Inspectorの **PlaylistSetup（以降「プレイリスト設定」）** を確認します。
 
-タブレット版は子の **Playlist Screen** にPlaylistSetupがあります。
+タブレット版のプレイリスト設定は、子の **Playlist Screen** にあります。
 
 ## 2. プレイヤーへ接続する
 
-Setup Inspectorで使用するプレイヤーと接続先を指定します。接続先はプレイヤーごとのコンポーネントです。見つからない場合は、本体と対応Connectorが両方導入されているか確認してください。
+プレイリスト設定で使用するプレイヤーと接続先を指定します。接続先はプレイヤーごとのコンポーネントです。見つからない場合は、本体と対応Connectorが両方導入されているか確認してください。
 
 AVEC-SimpleScreenの場合は、シーンに配置したPrefabの **SimpleScreenPlayer** を指定します。追加Connectorは不要です。
 
-![PlaylistSetupのInspector。プレイリスト、テーマ、接続先、特殊リストの設定が並んでいる](../assets/playlist-setup.png)
+![プレイリスト設定のInspector。プレイリスト、テーマ、接続先、特殊リストの設定が並んでいる](../assets/playlist-setup.png)
 
 *撮影専用シーンでAVEC-SimpleScreenへ接続した設定例です。接続候補はシーン内のプレイヤーに応じて変わります。画像のテーマや、任意拡張のYTTL設定は必須ではありません。*
 
 :::tip 既存のプレイヤーをそのまま使えます
-使用中の動画プレイヤーを作り直す必要はありません。シーン上の接続はSetup Inspectorから行います。
+使用中の動画プレイヤーを作り直す必要はありません。シーン上の接続はプレイリスト設定から行います。
 :::
 
 ## 3. 動画を登録する
@@ -44,7 +44,7 @@ AVEC-SimpleScreenの場合は、シーンに配置したPrefabの **SimpleScreen
 
 ## 4. 必要なリストを選ぶ
 
-PlaylistSetupの **特殊リスト** で、再生キュー・再生履歴・保存リストの表示を個別に切り替えます。チェック変更はその場で反映されます。
+プレイリスト設定の **特殊リスト** で、再生キュー・再生履歴・保存リストの表示を個別に切り替えます。チェック変更はその場で反映されます。
 
 設定の意味と利用者向けの操作は[キュー・履歴・保存リスト](../guides/queue-history-saved.md)にまとめています。
 

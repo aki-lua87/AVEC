@@ -3,7 +3,7 @@ title: AVECについて
 description: VRChatの動画プレイヤーに共通プレイリストUIとジェスチャーリモコンを追加するAVECの紹介。
 ---
 
-AVEC（Aki's Video Enhancement Components）は、VRChatの動画プレイヤーに**共通プレイリストUIとジェスチャーリモコン**を追加するアセットです。
+AVEC（Aki's Video Enhancement Components）は、VRChatの動画プレイヤーに**共通プレイリストUIとジェスチャーリモコン**を追加する無料アセットです。
 
 既存のプレイヤーを接続先として使いながら、動画を選ぶ・順番を決める・手元で操作するためのUIを追加できます。独自の小型プレイヤー **AVEC-SimpleScreen** もCoreに含まれています。
 
@@ -24,7 +24,7 @@ AVEC（Aki's Video Enhancement Components）は、VRChatの動画プレイヤー
 
 iwaSync3、KineL V2・V3、VizVid、YamaPlayer、ProTV 3、およびAVEC-SimpleScreenに接続できます。外部プレイヤー本体は別途導入してください。
 
-確認したバージョンと確認範囲は[対応環境と更新](reference/compatibility.md)にまとめています。
+プレイヤーごとの注意点と更新手順は[対応環境と更新](reference/compatibility.md)にまとめています。
 
 ## はじめかた
 

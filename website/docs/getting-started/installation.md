@@ -11,12 +11,23 @@ AVECは、共通機能の **Core**、外部プレイヤーとの接続を行う 
 - AVEC-Core
 - 外部プレイヤーを使う場合は、その本体と対応するConnector
 
-確認環境はUnity **2022.3.22f1**、VRChat Worlds SDK **3.10.5**です。UdonSharpはSDK同梱版を使用します。SDK、外部プレイヤー、AudioLinkはAVECに同梱しません。
+VRChatのWorld制作に対応したUnityとVRChat Worlds SDKを用意してください。UdonSharpはSDK同梱版を使用します。SDK、外部プレイヤー、AudioLinkはAVECに同梱しません。
 
 :::note 配布先について
-AVECは[BOOTHの商品ページ](https://aki-lua87.booth.pm/items/9029664)から入手できます。このドキュメントではパッケージ名で案内します。
+AVECは[BOOTHの商品ページ](https://aki-lua87.booth.pm/items/9029664)で **無料配布** しています。このドキュメントではパッケージ名で案内します。
 
 :::
+
+## 導入形式：UnityPackage
+
+AVECは **`.unitypackage`ファイルをUnityへインポートして導入**します。VCCにAVEC用のリポジトリを追加する手順はありません。VCCはVRChat Worlds SDK入りのプロジェクトを用意するために使います。
+
+1. BOOTHから配布ファイルをダウンロードし、ZIPの場合は展開します。
+2. 導入先のWorldプロジェクトをUnityで開きます。
+3. `.unitypackage`をUnityのウィンドウへドラッグするか、**Assets > Import Package > Custom Package…** から選びます。
+4. Import画面で内容を確認し、**Import** を押します。読み込みとコンパイルが終わるまで待ちます。
+
+以下の順に、Core → 使用するプレイヤーのConnector → 必要なExtensionをインポートします。
 
 ## 1. プレイヤー本体を導入する
 

@@ -1,0 +1,6 @@
+{
+  "theme.SearchPage.emptyResultsTitle": {
+    "message": "サイト内検索",
+    "description": "検索語が未入力の検索ページのタイトル"
+  }
+}

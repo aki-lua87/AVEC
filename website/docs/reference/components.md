@@ -1,22 +1,22 @@
 ---
 title: Inspectorの設定項目
-description: PlaylistSetup、RemoteSetup、保存用オブジェクトの役割と設定場所。
+description: プレイリスト設定、リモコン設定、保存用オブジェクトの役割と設定場所。
 ---
 
-設定は、シーン上のPrefabにあるSetup Inspectorから行います。通常の接続変更や設定確認のために、UI全体やPrefabを作り直す必要はありません。
+Unityで配置したオブジェクトを選び、Inspectorに表示される設定を使います。このサイトでは、**PlaylistSetupを「プレイリスト設定」**、**RemoteSetupを「リモコン設定」** と呼びます。
 
-## PlaylistSetup
+## プレイリスト設定（PlaylistSetup）
 
 通常版・コンパクト版はルート、タブレット版・RTab版は子の **Playlist Screen** にあります。
 
-![PlaylistSetupのカスタムInspectorの表示例](../assets/playlist-setup.png)
+![プレイリスト設定のカスタムInspectorの表示例](../assets/playlist-setup.png)
 
 *撮影専用シーンでAVEC-SimpleScreenへ接続した表示例です。プレイリストは撮影用のダミーデータです。接続候補と拡張の項目は、導入したアセットによって変わります。*
 
 | 項目・操作 | 役割 |
 | --- | --- |
-| プレイリストデータ（`data`） | タブと登録動画を保持するPlaylistData |
-| Theme Asset（`theme`） | 編集時に反映するPlaylistTheme |
+| プレイリストデータ | タブと登録動画をまとめて保存するデータ |
+| Theme Asset | プレイリストの配色・透明度を選ぶ |
 | プレイヤー種別・接続先 | 使用するConnectorとシーン上のプレイヤー |
 | 新規プレイリストを作成 | 専用のPlaylistDataを作成 |
 | プレイリストを編集する | タブ・動画の編集画面を開く |
@@ -24,21 +24,21 @@ description: PlaylistSetup、RemoteSetup、保存用オブジェクトの役割�
 | 特殊リスト | キュー・履歴・保存リストを個別に有効化 |
 | YTTLタイトル取得（拡張） | 拡張導入時のみ表示するManager接続 |
 
-`view`、テンプレート、一覧のコンテナなどは内部UIの参照です。通常の動画登録では変更しません。
+通常の導入では、上記以外の参照欄を変更する必要はありません。
 
-## PlaylistData
+## プレイリストデータ（PlaylistData）
 
 ワールド作者が登録するタブと動画のデータです。複数UIで共有できます。[利用者の保存リスト](../guides/queue-history-saved.md)とは別です。
 
 自分で作成したプレイリストデータは`Assets/AVECUserData/`などへ保存し、シーンと一緒にバックアップしてください。
 
-## RemoteSetupとGestureData
+## リモコン設定（RemoteSetup）
 
 | 設定 | 役割 |
 | --- | --- |
-| 接続先プレイヤー（`player`） | リモコンが操作するプレイヤー |
-| プレイリスト（`playlist`） | 同じ接続先のPlaylistViewとの連携 |
-| GestureData（`data`） | 操作の割り当てとガイドで使う共通データ |
+| 接続先プレイヤー | リモコンが操作するプレイヤー |
+| プレイリスト | 同じプレイヤーに接続したプレイリストと連携する |
+| GestureData | ジェスチャーの割り当て。操作ガイドにも同じ内容を使う |
 | モデル設定 | リモコンの見た目の選択 |
 | 呼び出しの初期状態・範囲 | 手元への呼び出し設定 |
 
@@ -46,7 +46,7 @@ description: PlaylistSetup、RemoteSetup、保存用オブジェクトの役割�
 
 ## 保存用オブジェクト
 
-`CommonVideoPlaylist User Data`は、利用者ごとの保存リストを保持するオブジェクトです。設定時に自動で用意され、同じシーンのUIで共有します。通常は個別に編集する必要はありません。
+利用者ごとの保存リストを保持するオブジェクトです。Hierarchy上では **CommonVideoPlaylist User Data** という名前です。これは現在のオブジェクト名で、旧版専用ではありません。設定時に自動で用意され、同じシーンのUIで共有します。通常は個別に編集する必要はありません。
 
 公開後の削除・再作成・Network ID変更は、保存データとの対応を失う可能性があります。詳細は[保存リスト](../guides/queue-history-saved.md)を参照してください。
 

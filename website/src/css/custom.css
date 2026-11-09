@@ -34,6 +34,7 @@
 .avec-hero-inner { display: grid; grid-template-columns: 1.2fr 1fr; align-items: center; gap: 3rem; }
 .avec-eyebrow { font-size: .75rem; letter-spacing: .13em; font-weight: 700; color: var(--ifm-color-primary); margin-bottom: 1rem; }
 .avec-hero h1 { font-size: clamp(1.8rem, 3.2vw, 2.7rem); letter-spacing: -.035em; line-height: 1.6; }
+.avec-heading-line { display: block; }
 .avec-lead { color: #45626a; font-size: 1.02rem; }
 .avec-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.8rem 0; }
 .avec-support { color: #526d73; font-size: .78rem; line-height: 1.9; }
@@ -53,6 +54,10 @@
 .avec-guide-grid b { font-size: .85rem; color: var(--ifm-color-primary); }
 .avec-note { border-top: 1px solid var(--ifm-toc-border-color); padding-top: 2rem; padding-bottom: 3.5rem; }
 .avec-note h2 { font-size: 1.25rem; }
+.avec-theme-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin: 1.5rem 0; }
+.avec-theme-gallery figure { margin: 0; min-width: 0; }
+.markdown .avec-theme-gallery img { width: 100%; margin: 0 0 .6rem; }
+.avec-theme-gallery figcaption span { display: block; font-size: .85rem; color: var(--ifm-color-emphasis-700); }
 [data-theme='dark'] .avec-hero { background: #10292f; border-color: #31515a; }
 [data-theme='dark'] .avec-lead, [data-theme='dark'] .avec-support { color: #b3cecf; }
 @media (max-width: 996px) {
@@ -63,3 +68,8 @@
   .avec-guide-grid > a { padding: 1.5rem 0; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@media (max-width: 520px) {
+  .avec-theme-gallery { grid-template-columns: 1fr; }
+  .avec-hero h1 { font-size: clamp(1rem, 5.65vw, 1.8rem); letter-spacing: -.05em; }
+  .avec-heading-line { white-space: nowrap; }
+}

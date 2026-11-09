@@ -18,7 +18,22 @@
 | `playlist-editor.png` | DocumentationPlaylistを開いた動画編集ウィンドウ | 最初のプレイリスト |
 | `playlist-special-lists.png` | Inspector画像から特殊リスト設定部分を切り出したもの | キュー・履歴・保存リスト |
 
-すべて実際のUnity編集画面を撮影・切り出した画像です。合成したUIやVRChat内の動作確認画像ではありません。
+上記4枚は実際のUnity編集画面を撮影・切り出した画像です。VRChat内の動作確認画像ではありません。
+
+### Prefabの表示例
+
+`AVEC-VideoPlaylistTablet.png`、`AVEC-GestureRemote.png`、`AVEC-GestureGuide.png`、`AVEC-SimpleScreen.png`は、UnityMCPから一時的なPreviewSceneにPrefabの複製を置き、Camera.Renderで取得した画像です。リモコンはModel部分を撮影しています。動画の再生や外部通信は行っていません。タブレットは接続先・動画の設定前、SimpleScreenは動画読み込み前、ガイドはスクロール一覧の先頭です。
+
+既存シーン・Prefabには編集を加えず、撮影用のPreviewSceneは取得後に破棄しました。シーンの保存・Playモードでの動作確認は行っていません。
+
+## 配色見本・操作説明図
+
+- `static/img/themes/*.svg`：全9テーマの配色データから生成する見本。実UIのスクリーンショットではありません。`scripts/generate-doc-visuals.cjs`で再生成します。
+- `static/img/guides/*.svg`：ジェスチャー入力、操作ガイド、タブレット、SimpleScreenの説明図。スクリーンショットと混同しないよう、各掲載箇所に説明図であることを明記します。
+- タブレット説明図の画面部分のみ、上記の`playlist-overview.png`を使います。
+- `static/img/social-card.png`：OGP用の1200×630画像。`scripts/render-social-card.ps1`で再生成します。
+
+ワールド内操作の撮影は手動確認時に追加します。図やPrefabの表示例を動作確認済みの証拠として扱いません。
 
 ## 撮り直すとき
 

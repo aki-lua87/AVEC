@@ -11,7 +11,7 @@ export default function Home() {
           <div className="container avec-hero-inner">
             <div>
               <p className="avec-eyebrow">Aki's Video Enhancement Components</p>
-              <h1>いつもの動画プレイヤーに、<br />使いやすい操作を。</h1>
+              <h1><span className="avec-heading-line">いつもの動画プレイヤーに、</span><span className="avec-heading-line">使いやすい操作を。</span></h1>
               <p className="avec-lead">プレイリストも、再生キューも、手元のリモコンも。<br />AVECはVRChatの動画視聴を支える共通UIです。</p>
               <div className="avec-actions">
                 <Link className="button button--primary button--lg" to="/docs/getting-started/installation">導入する →</Link>
@@ -36,7 +36,7 @@ export default function Home() {
             <Link to="/docs/extensions/dynamic-playlist"><span>03 / EXTENSIONS</span><h3>YouTubeから取り込む</h3><p>動画一覧の取り込みと、外部サービスを使う動的なリスト。</p><b>拡張機能を読む →</b></Link>
           </div>
         </section>
-        <section className="container avec-note"><h2>設定を詳しく知りたいときは</h2><p><Link to="/docs/reference/components">Inspectorの設定項目</Link>、<Link to="/docs/reference/compatibility">対応環境と更新方法</Link>、<Link to="/docs/troubleshooting">トラブルシューティング</Link>を参照してください。</p></section>
+        <section className="container avec-note"><h2>設定を詳しく知りたいときは</h2><p><Link to="/docs/reference/components">Inspectorの設定項目</Link>、<Link to="/docs/reference/compatibility">対応環境と更新</Link>、<Link to="/docs/troubleshooting">困ったときは</Link>を参照してください。</p></section>
       </main>
     </Layout>
   );
