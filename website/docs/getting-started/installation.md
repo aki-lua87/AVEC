@@ -72,7 +72,7 @@ KineL V2とV3は別のConnectorです。ProTV 2には対応していません。
 
 | パッケージ | 追加される機能 |
 | --- | --- |
-| `AVEC-Extension-DynamicPlaylist` | [YouTube取り込みと動的更新](../extensions/dynamic-playlist.md) |
+| `AVEC-Extension-DynamicPlaylist` | [YouTube取り込み](../extensions/youtube-import.md)・[動画一覧の動的更新](../extensions/dynamic-playlist.md) |
 | `AVEC-Extension-YttlTitles` | [保存リストへ追加したURLのタイトル取得](../extensions/yttl-titles.md) |
 | `AVEC-Extension-RTabPlaylist` | [RTabのアプリとしてプレイリストを配置](../extensions/rtab.md) |
 

@@ -33,7 +33,7 @@ export default function Home() {
           <div className="avec-guide-grid">
             <Link to="/docs/getting-started/first-playlist"><span>01 / SETUP</span><h3>最初のプレイリストを作る</h3><p>Prefabを配置してプレイヤーへ接続し、動画を登録するまで。</p><b>セットアップを読む →</b></Link>
             <Link to="/docs/guides/remote"><span>02 / CONTROLS</span><h3>手元から操作する</h3><p>ジェスチャーリモコン、操作ガイド、呼び出し範囲の設定。</p><b>リモコンの使い方 →</b></Link>
-            <Link to="/docs/extensions/dynamic-playlist"><span>03 / EXTENSIONS</span><h3>YouTubeから取り込む</h3><p>動画一覧の取り込みと、外部サービスを使う動的なリスト。</p><b>拡張機能を読む →</b></Link>
+            <Link to="/docs/extensions/youtube-import"><span>03 / EXTENSIONS</span><h3>YouTubeから取り込む</h3><p>チャンネルやプレイリストの動画一覧を取り込む手順。</p><b>取り込み方法を読む →</b></Link>
           </div>
         </section>
         <section className="container avec-note"><h2>設定を詳しく知りたいときは</h2><p><Link to="/docs/reference/components">Inspectorの設定項目</Link>、<Link to="/docs/reference/compatibility">対応環境と更新</Link>、<Link to="/docs/troubleshooting">困ったときは</Link>を参照してください。</p></section>

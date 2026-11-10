@@ -18,5 +18,3 @@ Zen Maru Gothic Regularは **SIL Open Font License 1.1** です。ライセン�
 外部プレイヤー、RTab、SDK等の帰属表示、公式配布先、利用条件とProTV／ArchiTech.SDK等のライセンス全文は、[THIRD_PARTY_NOTICES.txt](https://github.com/aki-lua87/AVEC/blob/master/Assets/aki_lua87/AVEC/Core/THIRD_PARTY_NOTICES.txt)にまとめています。
 
 外部プレイヤー本体のソース・ネイティブPrefab・導入パッケージは同梱しません。一部のコンパイル済みUdonに含まれる外部基底クラス等の処理には元の利用条件が適用され、AVECのMITライセンスの対象にはなりません。
-
-RTab拡張の配布・販売説明には[RTabのBOOTHページ](https://rasta.booth.pm/items/7311462)も記載してください。

@@ -1,6 +1,6 @@
 ---
 title: AVEC-SimpleScreen
-description: Core同梱の小型動画プレイヤーの配置、UI操作、権限と同期。
+description: Core同梱の動画プレイヤーの配置、UI操作、権限と同期。
 ---
 
 AVEC-SimpleScreenはCore同梱の独自プレイヤーです。VRChat SDKのAVPro再生コンポーネントを利用し、モニター、音源、最小限のUI、同期処理とPlaylist／Remote接続を含みます。

@@ -2,8 +2,7 @@
 
 保存リストへURLを追加した時、再生せずにタイトルを取得する任意拡張です。
 YTTL本体は同梱しません。現在の実装はVizVid同梱の`VVMW.ThirdParties.Yttl.YttlManager`用です。
-単体版YTTLやiwaSync3用YTTL Connectorを導入する必要はありません。
-単体版YTTLのManagerへの直接差し替えには対応していません。現行拡張はVizVid同梱版の型とAPIに依存します。
+現行拡張はVizVid同梱版の型とAPIに依存します。
 
 ## 導入と接続
 

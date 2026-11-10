@@ -9,7 +9,7 @@ module.exports = {
       'guides/remote', 'guides/appearance', 'guides/simple-screen',
     ] },
     { type: 'category', label: '拡張機能', items: [
-      'extensions/dynamic-playlist', 'extensions/yttl-titles', 'extensions/rtab',
+      'extensions/youtube-import', 'extensions/dynamic-playlist', 'extensions/yttl-titles', 'extensions/rtab',
     ] },
     { type: 'category', label: '設定と仕様', items: [
       'reference/components', 'reference/compatibility', 'reference/licenses',

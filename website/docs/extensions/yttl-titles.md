@@ -1,6 +1,6 @@
 ---
 title: 保存リストのタイトル取得
-description: VizVid同梱YTTLを使う任意拡張の接続と更新方法。
+description: VizVid同梱YTTLを使う任意拡張の導入と接続方法。
 ---
 
 `AVEC-Extension-YttlTitles`は、保存リストへURLを追加した時、**動画を再生せずにタイトルを取得する**任意拡張です。
@@ -11,7 +11,7 @@ description: VizVid同梱YTTLを使う任意拡張の接続と更新方法。
 
 VizVid付属の **YTTL Manager** が必要です。YTTL本体は同梱しません。
 
-通常版（単体版）YTTLやiwaSync3用YTTL Connectorでは代用できません。
+この拡張はVizVid同梱版のYTTLに対応しています。
 
 再生するプレイヤーはVizVidに限定しません。この拡張のためにAVEC-Connector-VizVidを入れる必要もありません。
 
@@ -31,8 +31,6 @@ VizVidのプレイヤーを配置しただけでは、編集時にManagerが実�
 
 対応サイトとAllow Untrusted URLsなどの条件は、YTTLとVRChatの設定に従います。DynamicPlaylistのサーバーからの取得には、この拡張は不要です。
 
-## 旧版から更新する
-
-以前のVizVid Connectorでタイトル取得を使っていた場合は、AVEC-Coreとあわせてこの拡張も更新してください。既存の接続を引き継いで使えます。
+## タイトル取得をやめる
 
 タイトル取得をやめる場合は、各プレイリスト設定の **YTTL Manager** の指定を解除します。URLの追加・保存・再生・削除は引き続き使えます。
