@@ -2,6 +2,20 @@
 
 公開用画像は、撮影専用シーン`Assets/aki_lua87/Documentation/DocumentationCapture.unity`と、専用データ`DocumentationPlaylist.asset`から撮影します。通常のデモや利用者のプレイリストからは撮影しません。
 
+## 2026-11-18 現行デザインへの更新
+
+- `playlist-overview.png`：DarkMonoの一覧、PLAYLISTSだけの見出し、未再生メッセージの縦中央揃え、重なったカードのキューアイコンを反映。1800×1120。
+- `playlist-queue.png`：空キューの表示例を追加。短い「再生キューは空です」の文言とURL追加操作を表示。1800×1120。
+- `AVEC-VideoPlaylistTablet.png`：タブレットの一時複製へ、撮影専用データを使った現行UIを表示。1800×1120。
+- `AVEC-SimpleScreen.png`：現在のPrefabを撮影。下部の操作と右端Syncを表示。1600×1000。
+- テーマ見本を現行の見出し・フッターに合わせ、DarkMonoを含む10種類へ更新。タブレットとSimpleScreenの説明図も更新。
+
+UnityMCPのPreviewScene内で撮影用UIを複製し、その複製だけに現行デザインとDarkMonoを適用してCamera.Renderで取得しました。
+タブレットの画面も同じダミーデータです。リモコンボタンは接続時の表示例として表示しています。
+撮影用のカメラと複製は処理終了時に破棄しました。元の撮影用UI・デモのUI・Prefabは撮影用に編集・再生成していません。
+開始時に未保存だったDocumentationCaptureを保存しました。撮影後のシーン保存・Playモード・外部通信は行っていません。
+画像はUnity編集時の静止描画で、VRChat内での操作確認画像ではありません。Inspectorと動画編集ウィンドウの画像は従来の設定例を保持しています。
+
 ## 撮影用データ
 
 - 6タブ・18件。名前は「サンプル動画」「サンプルチャンネルA」などの架空名。
@@ -13,22 +27,23 @@
 
 | 画像（`docs/assets/`） | 対象 | 掲載先 |
 | --- | --- | --- |
-| `playlist-overview.png` | 「サンプル動画」タブをSceneビューで正面から表示 | トップ、プレイリストの使い方 |
+| `playlist-overview.png` | 「サンプル動画」タブの現行UIを正面から静止描画 | トップ、プレイリストの使い方 |
+| `playlist-queue.png` | 現行UIの空キューを静止描画 | キュー・履歴・保存リスト |
 | `playlist-setup.png` | Documentation PlaylistのPlaylistSetup | 最初のプレイリスト、Inspectorの設定項目 |
 | `playlist-editor.png` | DocumentationPlaylistを開いた動画編集ウィンドウ | 最初のプレイリスト |
 | `playlist-special-lists.png` | Inspector画像から特殊リスト設定部分を切り出したもの | キュー・履歴・保存リスト |
 
-上記4枚は実際のUnity編集画面を撮影・切り出した画像です。VRChat内の動作確認画像ではありません。
+一覧・キューはUnityの静止描画、Inspector・編集ウィンドウはUnity編集画面を撮影・切り出した画像です。VRChat内の動作確認画像ではありません。
 
 ### Prefabの表示例
 
-`AVEC-VideoPlaylistTablet.png`、`AVEC-GestureRemote.png`、`AVEC-GestureGuide.png`、`AVEC-SimpleScreen.png`は、UnityMCPから一時的なPreviewSceneにPrefabの複製を置き、Camera.Renderで取得した画像です。リモコンはModel部分を撮影しています。動画の再生や外部通信は行っていません。タブレットは接続先・動画の設定前、SimpleScreenは動画読み込み前、ガイドはスクロール一覧の先頭です。
+`AVEC-VideoPlaylistTablet.png`、`AVEC-GestureRemote.png`、`AVEC-GestureGuide.png`、`AVEC-SimpleScreen.png`は、UnityMCPから一時的なPreviewSceneにPrefabの複製を置き、Camera.Renderで取得した画像です。リモコンはModel部分を撮影しています。動画の再生や外部通信は行っていません。現在のタブレット画像は撮影用サンプル動画の一覧、SimpleScreenは動画読み込み前、ガイドはスクロール一覧の先頭です。
 
 既存シーン・Prefabには編集を加えず、撮影用のPreviewSceneは取得後に破棄しました。シーンの保存・Playモードでの動作確認は行っていません。
 
 ## 配色見本・操作説明図
 
-- `static/img/themes/*.svg`：全9テーマの配色データから生成する見本。実UIのスクリーンショットではありません。`scripts/generate-doc-visuals.cjs`で再生成します。
+- `static/img/themes/*.svg`：全10テーマの配色データから生成する見本。実UIのスクリーンショットではありません。`scripts/generate-doc-visuals.cjs`で再生成します。
 - `static/img/guides/*.svg`：ジェスチャー入力、操作ガイド、タブレット、SimpleScreenの説明図。スクリーンショットと混同しないよう、各掲載箇所に説明図であることを明記します。
 - タブレット説明図の画面部分のみ、上記の`playlist-overview.png`を使います。
 - `static/img/social-card.png`：OGP用の1200×630画像。`scripts/render-social-card.ps1`で再生成します。

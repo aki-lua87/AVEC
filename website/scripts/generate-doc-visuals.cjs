@@ -12,7 +12,7 @@ const text = (x, y, label, size = 22, color = '#183a43', extra = '') => `<text x
 const box = (x, y, w, h, fill, radius = 12, extra = '') => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${radius}" fill="${fill}" ${extra}/>`;
 const svg = (w, h, title, body) => `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(title)}"><title>${esc(title)}</title><g font-family="'Yu Gothic','Meiryo',sans-serif">${body}</g></svg>\n`;
 const write = (name, title, body, height = 380) => fs.writeFileSync(path.join(imageDir, name), svg(960, height, title, box(0, 0, 960, height, '#f1f7f7', 16) + body));
-const themes = ['DefaultTheme', 'Mint', 'Amber', 'Orchid', 'Periwinkle', 'RedBlack', 'WhiteBlue', 'Monochrome', 'DefaultThemeGlass'];
+const themes = ['DarkMono', 'DefaultTheme', 'Mint', 'Amber', 'Orchid', 'Periwinkle', 'RedBlack', 'WhiteBlue', 'Monochrome', 'DefaultThemeGlass'];
 for (const name of themes) {
   const source = fs.readFileSync(path.join(root, `Assets/aki_lua87/AVEC/Features/Playlist/Samples/Themes/${name}.asset`), 'utf8');
   const palette = {};
@@ -26,12 +26,18 @@ for (const name of themes) {
   const label = (x, y, value, size = 14, muted = false) => text(x, y, value, size, palette[muted ? 'mutedText' : 'text'].color);
   let body = `<defs><pattern id="checks" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="#b9c6cb"/><path d="M0 0h12v12H0zM12 12h12v12H12z" fill="#d5dfe2"/></pattern></defs>`;
   body += box(0, 0, 540, 326, 'url(#checks)', 12) + panel(0, 0, 540, 326, 'background');
-  body += panel(18, 16, 28, 4, 'accent') + label(18, 43, 'AVEC-PLAYLIST', 18) + label(18, 66, '接続先: AVEC-SimpleScreen', 12, true);
-  body += panel(18, 82, 145, 176, 'surface') + panel(175, 82, 347, 176, 'surface');
-  ['再生キュー', '再生履歴', '保存リスト', 'サンプル動画'].forEach((t, i) => { body += panel(24, 88 + i * 40, 133, 34, i === 3 ? 'selected' : 'button') + label(32, 110 + i * 40, t); });
-  ['サンプル動画 01', 'サンプル動画 02', 'サンプル動画 03'].forEach((t, i) => { body += panel(182, 90 + i * 49, 326, 41, 'button') + label(194, 116 + i * 49, t); });
-  body += panel(512, 88, 5, 164, 'accent') + panel(18, 276, 38, 32, 'button') + label(31, 299, '▶', 16);
-  body += label(77, 298, '音量', 13) + panel(119, 289, 286, 7, 'surface') + panel(119, 289, 162, 7, 'accent') + label(425, 298, '50%', 14, true);
+  body += panel(18, 16, 20, 3, 'accent') + label(18, 43, 'AVEC-PLAYLIST', 18) + label(481, 20, 'v0.0.3', 8, true);
+  body += `<path d="M0 58h540" stroke="${palette.mutedText.color}" stroke-opacity=".15"/>`;
+  body += panel(175, 78, 347, 180, 'surface');
+  ['再生キュー', '再生履歴', '保存リスト'].forEach((t, i) => { body += label(38, 91 + i * 31, t, 12, true); });
+  body += `<g fill="none" stroke="${palette.mutedText.color}" stroke-width="1.3"><rect x="19" y="80" width="10" height="8" rx="1"/><path d="m22 82 3 2-3 1zM32 82v8H22m13-6v9H25"/><circle cx="25" cy="117" r="6"/><path d="M25 113v4l3 2M21 143h8v13l-4-3-4 3z"/></g>`;
+  body += `<path d="M18 176h140" stroke="${palette.mutedText.color}" stroke-opacity=".2"/>` + label(18, 195, 'PLAYLISTS', 8, true);
+  body += panel(15, 204, 140, 29, 'selected') + panel(15, 207, 2, 23, 'accent') + label(27, 223, 'サンプル動画', 12);
+  body += label(27, 253, '環境映像', 12, true);
+  ['サンプル動画 01', 'サンプル動画 02', 'サンプル動画 03'].forEach((t, i) => { body += label(190, 102 + i * 32, t, 13); });
+  body += `<circle cx="34" cy="294" r="16" fill="${palette.text.color}" fill-opacity=".06"/>` + label(29, 299, '▶', 13, true);
+  body += label(61, 298, '再生中の動画はありません', 10, true) + panel(292, 291, 162, 4, 'button') + panel(292, 291, 81, 4, 'accent') + label(465, 298, '50%', 10, true);
+  body += `<g fill="none" stroke="${palette.mutedText.color}" stroke-width="1.2"><rect x="510" y="281" width="11" height="23" rx="2"/><path d="M513 286h5m-5 5h5m-5 5h3"/></g>`;
   fs.writeFileSync(path.join(themeDir, `${name}.svg`), svg(540, 326, `${name}の配色見本`, body));
 }
 
@@ -61,8 +67,9 @@ write('tablet-touch.svg', 'タブレットの指操作の説明図。画面部�
 write('simple-screen-controls.svg', 'SimpleScreenの操作パネルの説明図',
   text(32, 43, 'SimpleScreen：モニターにレイを当てると操作を表示', 27) +
   box(35, 72, 890, 222, '#16353e', 10) + text(391, 160, '動画の表示領域', 23, '#acc9ce') +
-  box(52, 205, 856, 70, '#24515b', 8) + box(70, 224, 317, 9, '#80d8ca', 4) + text(70, 257, '01:23 / 04:56', 14, '#fff') +
-  text(412, 240, '♪', 23, '#fff') + box(453, 224, 100, 9, '#80d8ca', 4) + text(572, 237, '50%', 15, '#fff') +
-  box(627, 219, 184, 34, '#dbe8eb', 5) + text(641, 242, '動画URL', 16) + box(824, 219, 64, 34, '#80d8ca', 5) + text(833, 242, 'LOAD', 16) +
+  box(52, 205, 856, 70, '#182124', 8) + box(70, 216, 815, 5, '#80d8ca', 4) +
+  text(70, 257, '▶  ■', 22, '#fff') + box(163, 234, 410, 30, '#101416', 5) + text(176, 255, '動画URLを入力', 16, '#acc9ce') +
+  text(600, 255, '♪', 22, '#fff') + box(640, 245, 100, 6, '#80d8ca', 4) + text(755, 255, '50%', 15, '#fff') +
+  box(813, 234, 75, 30, '#203438', 5) + text(828, 255, 'Sync', 16, '#fff') +
   text(68, 333, '① シーク：再生位置を変える', 19) + text(402, 333, '② 自分の音量', 19) + text(627, 333, '③ URLを入力して再生', 19));
 console.log(`Generated ${themes.length} theme previews and 4 instructional figures.`);

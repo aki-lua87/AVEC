@@ -2,7 +2,8 @@ import React from 'react';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
 const themes = [
-  ['DefaultTheme', '濃いグレーとシアンの標準配色'],
+  ['DarkMono', '黒系背景と白文字。Prefabのデフォルト配色'],
+  ['DefaultTheme', '濃いグレーとシアン'],
   ['Mint', '濃紺とミント色。設定画像で使用しているテーマ'],
   ['Amber', '濃紺とオレンジ'],
   ['Orchid', '濃紺とピンク'],

@@ -11,7 +11,7 @@ import ThemeGallery from '@site/src/components/ThemeGallery';
 
 テーマは`Assets/aki_lua87/AVEC/Features/Playlist/Samples/Themes/`にあります。
 
-**DefaultTheme・Mint・Amber・Orchid・Periwinkle・RedBlack・WhiteBlue・Monochrome・DefaultThemeGlass** の9種類から選べます。ファイル名は、それぞれの名前に`.asset`を付けたものです。
+**DarkMono・DefaultTheme・Mint・Amber・Orchid・Periwinkle・RedBlack・WhiteBlue・Monochrome・DefaultThemeGlass** の10種類から選べます。Prefabのデフォルトは、黒系背景に白文字の **DarkMono** です。ファイル名は、それぞれの名前に`.asset`を付けたものです。
 
 <ThemeGallery />
 

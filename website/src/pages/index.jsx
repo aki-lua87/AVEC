@@ -21,7 +21,7 @@ export default function Home() {
             </div>
             <figure className="avec-product-shot">
               <Link to="/docs/guides/playlists" aria-label="プレイリストの実画面と使い方を見る">
-                <img src={playlistOverview} alt="AVECの実画面。撮影用のサンプル動画一覧と再生・音量操作を表示" width="892" height="556" />
+                <img src={playlistOverview} alt="DarkMonoのAVEC実画面。撮影用のサンプル動画一覧と再生・音量操作を表示" width="1800" height="1120" />
               </Link>
               <figcaption>Unity編集時の表示例 · 名前・URLは撮影用のダミー</figcaption>
             </figure>
