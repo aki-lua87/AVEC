@@ -29,8 +29,8 @@ UnityMCPのPreviewScene内で撮影用UIを複製し、その複製だけに現�
 | --- | --- | --- |
 | `playlist-overview.png` | 「サンプル動画」タブの現行UIを正面から静止描画 | トップ、プレイリストの使い方 |
 | `playlist-queue.png` | 現行UIの空キューを静止描画 | キュー・履歴・保存リスト |
-| `playlist-setup.png` | Documentation PlaylistのPlaylistSetup | 最初のプレイリスト、Inspectorの設定項目 |
-| `playlist-editor.png` | DocumentationPlaylistを開いた動画編集ウィンドウ | 最初のプレイリスト |
+| `playlist-setup.png` | Documentation PlaylistのPlaylistSetup | プレイリストの作成、Inspectorの設定項目 |
+| `playlist-editor.png` | DocumentationPlaylistを開いた動画編集ウィンドウ | プレイリストの作成 |
 | `playlist-special-lists.png` | Inspector画像から特殊リスト設定部分を切り出したもの | キュー・履歴・保存リスト |
 
 一覧・キューはUnityの静止描画、Inspector・編集ウィンドウはUnity編集画面を撮影・切り出した画像です。VRChat内の動作確認画像ではありません。
